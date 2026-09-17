@@ -1,0 +1,195 @@
+//
+//  Strings.swift
+//  Slateflow
+//
+//  Every user-facing string in the UI. One place to edit copy.
+//
+
+import Foundation
+
+enum Strings {
+
+    enum App {
+        static let inspector = "Inspector"
+        static let inspectorToggleHelp = "Show or hide the inspector"
+    }
+
+    enum Format {
+        static let section = "Project"
+        static let resolution = "Resolution"
+        static let orientation = "Orientation"
+        static let dimensions = "Dimensions"
+        static let width = "Width"
+        static let height = "Height"
+        static let frameRate = "Frame rate"
+        static let outputSize = "Output size"
+        static let aspectRatio = "Aspect ratio"
+        static let dimensionSeparator = "×"
+        static let dimensionsOdd = "Final Cut needs even dimensions — odd values round down on build."
+        static let dimensionsTooSmall = "Width and height must be at least 2 px."
+    }
+
+    enum ProjectFolder {
+        static let section = "Project Folder"
+        static let templateName = "Template name"
+        static let rootFolder = "Root folder"
+        static let sequenceNote =
+            "The 3-digit prefix is assigned on build, from the numbered folders already "
+            + "in the location you pick."
+    }
+
+    enum FootageSources {
+        static let section = "Footage Sources"
+        static let addPrompt = "Add a source — Insta360, Lumix…"
+        static let add = "Add source"
+        static let remove = "Remove source"
+    }
+
+    enum FCP {
+        static let section = "FCP Library"
+        static let leaveFilesInPlace = "Leave files in place"
+        static let leaveFilesInPlaceHelp =
+            "Media stays in the project’s folders instead of being copied into the FCP library."
+    }
+
+    enum SmartCollections {
+        static let section = "Smart Collections"
+        static let footer =
+            "Enabled collections are written into the FCP library template and auto-sort clips on import."
+        static let add = "Add Collection"
+        static let screenRecordings = "Screen Recordings"
+        static let screenRecordingsValue = "Screen Recording"
+        static let byCameraAngle = "By Camera Angle…"
+        static let byShootDay = "By Shoot Day…"
+        static let byKeyword = "By Keyword…"
+        static let videoRole = "Video Role…"
+        static let audioRole = "Audio Role…"
+        static let remove = "Remove"
+        static let footageLinkedHelp =
+            "Managed automatically by its Footage Source — turn that source off to remove it."
+
+        enum Draft {
+            static let cancel = "Cancel"
+            static let add = "Add"
+
+            static let cameraAngleTitle = "New Camera Angle Collection"
+            static let shootDayTitle = "New Shoot Day Collection"
+            static let keywordTitle = "New Keyword Collection"
+            static let videoRoleTitle = "New Video Role"
+            static let audioRoleTitle = "New Audio Role"
+
+            static let cameraAnglePrompt = "Cam A"
+            static let shootDayPrompt = "Day 01"
+            static let keywordPrompt = "B-Roll"
+            static let rolePrompt = "Role name"
+
+            static let cameraAngleHelp =
+                "Matches clips whose Inspector ▸ Info ▸ Camera Angle equals this value."
+            static let shootDayHelp =
+                "Matches the keyword FCP creates when a day’s folder is imported with “Keywords: from folders”."
+            static let keywordHelp = "Matches clips tagged with this keyword."
+            static let roleHelp =
+                "Creates the role and a Smart Collection that gathers every clip assigned to it."
+        }
+    }
+
+    enum Inspector {
+        static let viewPicker = "View"
+        static let archives = "Build Archives"
+        static let preview = "Folder Preview"
+        static let clearHistory = "Clear Archive"
+        static func clearConfirmTitle(count: Int) -> String {
+            "Delete all \(count) build record\(count == 1 ? "" : "s")?"
+        }
+        static let clearConfirmAction = "Delete All"
+        static let clearConfirmMessage = "This can't be undone. The projects on disk aren't affected — only this history list."
+        static let backupMenu = "Backup"
+        static let exportBackup = "Export Backup…"
+        static let importBackup = "Import Backup…"
+        static let backupErrorTitle = "Backup failed"
+    }
+
+    enum History {
+        static let emptyTitle = "No Builds Yet"
+        static let emptyMessage =
+            "Configure the options on the left, then build a project. "
+            + "Each successful build records a locked-in snapshot here."
+        static let resolution = "Resolution"
+        static let orientation = "Orientation"
+        static let size = "Size"
+        static let aspect = "Aspect"
+        static let frameRate = "Frame rate"
+        static let roles = "Roles"
+        static let collections = "Collections"
+        static let footageSources = "Footage sources"
+        static let leaveFilesInPlace = "Leave files in place"
+        static let copyIntoLibrary = "Copy into library"
+        static let reuse = "Use These Settings"
+        static let reuseHelp =
+            "Restores resolution, aspect, frame rate, and leave-in-place from this build. "
+            + "Roles, Smart Collections, and footage sources aren't restored — only their counts were saved."
+        static let delete = "Delete"
+        static let storageNote = "Saved locally in Application Support. Never leaves this Mac."
+    }
+
+    enum Preview {
+        static let footer = "Created inside the folder you choose when you build."
+        static func note(_ text: String) -> String { "· \(text)" }
+    }
+
+    enum About {
+        static let menuItem = "About Slate"
+        static let openLog = "Open Log File"
+        static let privacy =
+            "100% local & offline. Slate runs entirely on your Mac — no telemetry, no cloud, "
+            + "no tracking. Your files and configurations never leave this machine."
+        static let github = "View on GitHub"
+        static let license = "Released under the MIT License."
+        static let viewLicense = "View License"
+        static let licenseTitle = "MIT License"
+        static let done = "Done"
+
+        static let mitLicense = """
+        MIT License
+
+        Copyright (c) 2026 Ashifali Shaikh
+
+        Permission is hereby granted, free of charge, to any person obtaining a copy
+        of this software and associated documentation files (the "Software"), to deal
+        in the Software without restriction, including without limitation the rights
+        to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+        copies of the Software, and to permit persons to whom the Software is
+        furnished to do so, subject to the following conditions:
+
+        The above copyright notice and this permission notice shall be included in all
+        copies or substantial portions of the Software.
+
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+        SOFTWARE.
+        """
+    }
+
+    enum Build {
+        static let menuItem = "Build Project…"
+        static let button = "Choose Destination & Build…"
+        static let panelPrompt = "Build Here"
+        static func panelMessage(rootFolder: String) -> String {
+            "Choose where to create “\(rootFolder)”."
+        }
+        static let errorTitle = "Couldn’t build the project"
+        static let ok = "OK"
+        static let chooseAnother = "Choose Another Folder…"
+        static let successTitle = "Project created"
+        static func successMessage(rootFolder: String) -> String {
+            "“\(rootFolder)” is ready to open in Final Cut Pro."
+        }
+        static let openInFCP = "Open in Final Cut Pro"
+        static let reveal = "Reveal in Finder"
+        static let done = "Done"
+    }
+}
