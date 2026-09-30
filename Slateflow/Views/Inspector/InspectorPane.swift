@@ -33,7 +33,7 @@ struct InspectorPane: View {
     }
 
     /// History and Preview are structurally very different (list rows vs. a tree), so
-    /// crossfading between them briefly overlaps two very different layouts — that
+    /// crossfading between them briefly overlaps two very different layouts - that
     /// overlap is what reads as flicker, not a smooth fade. Switch instantly instead.
     private var paneSelection: Binding<Pane> {
         Binding(get: { pane }, set: { pane = $0 })
@@ -129,7 +129,7 @@ struct InspectorPane: View {
         }
     }
 
-    /// Save a copy of the build archive — e.g. before wiping or reinstalling macOS.
+    /// Save a copy of the build archive - e.g. before wiping or reinstalling macOS.
     private func exportBackup() {
         let panel = NSSavePanel()
         panel.nameFieldStringValue = "Slateflow Build History.json"
@@ -142,7 +142,7 @@ struct InspectorPane: View {
         }
     }
 
-    /// Restore a previously exported archive — records already present are skipped,
+    /// Restore a previously exported archive - records already present are skipped,
     /// nothing existing is ever removed.
     private func importBackup() {
         let panel = NSOpenPanel()

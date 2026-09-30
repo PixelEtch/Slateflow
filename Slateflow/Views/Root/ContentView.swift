@@ -46,20 +46,19 @@ struct ContentView: View {
             } message: {
                 Text(buildError ?? "")
             }
-            .alert(Strings.Build.successTitle,
-                   isPresented: Binding(get: { builtProject != nil },
+            .sheet(isPresented: Binding(get: { builtProject != nil },
                                         set: { if !$0 { builtProject = nil } })) {
-                Button(Strings.Build.openInFCP) {
-                    if let builtProject { openInFinalCut(fcpOpenTarget(for: builtProject)) }
+                if let builtProject {
+                    BuildSuccessSheet(
+                        rootFolder: builtProject.lastPathComponent,
+                        onOpen: {
+                            // Ready to paste into Final Cut's New Library name field.
+                            NSPasteboard.general.clearContents()
+                            NSPasteboard.general.setString(builtProject.lastPathComponent, forType: .string)
+                            openInFinalCut(fcpxmlURL(for: builtProject))
+                        },
+                        onReveal: { NSWorkspace.shared.activateFileViewerSelecting([builtProject]) })
                 }
-                Button(Strings.Build.reveal) {
-                    if let builtProject {
-                        NSWorkspace.shared.activateFileViewerSelecting([builtProject])
-                    }
-                }
-                Button(Strings.Build.done, role: .cancel) {}
-            } message: {
-                Text(Strings.Build.successMessage(rootFolder: builtProject?.lastPathComponent ?? ""))
             }
     }
 
@@ -86,22 +85,9 @@ struct ContentView: View {
         }
     }
 
-    /// `<root>/FCP/<root>.fcpxml` — matches the name `FCPLibrarySettings.write` gives it.
+    /// `<root>/FCP/<root>.fcpxml` - matches the name `FCPLibrarySettings.write` gives it.
     private func fcpxmlURL(for root: URL) -> URL {
         root.appendingPathComponent("FCP").appendingPathComponent("\(root.lastPathComponent).fcpxml")
-    }
-
-    /// `<root>/FCP/<root>.fcpbundle` — matches the name `LibraryTemplate.copy` gives it.
-    private func fcpbundleURL(for root: URL) -> URL {
-        root.appendingPathComponent("FCP")
-            .appendingPathComponent("\(root.lastPathComponent).\(LibraryTemplate.resourceExtension)")
-    }
-
-    /// Prefer opening the pre-made library (skips FCP's "Open Library" dialog entirely)
-    /// when one was created; otherwise fall back to the fcpxml.
-    private func fcpOpenTarget(for root: URL) -> URL {
-        let bundle = fcpbundleURL(for: root)
-        return FileManager.default.fileExists(atPath: bundle.path) ? bundle : fcpxmlURL(for: root)
     }
 
     /// `NSWorkspace.open(_:)` (the plain Bool-returning overload) doesn't reliably

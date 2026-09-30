@@ -59,9 +59,6 @@ final class SlateStore {
         return FootageSource.presets.filter(enabled.contains) + footageSources.filter(\.isCustom)
     }
 
-    /// Filled in when a build target is chosen; drives the folder prefix.
-    private(set) var sequence = 1
-
     let history = SelectionHistory()
 
     init(defaults: UserDefaults = .standard) {
@@ -90,14 +87,22 @@ final class SlateStore {
         }
     }
 
-    /// Live-derived from `templateName`, sanitised to a single safe path component
-    /// (no separators, no `..`) so it can never escape the chosen destination.
-    var rootFolderName: String {
-        let safe = SafeName.component(templateName, fallback: ProjectNaming.defaultTemplateName)
-        return FolderName(sequence: sequence, templateName: safe).formatted
+    /// Display name before a destination is picked: the `NNN` prefix depends on the
+    /// numbered folders already there, so it is only known at build time.
+    var rootFolderName: String { "NNN - \(safeTemplateName)" }
+
+    /// The real root folder name for a given sequence number.
+    func rootFolderName(sequence: Int) -> String {
+        FolderName(sequence: sequence, templateName: safeTemplateName).formatted
     }
 
-    /// Derived live from (choice, aspect, custom dimensions) — no stored copy,
+    /// `templateName` sanitised to a single safe path component (no separators,
+    /// no `..`) so it can never escape the chosen destination.
+    private var safeTemplateName: String {
+        SafeName.component(templateName, fallback: ProjectNaming.defaultTemplateName)
+    }
+
+    /// Derived live from (choice, aspect, custom dimensions) - no stored copy,
     /// so binding the controls straight to `choice` / `aspect` / `customWidth`
     /// keeps the output size and preview in sync with no "apply" step.
     var format: VideoFormat {
@@ -114,9 +119,9 @@ final class SlateStore {
     }
 
     // Intents mutate configuration only. Nothing is written to `history` until a
-    // successful build — see `buildProject(at:)`.
+    // successful build - see `buildProject(at:)`.
 
-    /// Reapply a past build's format, naming, and leave-in-place setting — what
+    /// Reapply a past build's format, naming, and leave-in-place setting - what
     /// "Build Archives" is actually for. Roles, Smart Collections, and footage
     /// sources aren't restored: only their counts were ever recorded.
     func applyConfiguration(from record: BuildRecord) {
@@ -158,10 +163,16 @@ final class SlateStore {
         }
     }
 
-    /// Add a user-named source (Insta360, Lumix, …). The name is sanitised to a safe
-    /// path component; no-op on blank or case-insensitive duplicate.
+    /// Add a user-named source (Lumix, Blackmagic, …). The name is sanitised to a safe
+    /// path component; a preset's name enables that preset; no-op on blank or
+    /// case-insensitive duplicate.
     func addCustomFootageSource(_ name: String) {
         let safe = SafeName.component(name, fallback: "")
+        if let preset = FootageSource.presets.first(where: {
+            $0.folderName.caseInsensitiveCompare(safe) == .orderedSame
+        }) {
+            return setFootageSource(preset, enabled: true)
+        }
         guard !safe.isEmpty,
               !footageSources.contains(where: {
                   $0.folderName.caseInsensitiveCompare(safe) == .orderedSame
@@ -179,7 +190,7 @@ final class SlateStore {
         fcp.smartCollections.append(spec)
     }
 
-    /// Removes the linked collection only — a manually-added collection of the same name stays.
+    /// Removes the linked collection only - a manually-added collection of the same name stays.
     private func removeFootageLinkedCollection(_ source: FootageSource) {
         fcp.smartCollections.removeAll { $0.isFootageLinked && $0.name == source.folderName }
     }
@@ -220,7 +231,7 @@ final class SlateStore {
     }
 
     func removeCollection(_ spec: SmartCollectionSpec) {
-        // A single-rule role collection owns its role — drop both together.
+        // A single-rule role collection owns its role - drop both together.
         if spec.rules.count == 1, case .role(let name, _) = spec.rules[0] {
             fcp.videoRoles.removeAll { $0.name == name }
             fcp.audioRoles.removeAll { $0.name == name }
@@ -237,11 +248,10 @@ final class SlateStore {
     }
 
     /// Create the full directory hierarchy under `destination`, named `NNN - <template>`,
-    /// write the FCP library template (`<root>/FCP/…`) and the manifest, then record history.
+    /// write the FCPXML (`<root>/FCP/…`) and the manifest, then record history.
     @discardableResult
     func buildProject(at destination: URL) async throws -> URL {
-        sequence = ProjectNaming.nextSequence(in: destination)
-        let root = rootFolderName
+        let root = rootFolderName(sequence: ProjectNaming.nextSequence(in: destination))
         let rootURL = destination.appendingPathComponent(root)
 
         // Backstop: even with `root` sanitised, refuse to write outside the chosen folder.
@@ -249,7 +259,7 @@ final class SlateStore {
             Log.error("Refused build: “\(root)” resolves outside \(destination.path)")
             throw SlateError.destinationEscape(root)
         }
-        // Never merge into (or follow a symlink at) a folder that already exists —
+        // Never merge into (or follow a symlink at) a folder that already exists -
         // build into a fresh directory only.
         guard !FileManager.default.fileExists(atPath: rootURL.path) else {
             Log.error("Refused build: “\(root)” already exists at the destination")
@@ -275,15 +285,6 @@ final class SlateStore {
                 try settings.write(into: rootURL.appendingPathComponent("FCP"), format: fmt, eventName: root)
                 Log.event("FCPXML + import notes written to \(root)/FCP")
 
-                do {
-                    if try LibraryTemplate.copy(into: rootURL.appendingPathComponent("FCP"), eventName: root) != nil {
-                        Log.event("Library template copied to \(root)/FCP")
-                    }
-                } catch {
-                    // Non-fatal: the fcpxml-only flow still works without a pre-made library.
-                    Log.error("Library template copy skipped: \(error.localizedDescription)")
-                }
-
                 try manifest.write(to: rootURL)
                 Log.event("Manifest written; build complete: “\(root)”")
             }.value
@@ -292,8 +293,8 @@ final class SlateStore {
             throw error
         }
 
-        // Only a successful build records history — the final locked-in state.
-        history.record(BuildRecord(store: self))
+        // Only a successful build records history - the final locked-in state.
+        history.record(BuildRecord(store: self, rootFolder: root))
         return rootURL
     }
 }

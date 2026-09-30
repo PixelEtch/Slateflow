@@ -34,17 +34,17 @@ extension MediaRole {
 /// A Smart Collection = a name, a match mode (all/any), and one or more rules.
 /// Each rule maps to one FCPXML `match-*` element. Rules only bite if the
 /// matching signal (role, keyword, metadata) is stamped on the asset at import
-/// — see the header notes on each `Rule` case.
+/// - see the header notes on each `Rule` case.
 struct SmartCollectionSpec: Hashable, Identifiable {
     enum Match: String, Hashable { case all, any }
 
     enum Rule: Hashable {
-        /// `videoOnly | audioOnly | stills | videoWithAudio` — the FCPXML DTD's
+        /// `videoOnly | audioOnly | stills | videoWithAudio` - the FCPXML DTD's
         /// enumerated `match-media` type values.
         case mediaType(String)
         /// Assigned role or sub-role ("Video.Screen Recording"). Stamp via Assign Role on import.
         case role(String, include: Bool = true)
-        /// Keyword Collections — e.g. day folders imported with "Keywords: from folders".
+        /// Keyword Collections - e.g. day folders imported with "Keywords: from folders".
         case keywords([String], all: Bool = false)
         /// Clip name + notes substring. Least stable signal; pair with `mediaType`.
         case text(String, include: Bool = true)
@@ -179,7 +179,7 @@ nonisolated enum FrameRate: Double, CaseIterable, Identifiable {
 // MARK: - Library settings
 
 struct FCPLibrarySettings {
-    /// "Leave files in place" — media stays in the project folders, not copied into the library.
+    /// "Leave files in place" - media stays in the project folders, not copied into the library.
     var keepMediaInPlace = true
     var frameRate: FrameRate = .fps25
     var videoRoles: [MediaRole] = MediaRole.defaultVideo
@@ -197,12 +197,14 @@ struct FCPLibrarySettings {
             attributes: [.posixPermissions: FilePermissions.directory])
 
         let xmlURL = fcpFolder.appendingPathComponent("\(eventName).fcpxml")
-        let xml = FCPXML.document(settings: self, format: format, eventName: eventName)
+        let libraryURL = fcpFolder.appendingPathComponent("\(eventName).fcpbundle", isDirectory: true)
+        let xml = FCPXML.document(settings: self, format: format, eventName: eventName,
+                                  libraryLocation: libraryURL)
         try xml.write(to: xmlURL, atomically: true, encoding: .utf8)
         FilePermissions.harden(file: xmlURL)
 
         guard keepMediaInPlace else { return }
-        // No FCPXML attribute controls this — it's an import-time preference. Leave a note.
+        // No FCPXML attribute controls this - it's an import-time preference. Leave a note.
         let note = """
         # Import settings
 
@@ -219,30 +221,6 @@ struct FCPLibrarySettings {
     }
 }
 
-// MARK: - Library template
-
-/// Ships a blank `.fcpbundle` as an app resource, so a build can place a correctly
-/// named, correctly located library next to the fcpxml — instead of Final Cut's
-/// default "Untitled" from its own New Library panel. Purely additive: when no
-/// template is bundled with the app, `copy` no-ops and the fcpxml-only flow is
-/// unchanged.
-nonisolated enum LibraryTemplate {
-    static let resourceName = "LibraryTemplate"
-    static let resourceExtension = "fcpbundle"
-
-    /// Copy the bundled blank library into `fcpFolder` as `<eventName>.fcpbundle`.
-    /// Returns the copied URL, or `nil` when no template is bundled with the app.
-    @discardableResult
-    static func copy(into fcpFolder: URL, eventName: String,
-                     fileManager: FileManager = .default) throws -> URL? {
-        guard let template = Bundle.main.url(forResource: resourceName, withExtension: resourceExtension)
-        else { return nil }
-        let destination = fcpFolder.appendingPathComponent("\(eventName).\(resourceExtension)")
-        try fileManager.copyItem(at: template, to: destination)
-        return destination
-    }
-}
-
 // MARK: - FCPXML
 
 nonisolated enum FCPXML {
@@ -250,14 +228,19 @@ nonisolated enum FCPXML {
     /// resolution/orientation, plus role- and media-type Smart Collections in the event.
     /// FCP creates any referenced custom role on import.
     // Verified against a real "Export XML" from Final Cut Pro (1.14): its <format> carries
-    // colorSpace, and its <sequence> carries audioLayout/audioRate — both #IMPLIED per the
+    // colorSpace, and its <sequence> carries audioLayout/audioRate - both #IMPLIED per the
     // DTD (so structurally optional) but expected by FCP's importer for a project sequence.
-    static func document(settings: FCPLibrarySettings, format: VideoFormat, eventName: String) -> String {
+    /// `libraryLocation`: where the library should live. When nothing exists there yet,
+    /// FCP asks which library to import into, and its New… panel opens in that folder -
+    /// so the library FCP creates is always the installed FCP's version.
+    static func document(settings: FCPLibrarySettings, format: VideoFormat, eventName: String,
+                         libraryLocation: URL? = nil) -> String {
         let collections = settings.smartCollections
             .filter(\.enabled)
             .map { collection($0) }
             .joined(separator: "\n")
         let formatName = "Slate \(format.width)×\(format.height)"
+        let library = libraryLocation.map { #"<library location="\#(escape($0.absoluteString))">"# } ?? "<library>"
         return """
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE fcpxml>
@@ -265,7 +248,7 @@ nonisolated enum FCPXML {
         <resources>
         <format id="r1" name="\(escape(formatName))" width="\(format.width)" height="\(format.height)" frameDuration="\(settings.frameDurationFCPX)" colorSpace="1-1-1 (Rec. 709)"/>
         </resources>
-        <library>
+        \(library)
         <event name="\(escape(eventName))">
         <project name="\(escape(eventName))">
         <sequence format="r1" duration="0s" tcStart="0s" tcFormat="NDF" audioLayout="stereo" audioRate="48k">
@@ -299,7 +282,7 @@ nonisolated enum FCPXML {
             </match-roles>
             """
         case .keywords(let words, let all):
-            // `keyword-name` is EMPTY per the DTD — the text goes in `value`, not as content.
+            // `keyword-name` is EMPTY per the DTD - the text goes in `value`, not as content.
             let items = words.map { #"<keyword-name value="\#(escape($0))"/>"# }.joined(separator: "\n")
             return """
             <match-keywords rule="\(all ? "includesAll" : "includesAny")">

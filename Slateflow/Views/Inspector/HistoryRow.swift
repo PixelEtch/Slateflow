@@ -14,14 +14,14 @@ struct HistoryRow: View {
     @State private var isExpanded = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    /// Chevron width + the HStack spacing after it — lets the expanded content
+    /// Chevron width + the HStack spacing after it - lets the expanded content
     /// align under the title text, not under the chevron.
     private static let contentIndent: CGFloat = 10 + Spacing.xs
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .top, spacing: Spacing.xs) {
-                Image(systemName: "chevron.right")
+                Image(systemName: SFSymbol.disclosure)
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.secondary)
                     .rotationEffect(.degrees(isExpanded ? 90 : 0))
@@ -41,11 +41,12 @@ struct HistoryRow: View {
                     .foregroundStyle(.secondary)
             }
             .contentShape(Rectangle())
-            .onTapGesture {
-                withAnimation(reduceMotion ? nil : .snappy) { isExpanded.toggle() }
-            }
+            .onTapGesture(perform: toggleExpanded)
+            .accessibilityElement(children: .combine)
+            .accessibilityAddTraits(.isButton)
+            .accessibilityAction { toggleExpanded() }
 
-            // Always present (never inserted/removed) — List on macOS snaps row
+            // Always present (never inserted/removed) - List on macOS snaps row
             // height instead of animating it when a child is conditionally added;
             // animating height + opacity on a permanent view avoids that jump.
             VStack(alignment: .leading, spacing: Spacing.xs) {
@@ -83,8 +84,12 @@ struct HistoryRow: View {
         .overlay(alignment: .bottom) { Divider() }
     }
 
-    /// "4K · 16:9 · 25 fps" — the format subtitle is Custom-aware: Custom builds have
+    /// "4K · 16:9 · 25 fps" - the format subtitle is Custom-aware: Custom builds have
     /// no orientation, so the subtitle falls back to just size + frame rate.
+    private func toggleExpanded() {
+        withAnimation(reduceMotion ? nil : .snappy) { isExpanded.toggle() }
+    }
+
     private var formatSubtitle: String {
         let resolution = record.resolution == "Custom" ? record.dimensions : record.resolution
         return [resolution, record.aspectRatio, record.frameRate].joined(separator: " · ")

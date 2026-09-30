@@ -4,28 +4,36 @@
 //
 //  Central spacing scale, colour tokens, and view-layer SF Symbol names.
 //  Views reference these instead of literals. The grouped `Form` owns its own
-//  section spacing — `Spacing` is only for the custom-layout surfaces
+//  section spacing - `Spacing` is only for the custom-layout surfaces
 //  (bars, inspector header, tree rows, cards, sheet).
 //
 
 import SwiftUI
 
 enum Spacing {
-    /// 4 — icon ↔ label, tight inline gaps
+    /// 4 - icon ↔ label, tight inline gaps
     static let xxs: CGFloat = 4
-    /// 8 — default gap between related elements
+    /// 8 - default gap between related elements
     static let xs: CGFloat = 8
-    /// 12 — header insets, control padding
+    /// 12 - header insets, control padding
     static let sm: CGFloat = 12
-    /// 16 — bar / section horizontal padding
+    /// 16 - bar / section horizontal padding
     static let md: CGFloat = 16
-    /// 20 — grid column gutter, sheet padding
+    /// 20 - grid column gutter, sheet padding
     static let lg: CGFloat = 20
+    /// 220 - max width of a single-line text field inside a form row
+    static let fieldWidth: CGFloat = 220
 }
 
 enum Palette {
     /// Directory / folder iconography.
     static let folder = Color.blue
+    /// Inline validation warnings.
+    static let warning = Color.orange
+    /// Completed build.
+    static let success = Color.green
+    /// Privacy / security reassurance.
+    static let secure = Color.green
 
     /// Smart-collection accent tints, keyed by what the collection filters on.
     static let sourceVideo = Color.blue
@@ -52,4 +60,9 @@ enum SFSymbol {
     static let remove = "minus.circle.fill"
     static let backup = "square.and.arrow.up.on.square"
     static let reuse = "arrow.triangle.2.circlepath"
+    static let warning = "exclamationmark.triangle"
+    static let footageLinked = "link"
+    static let disclosure = "chevron.right"
+    static let privacy = "lock.shield"
+    static let success = "checkmark.circle.fill"
 }

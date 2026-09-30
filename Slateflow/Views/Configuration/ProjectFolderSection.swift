@@ -15,11 +15,8 @@ struct ProjectFolderSection: View {
             LabeledContent(Strings.ProjectFolder.templateName) {
                 TextField(Strings.ProjectFolder.templateName, text: $store.templateName)
                     .labelsHidden()
-                    .textFieldStyle(.plain)
-                    .multilineTextAlignment(.trailing)
-                    .padding(.horizontal, Spacing.xs)
-                    .padding(.vertical, Spacing.xxs)
-                    .background(.fill.tertiary, in: .rect(cornerRadius: 4))
+                    .textFieldStyle(.roundedBorder)
+                    .frame(maxWidth: Spacing.fieldWidth)
             }
 
             LabeledContent(Strings.ProjectFolder.rootFolder) {

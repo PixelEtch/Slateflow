@@ -9,7 +9,7 @@ import Foundation
 
 /// A locked-in snapshot of the configuration, captured only when a build succeeds.
 /// This is what "Build Archives" actually is: a library of past project
-/// *configurations* to reuse — not a record of where anything was written.
+/// *configurations* to reuse - not a record of where anything was written.
 /// Roles/collections/footage sources are counted for display only; their exact
 /// names were never captured, so `SlateStore.applyConfiguration` can't restore them.
 struct BuildRecord: Identifiable, Codable {
@@ -18,11 +18,11 @@ struct BuildRecord: Identifiable, Codable {
     let rootFolder: String
     let resolution: String
     let orientation: String
-    let aspectRawValue: String        // `AspectRatio.rawValue` — exact, for restore
+    let aspectRawValue: String        // `AspectRatio.rawValue` - exact, for restore
     let dimensions: String
-    let aspectRatio: String           // reduced pixel ratio — display only
-    let frameRateValue: Double        // `FrameRate.rawValue` — exact, for restore
-    let frameRate: String             // "25 fps" — display only
+    let aspectRatio: String           // reduced pixel ratio - display only
+    let frameRateValue: Double        // `FrameRate.rawValue` - exact, for restore
+    let frameRate: String             // "25 fps" - display only
     let width: Int
     let height: Int
     let leaveFilesInPlace: Bool
@@ -31,13 +31,13 @@ struct BuildRecord: Identifiable, Codable {
     let footageSourceCount: Int
 
     @MainActor
-    init(store: SlateStore) {
+    init(store: SlateStore, rootFolder: String) {
         id = UUID()
         time = Date()
-        rootFolder = store.rootFolderName
+        self.rootFolder = rootFolder
         resolution = store.choice.rawValue
-        orientation = store.choice == .custom ? "—" : store.orientation.rawValue
-        aspectRawValue = store.choice == .custom ? "—" : store.aspect.rawValue
+        orientation = store.choice == .custom ? "-" : store.orientation.rawValue
+        aspectRawValue = store.choice == .custom ? "-" : store.aspect.rawValue
         dimensions = store.format.pixelDimensions
         aspectRatio = store.format.aspectRatio
         frameRateValue = store.fcp.frameRate.rawValue
@@ -56,7 +56,7 @@ struct BuildRecord: Identifiable, Codable {
 final class SelectionHistory {
     private(set) var builds: [BuildRecord] = []
 
-    /// `~/Library/Application Support/Slateflow/` — created on first access.
+    /// `~/Library/Application Support/Slateflow/` - created on first access.
     nonisolated static let directoryURL: URL = {
         let base = (try? FileManager.default.url(for: .applicationSupportDirectory,
                                                  in: .userDomainMask,
@@ -82,7 +82,7 @@ final class SelectionHistory {
     func remove(_ build: BuildRecord) { builds.removeAll { $0.id == build.id }; persist() }
     func clear() { builds.removeAll(); persist() }
 
-    /// Merge a previously exported `BuildHistory.json` in — e.g. after a fresh
+    /// Merge a previously exported `BuildHistory.json` in - e.g. after a fresh
     /// Mac install. Records already present (matched by id) are skipped, so
     /// importing twice is harmless; nothing existing is ever removed.
     func importBackup(from url: URL) throws {

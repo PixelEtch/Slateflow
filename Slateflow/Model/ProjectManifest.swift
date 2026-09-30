@@ -29,7 +29,7 @@ nonisolated struct ProjectManifest: Codable {
         template = root
         created = Date()
         resolution = store.choice.rawValue
-        orientation = store.choice == .custom ? "—" : store.orientation.rawValue
+        orientation = store.choice == .custom ? "-" : store.orientation.rawValue
         aspect = store.choice == .custom ? store.format.aspectRatio : store.aspect.rawValue
         width = store.format.width
         height = store.format.height

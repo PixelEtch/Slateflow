@@ -31,10 +31,10 @@ struct FormatSection: View {
                 LabeledContent(Strings.Format.dimensions) {
                     HStack(spacing: Spacing.xs) {
                         TextField(Strings.Format.width, value: $store.customWidth, format: .number)
-                            .labelsHidden().frame(width: 76)
+                            .labelsHidden().textFieldStyle(.roundedBorder).frame(width: 76)
                         Text(Strings.Format.dimensionSeparator).foregroundStyle(.secondary)
                         TextField(Strings.Format.height, value: $store.customHeight, format: .number)
-                            .labelsHidden().frame(width: 76)
+                            .labelsHidden().textFieldStyle(.roundedBorder).frame(width: 76)
                     }
                     .multilineTextAlignment(.trailing)
                 }
@@ -42,9 +42,9 @@ struct FormatSection: View {
                 if let issue = store.customDimensionsIssue {
                     Label(issue == .tooSmall ? Strings.Format.dimensionsTooSmall
                                              : Strings.Format.dimensionsOdd,
-                          systemImage: "exclamationmark.triangle")
+                          systemImage: SFSymbol.warning)
                         .font(.caption)
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(Palette.warning)
                 }
 
                 LabeledContent(Strings.Format.aspectRatio, value: store.format.aspectRatio)

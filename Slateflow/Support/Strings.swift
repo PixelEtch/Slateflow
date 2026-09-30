@@ -25,7 +25,7 @@ enum Strings {
         static let outputSize = "Output size"
         static let aspectRatio = "Aspect ratio"
         static let dimensionSeparator = "×"
-        static let dimensionsOdd = "Final Cut needs even dimensions — odd values round down on build."
+        static let dimensionsOdd = "Final Cut needs even dimensions - odd values round down on build."
         static let dimensionsTooSmall = "Width and height must be at least 2 px."
     }
 
@@ -40,7 +40,8 @@ enum Strings {
 
     enum FootageSources {
         static let section = "Footage Sources"
-        static let addPrompt = "Add a source — Insta360, Lumix…"
+        static let addLabel = "Other source"
+        static let addPrompt = "e.g. Lumix S5, Blackmagic"
         static let add = "Add source"
         static let remove = "Remove source"
     }
@@ -66,7 +67,7 @@ enum Strings {
         static let audioRole = "Audio Role…"
         static let remove = "Remove"
         static let footageLinkedHelp =
-            "Managed automatically by its Footage Source — turn that source off to remove it."
+            "Managed automatically by its Footage Source - turn that source off to remove it."
 
         enum Draft {
             static let cancel = "Cancel"
@@ -102,7 +103,7 @@ enum Strings {
             "Delete all \(count) build record\(count == 1 ? "" : "s")?"
         }
         static let clearConfirmAction = "Delete All"
-        static let clearConfirmMessage = "This can't be undone. The projects on disk aren't affected — only this history list."
+        static let clearConfirmMessage = "This can't be undone. The projects on disk aren't affected - only this history list."
         static let backupMenu = "Backup"
         static let exportBackup = "Export Backup…"
         static let importBackup = "Import Backup…"
@@ -127,7 +128,7 @@ enum Strings {
         static let reuse = "Use These Settings"
         static let reuseHelp =
             "Restores resolution, aspect, frame rate, and leave-in-place from this build. "
-            + "Roles, Smart Collections, and footage sources aren't restored — only their counts were saved."
+            + "Roles, Smart Collections, and footage sources aren't restored - only their counts were saved."
         static let delete = "Delete"
         static let storageNote = "Saved locally in Application Support. Never leaves this Mac."
     }
@@ -141,7 +142,7 @@ enum Strings {
         static let menuItem = "About Slate"
         static let openLog = "Open Log File"
         static let privacy =
-            "100% local & offline. Slate runs entirely on your Mac — no telemetry, no cloud, "
+            "100% local & offline. Slate runs entirely on your Mac - no telemetry, no cloud, "
             + "no tracking. Your files and configurations never leave this machine."
         static let github = "View on GitHub"
         static let license = "Released under the MIT License."
@@ -185,10 +186,15 @@ enum Strings {
         static let ok = "OK"
         static let chooseAnother = "Choose Another Folder…"
         static let successTitle = "Project created"
-        static func successMessage(rootFolder: String) -> String {
-            "“\(rootFolder)” is ready to open in Final Cut Pro."
-        }
-        static let openInFCP = "Open in Final Cut Pro"
+        static let nextStepsTitle = "In Final Cut Pro"
+        static let stepOpen = "Click Copy Name & Open below"
+        static let stepClick = "In the library window, click"
+        static let stepPaste = "Paste the name"
+        static let stepThen = "then"
+        static let fcpNew = "New…"
+        static let fcpSave = "Save"
+        static let pasteShortcut = "⌘V"
+        static let openInFCP = "Copy Name & Open in Final Cut Pro"
         static let reveal = "Reveal in Finder"
         static let done = "Done"
     }

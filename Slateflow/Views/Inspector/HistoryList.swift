@@ -2,7 +2,7 @@
 //  HistoryList.swift
 //  Slateflow
 //
-//  Build Archives list — reuse/delete a saved project configuration.
+//  Build Archives list - reuse/delete a saved project configuration.
 //
 
 import SwiftUI
@@ -23,7 +23,7 @@ struct HistoryList: View {
         } else {
             // Plain ScrollView + LazyVStack, not List: List is backed by NSTableView
             // on macOS, which doesn't smoothly animate row-height changes no matter
-            // the technique — this is pure SwiftUI layout, so it actually animates.
+            // the technique - this is pure SwiftUI layout, so it actually animates.
             ScrollView {
                 LazyVStack(spacing: 0) {
                     ForEach(history.builds.reversed()) { record in

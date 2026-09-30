@@ -2,7 +2,7 @@
 //  AboutView.swift
 //  Slateflow
 //
-//  "About Slate" window — version, privacy stance, MIT license, repo link, credit.
+//  "About Slate" window - version, privacy stance, MIT license, repo link, credit.
 //
 
 import SwiftUI
@@ -52,7 +52,7 @@ struct AboutView: View {
                 Text(Strings.About.privacy)
                     .fixedSize(horizontal: false, vertical: true)
             } icon: {
-                Image(systemName: "lock.shield").foregroundStyle(.green)
+                Image(systemName: SFSymbol.privacy).foregroundStyle(Palette.secure)
             }
             .font(.callout)
             .frame(maxWidth: 340, alignment: .leading)

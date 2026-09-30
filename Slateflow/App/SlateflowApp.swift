@@ -14,7 +14,7 @@ struct SlateflowApp: App {
         #if DEBUG
         slateSelfCheck()
         #endif
-        Log.event("Launched — \(AppInfo.versionLine)")
+        Log.event("Launched - \(AppInfo.versionLine)")
     }
 
     var body: some Scene {

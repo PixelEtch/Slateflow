@@ -15,7 +15,7 @@ func slateSelfCheck() {
     assert(FolderName(sequence: 42, templateName: "X").formatted == "042 - X")
     assert(FolderName(sequence: 1000, templateName: "X").formatted == "1000 - X")
 
-    // Frame rate — plain rates are 1/Ns; NTSC rates use the SMPTE drop-frame fraction.
+    // Frame rate - plain rates are 1/Ns; NTSC rates use the SMPTE drop-frame fraction.
     assert(FrameRate.fps25.frameDurationFCPX == "1/25s")
     assert(FrameRate.fps24.frameDurationFCPX == "1/24s")
     assert(FrameRate.fps29_97.frameDurationFCPX == "1001/30000s")
@@ -28,10 +28,10 @@ func slateSelfCheck() {
     assert(VideoFormat.uhd4k.aspectRatio == "16:9")
     assert(VideoFormat.uhd8k.width == 7680 && VideoFormat.uhd8k.height == 4320)
     assert(VideoFormat.custom(width: 2000, height: 1000).aspectRatio == "2:1")
-    assert(VideoFormat(name: "z", width: 0, height: 0).aspectRatio == "—")
+    assert(VideoFormat(name: "z", width: 0, height: 0).aspectRatio == "-")
     assert(ResolutionChoice.allCases.count == 5)
 
-    // Aspect-ratio transforms — tier (shorter edge) preserved, other edge derived.
+    // Aspect-ratio transforms - tier (shorter edge) preserved, other edge derived.
     assert(AspectRatio.wide169.apply(to: .hd1080) == .hd1080)
     assert(AspectRatio.wide169.apply(to: .uhd4k) == .uhd4k)
     assert(AspectRatio.wide169.apply(to: .k2).pixelDimensions == "1920 × 1080")   // 16:9 of the 1080 tier, not DCI 2048
@@ -53,7 +53,7 @@ func slateSelfCheck() {
     assert(Orientation.vertical.ratios.contains(osc.aspect))
 
     // Build Archives round-trip: a record captures enough to restore format,
-    // naming, and leave-in-place — not roles/collections/footage specifics.
+    // naming, and leave-in-place - not roles/collections/footage specifics.
     let sourceStore = SlateStore(defaults: UserDefaults(suiteName: "SlateflowSelfCheck-\(UUID().uuidString)")!)
     sourceStore.choice = .uhd4k
     sourceStore.orientation = .vertical
@@ -61,7 +61,8 @@ func slateSelfCheck() {
     sourceStore.fcp.frameRate = .fps29_97
     sourceStore.fcp.keepMediaInPlace = false
     sourceStore.templateName = "Commercial"
-    let snapshot = BuildRecord(store: sourceStore)
+    assert(sourceStore.rootFolderName == "NNN - Commercial")   // number unknown until build
+    let snapshot = BuildRecord(store: sourceStore, rootFolder: sourceStore.rootFolderName(sequence: 1))
     assert(snapshot.rootFolder == "001 - Commercial")
 
     let destStore = SlateStore(defaults: UserDefaults(suiteName: "SlateflowSelfCheck-\(UUID().uuidString)")!)
@@ -78,7 +79,7 @@ func slateSelfCheck() {
     customSource.choice = .custom
     customSource.customWidth = 1000
     customSource.customHeight = 500
-    let customSnapshot = BuildRecord(store: customSource)
+    let customSnapshot = BuildRecord(store: customSource, rootFolder: customSource.rootFolderName(sequence: 1))
     let customDest = SlateStore(defaults: UserDefaults(suiteName: "SlateflowSelfCheck-\(UUID().uuidString)")!)
     customDest.applyConfiguration(from: customSnapshot)
     assert(customDest.choice == .custom)
@@ -103,11 +104,8 @@ func slateSelfCheck() {
         .children.first { $0.name == "FCP" }!
     assert(previewOn.children.contains { $0.name == "Import Settings.md" })
     assert(!previewOff.children.contains { $0.name == "Import Settings.md" })
-    let bundled = Bundle.main.url(forResource: LibraryTemplate.resourceName,
-                                  withExtension: LibraryTemplate.resourceExtension) != nil
-    assert(previewOn.children.contains { $0.name == "R.fcpbundle" } == bundled)
 
-    // Directory tree — fixed Admin subfolders + only the selected Footage sources
+    // Directory tree - fixed Admin subfolders + only the selected Footage sources
     let sources: [FootageSource] = [.camA, .drone, .stockFootage]
     let tree = DirectoryNode.slateTemplate(root: "001 - SlateTemplate", footageSources: sources)
     let expectedTree: Set<String> = [
@@ -200,21 +198,26 @@ func slateSelfCheck() {
     assert(!store.fcp.smartCollections.contains { $0.name == "Drone" }, "linked collection not removed")
     // A manually-added collection of the same name is left alone by a source toggle.
     store.addQuickCollection(.keyword, value: "GoPro")      // manual, not linked
-    store.setFootageSource(.goPro, enabled: true)           // linked add skipped — name taken
-    store.setFootageSource(.goPro, enabled: false)          // removes linked only — none
+    store.setFootageSource(.goPro, enabled: true)           // linked add skipped - name taken
+    store.setFootageSource(.goPro, enabled: false)          // removes linked only - none
     assert(store.fcp.smartCollections.contains { $0.name == "GoPro" && !$0.isFootageLinked })
 
-    // Custom footage source (Insta360, Lumix, …)
-    store.addCustomFootageSource("Insta360")
-    assert(store.orderedFootageSources.contains { $0.folderName == "Insta360" && $0.isCustom })
-    assert(store.fcp.smartCollections.contains { $0.name == "Insta360" && $0.isFootageLinked })
+    // Custom footage source (Lumix, Blackmagic, …)
+    store.addCustomFootageSource("Lumix")
+    assert(store.orderedFootageSources.contains { $0.folderName == "Lumix" && $0.isCustom })
+    assert(store.fcp.smartCollections.contains { $0.name == "Lumix" && $0.isFootageLinked })
     let before = store.orderedFootageSources.count
-    store.addCustomFootageSource("  insta360 ")             // case-insensitive duplicate → no-op
+    store.addCustomFootageSource("  lumix ")                // case-insensitive duplicate → no-op
     assert(store.orderedFootageSources.count == before, "duplicate custom source added")
-    let insta = store.orderedFootageSources.first { $0.folderName == "Insta360" }!
-    store.setFootageSource(insta, enabled: false)
-    assert(!store.orderedFootageSources.contains { $0.folderName == "Insta360" })
-    assert(!store.fcp.smartCollections.contains { $0.name == "Insta360" })
+    let lumix = store.orderedFootageSources.first { $0.folderName == "Lumix" }!
+    store.setFootageSource(lumix, enabled: false)
+    assert(!store.orderedFootageSources.contains { $0.folderName == "Lumix" })
+    assert(!store.fcp.smartCollections.contains { $0.name == "Lumix" })
+
+    // Typing a preset's name enables the preset, not a custom duplicate.
+    store.addCustomFootageSource("insta360")
+    assert(store.footageSources.contains(.insta360) && !store.footageSources.contains { $0.isCustom })
+    store.setFootageSource(.insta360, enabled: false)
 
     // Path-traversal sanitisation
     let evil = SafeName.component("../../etc/passwd", fallback: "X")
@@ -236,18 +239,10 @@ func slateSelfCheck() {
     assert(dst.appendingPathComponent("001 - X").isContained(in: dst))
     assert(!dst.appendingPathComponent("../../X").isContained(in: dst))
 
-    // Library template — optional; no-ops cleanly when the app ships without one.
-    let libTmp = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(UUID().uuidString)
-    try? FileManager.default.createDirectory(at: libTmp, withIntermediateDirectories: true)
-    defer { try? FileManager.default.removeItem(at: libTmp) }
-    let templateBundled = Bundle.main.url(forResource: LibraryTemplate.resourceName,
-                                          withExtension: LibraryTemplate.resourceExtension) != nil
-    do {
-        let copied = try LibraryTemplate.copy(into: libTmp, eventName: "E")
-        assert((copied != nil) == templateBundled,
-               "copy() result should mirror whether a template is bundled")
-    } catch {
-        assertionFailure("Library template copy should not throw here: \(error)")
-    }
+    // FCPXML library location - points FCP's New Library panel at <root>/FCP.
+    let located = FCPXML.document(settings: FCPLibrarySettings(), format: .hd1080, eventName: "E",
+                                  libraryLocation: URL(fileURLWithPath: "/tmp/A & B/E.fcpbundle", isDirectory: true))
+    assert(located.contains(#"<library location="file:///tmp/A%20&amp;%20B/E.fcpbundle/">"#))
+    assert(FCPXML.document(settings: FCPLibrarySettings(), format: .hd1080, eventName: "E").contains("<library>"))
 }
 #endif

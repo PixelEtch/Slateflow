@@ -17,9 +17,9 @@ struct SmartCollectionRow: View {
                     HStack(spacing: Spacing.xxs) {
                         Text(spec.name)
                         if spec.isFootageLinked {
-                            Image(systemName: "link")
-                                .font(.caption2)
-                                .foregroundStyle(.tertiary)
+                            Image(systemName: SFSymbol.footageLinked)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
                                 .help(Strings.SmartCollections.footageLinkedHelp)
                         }
                     }

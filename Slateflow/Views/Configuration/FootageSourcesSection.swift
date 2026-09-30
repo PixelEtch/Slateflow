@@ -35,21 +35,21 @@ struct FootageSourcesSection: View {
                     .buttonStyle(.borderless)
                     .foregroundStyle(.secondary)
                 }
-                .swipeActions(edge: .trailing) {
-                    Button(Strings.FootageSources.remove, role: .destructive) {
-                        store.setFootageSource(source, enabled: false)
-                    }
-                }
             }
             .animation(reduceMotion ? nil : .snappy, value: customSources.count)
 
-            HStack {
-                TextField(Strings.FootageSources.addPrompt, text: $newSource)
-                    .onSubmit(addCustom)
-                Button(Strings.FootageSources.add, systemImage: SFSymbol.addCollection, action: addCustom)
-                    .labelStyle(.iconOnly)
-                    .buttonStyle(.borderless)
-                    .disabled(newSource.trimmingCharacters(in: .whitespaces).isEmpty)
+            LabeledContent(Strings.FootageSources.addLabel) {
+                HStack(spacing: Spacing.xs) {
+                    TextField(Strings.FootageSources.addLabel, text: $newSource,
+                              prompt: Text(Strings.FootageSources.addPrompt))
+                        .labelsHidden()
+                        .textFieldStyle(.roundedBorder)
+                        .frame(maxWidth: Spacing.fieldWidth)
+                        .onSubmit(addCustom)
+                    Button(Strings.FootageSources.add, systemImage: SFSymbol.addCollection, action: addCustom)
+                        .labelStyle(.titleAndIcon)
+                        .disabled(newSource.trimmingCharacters(in: .whitespaces).isEmpty)
+                }
             }
         }
     }

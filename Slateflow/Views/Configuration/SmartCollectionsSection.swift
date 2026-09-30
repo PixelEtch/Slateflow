@@ -14,17 +14,24 @@ struct SmartCollectionsSection: View {
 
     var body: some View {
         ForEach($store.fcp.smartCollections) { $spec in
-            SmartCollectionRow(spec: $spec)
-                .swipeActions(edge: .trailing) {
-                    Button(Strings.SmartCollections.remove, role: .destructive) {
+            HStack {
+                SmartCollectionRow(spec: $spec)
+                // Footage-linked collections follow their source toggle, so only
+                // manual ones get a visible remove button.
+                if !spec.isFootageLinked {
+                    Button(Strings.SmartCollections.remove, systemImage: SFSymbol.remove) {
                         store.removeCollection(spec)
                     }
+                    .labelStyle(.iconOnly)
+                    .buttonStyle(.borderless)
+                    .foregroundStyle(.secondary)
                 }
-                .contextMenu {
-                    Button(Strings.SmartCollections.remove, role: .destructive) {
-                        store.removeCollection(spec)
-                    }
+            }
+            .contextMenu {
+                Button(Strings.SmartCollections.remove, role: .destructive) {
+                    store.removeCollection(spec)
                 }
+            }
         }
         .animation(reduceMotion ? nil : .snappy, value: store.fcp.smartCollections.count)
 
