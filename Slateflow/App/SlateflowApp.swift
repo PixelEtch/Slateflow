@@ -13,6 +13,12 @@ struct SlateflowApp: App {
     init() {
         #if DEBUG
         slateSelfCheck()
+        // CI entry point: a failed check traps above (non-zero exit), so reaching
+        // here means every check passed.
+        if CommandLine.arguments.contains("--selftest") {
+            print("Slateflow self-check passed")
+            exit(0)
+        }
         #endif
         Log.event("Launched - \(AppInfo.versionLine)")
     }
