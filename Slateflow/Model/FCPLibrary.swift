@@ -13,8 +13,8 @@ import Foundation
 /// Each rule maps to one FCPXML `match-*` element. Rules only bite if the
 /// matching signal (role, keyword, metadata) is stamped on the asset at import
 /// - see the header notes on each `Rule` case.
-struct SmartCollectionSpec: Hashable, Identifiable {
-    enum Rule: Hashable {
+struct SmartCollectionSpec: Hashable, Identifiable, Codable {
+    enum Rule: Hashable, Codable {
         /// A `match-media` type from the FCPXML DTD, e.g. `videoOnly`, `stills`.
         case mediaType(String)
         /// Assigned role or sub-role ("Video.Screen Recording"). Stamp via Assign Role on import.

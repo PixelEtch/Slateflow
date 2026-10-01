@@ -11,7 +11,7 @@ import UniformTypeIdentifiers
 
 struct InspectorPane: View {
     @Bindable var store: SlateStore
-    @State private var pane: Pane
+    @SceneStorage("inspectorPane") private var pane: Pane = .preview
     @State private var showClearConfirm = false
     @State private var backupError: String?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -23,11 +23,13 @@ struct InspectorPane: View {
     init(store: SlateStore, isShown: Bool) {
         _store = Bindable(store)
         self.isShown = isShown
-        // Start on Folder Preview until there's a build to show.
-        _pane = State(initialValue: store.history.builds.isEmpty ? .preview : .history)
+        // Remembered per window; first launch starts on Folder Preview until there's
+        // a build to show.
+        _pane = SceneStorage(wrappedValue: store.history.builds.isEmpty ? .preview : .history,
+                             "inspectorPane")
     }
 
-    enum Pane: CaseIterable {
+    enum Pane: String, CaseIterable {
         case history, preview
         var title: String {
             switch self {

@@ -10,13 +10,14 @@ import Foundation
 @MainActor
 @Observable
 final class SlateStore {
-    // Format + naming persist across launches; structural choices (sources, roles,
-    // collections) stay at their sensible defaults.
+    // Everything the form configures persists across launches.
     private enum Key {
         static let choice = "choice", orientation = "orientation", aspect = "aspect"
         static let customWidth = "customWidth", customHeight = "customHeight"
         static let templateName = "templateName", keepMediaInPlace = "keepMediaInPlace"
-        static let frameRate = "frameRate"
+        static let frameRate = "frameRate", footageSources = "footageSources"
+        static let videoRoles = "videoRoles", audioRoles = "audioRoles"
+        static let smartCollections = "smartCollections"
     }
     @ObservationIgnored private let defaults: UserDefaults
 
@@ -42,14 +43,19 @@ final class SlateStore {
     var templateName = ProjectNaming.defaultTemplateName {
         didSet { defaults.set(templateName, forKey: Key.templateName) }
     }
-    /// Enabled sources (presets + customs) in insertion order.
-    var footageSources: [FootageSource] = [.camA, .camB]
-    // ponytail: only keepMediaInPlace + frameRate persist; fires on any fcp change,
-    // which is two cheap scalar writes.
+    /// Enabled sources (presets + customs) in insertion order. Saved by name.
+    var footageSources: [FootageSource] = [.camA, .camB] {
+        didSet { defaults.set(footageSources.map(\.folderName), forKey: Key.footageSources) }
+    }
+    // ponytail: rewrites every fcp field on any change - a few small values and one
+    // short JSON array; split per field if collections ever grow large.
     var fcp = FCPLibrarySettings() {
         didSet {
             defaults.set(fcp.keepMediaInPlace, forKey: Key.keepMediaInPlace)
             defaults.set(fcp.frameRate.rawValue, forKey: Key.frameRate)
+            defaults.set(fcp.videoRoles, forKey: Key.videoRoles)
+            defaults.set(fcp.audioRoles, forKey: Key.audioRoles)
+            defaults.set(try? JSONEncoder().encode(fcp.smartCollections), forKey: Key.smartCollections)
         }
     }
 
@@ -73,15 +79,30 @@ final class SlateStore {
         if d.object(forKey: Key.customWidth) != nil { customWidth = d.integer(forKey: Key.customWidth) }
         if d.object(forKey: Key.customHeight) != nil { customHeight = d.integer(forKey: Key.customHeight) }
         if let name = d.string(forKey: Key.templateName), !name.isEmpty { templateName = name }
+        // Restore into a copy and assign once: each `fcp` assignment saves every fcp
+        // field, so piecemeal assignment would overwrite not-yet-read values.
+        var saved = fcp
         if d.object(forKey: Key.frameRate) != nil,
            let rate = FrameRate(rawValue: d.double(forKey: Key.frameRate)) {
-            fcp.frameRate = rate
+            saved.frameRate = rate
         }
         if d.object(forKey: Key.keepMediaInPlace) != nil {
-            fcp.keepMediaInPlace = d.bool(forKey: Key.keepMediaInPlace)
+            saved.keepMediaInPlace = d.bool(forKey: Key.keepMediaInPlace)
+        }
+        if let roles = d.stringArray(forKey: Key.videoRoles) { saved.videoRoles = roles }
+        if let roles = d.stringArray(forKey: Key.audioRoles) { saved.audioRoles = roles }
+        if let data = d.data(forKey: Key.smartCollections),
+           let specs = try? JSONDecoder().decode([SmartCollectionSpec].self, from: data) {
+            saved.smartCollections = specs
+        }
+        fcp = saved
+        if let names = d.stringArray(forKey: Key.footageSources) {
+            footageSources = names.map { name in
+                FootageSource.presets.first { $0.folderName == name } ?? .custom(name)
+            }
         }
 
-        // Keep Smart Collections in sync with the footage sources enabled by default.
+        // Keep Smart Collections in sync with the enabled footage sources.
         for source in footageSources {
             addFootageLinkedCollection(source)
         }

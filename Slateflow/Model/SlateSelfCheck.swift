@@ -208,6 +208,15 @@ func slateSelfCheck() {
     assert(store.fcp.videoRoles.filter { $0 == "B-Roll" }.count == 1 && !store.fcp.audioRoles.contains("B-Roll"))
     assert(store.fcp.smartCollections.contains { $0.name == "B-Roll" && $0.rules == [.role("B-Roll")] })
 
+    // Sources, roles and collections persist: a fresh store on the same defaults
+    // restores exactly what this one has.
+    store.setFootageSource(.drone, enabled: true)
+    let reopened = SlateStore(defaults: scratchDefaults)
+    assert(reopened.footageSources == store.footageSources, "footage sources not restored")
+    assert(reopened.fcp.videoRoles == store.fcp.videoRoles, "roles not restored")
+    assert(reopened.fcp.smartCollections == store.fcp.smartCollections, "collections not restored")
+    store.setFootageSource(.drone, enabled: false)
+
     // Custom footage source (Lumix, Blackmagic, …)
     store.addCustomFootageSource("Lumix")
     assert(store.orderedFootageSources.contains { $0.folderName == "Lumix" && $0.isCustom })

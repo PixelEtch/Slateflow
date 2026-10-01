@@ -13,7 +13,7 @@ struct ContentView: View {
     @State private var buildError: String?
     @State private var builtProject: URL?
     @State private var isBuilding = false
-    @State private var showInspector = true
+    @SceneStorage("showInspector") private var showInspector = true
 
     var body: some View {
         ConfigurationForm(store: store)
