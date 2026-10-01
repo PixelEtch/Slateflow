@@ -5,7 +5,7 @@
 //  Central spacing scale, colour tokens, and view-layer SF Symbol names.
 //  Views reference these instead of literals. The grouped `Form` owns its own
 //  section spacing - `Spacing` is only for the custom-layout surfaces
-//  (bars, inspector header, tree rows, cards, sheet).
+//  (bars, tree rows, cards, sheets).
 //
 
 import SwiftUI
@@ -34,6 +34,8 @@ enum Palette {
     static let success = Color.green
     /// Privacy / security reassurance.
     static let secure = Color.green
+    /// Destructive actions (Clear Archive).
+    static let destructive = Color.red
 
     /// Smart-collection accent tints, keyed by what the collection filters on.
     static let sourceVideo = Color.blue

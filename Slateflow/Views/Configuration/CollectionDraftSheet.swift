@@ -13,29 +13,14 @@ struct CollectionDraft: Identifiable {
     var kind: Kind
     var value = ""
 
-    var title: String {
+    var text: (title: String, prompt: String, help: String) {
+        typealias D = Strings.SmartCollections.Draft
         switch kind {
-        case .cameraAngle: Strings.SmartCollections.Draft.cameraAngleTitle
-        case .shootDay:    Strings.SmartCollections.Draft.shootDayTitle
-        case .keyword:     Strings.SmartCollections.Draft.keywordTitle
-        case .videoRole:   Strings.SmartCollections.Draft.videoRoleTitle
-        case .audioRole:   Strings.SmartCollections.Draft.audioRoleTitle
-        }
-    }
-    var prompt: String {
-        switch kind {
-        case .cameraAngle: Strings.SmartCollections.Draft.cameraAnglePrompt
-        case .shootDay:    Strings.SmartCollections.Draft.shootDayPrompt
-        case .keyword:     Strings.SmartCollections.Draft.keywordPrompt
-        case .videoRole, .audioRole: Strings.SmartCollections.Draft.rolePrompt
-        }
-    }
-    var explanation: String {
-        switch kind {
-        case .cameraAngle: Strings.SmartCollections.Draft.cameraAngleHelp
-        case .shootDay:    Strings.SmartCollections.Draft.shootDayHelp
-        case .keyword:     Strings.SmartCollections.Draft.keywordHelp
-        case .videoRole, .audioRole: Strings.SmartCollections.Draft.roleHelp
+        case .cameraAngle: return (D.cameraAngleTitle, D.cameraAnglePrompt, D.cameraAngleHelp)
+        case .shootDay:    return (D.shootDayTitle, D.shootDayPrompt, D.shootDayHelp)
+        case .keyword:     return (D.keywordTitle, D.keywordPrompt, D.keywordHelp)
+        case .videoRole:   return (D.videoRoleTitle, D.rolePrompt, D.roleHelp)
+        case .audioRole:   return (D.audioRoleTitle, D.rolePrompt, D.roleHelp)
         }
     }
 }
@@ -52,13 +37,13 @@ struct CollectionDraftSheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
-            Text(draft.title).font(.headline)
+            Text(draft.text.title).font(.headline)
 
-            TextField(draft.prompt, text: $draft.value)
+            TextField(draft.text.prompt, text: $draft.value)
                 .textFieldStyle(.roundedBorder)
                 .onSubmit(add)
 
-            Text(draft.explanation)
+            Text(draft.text.help)
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)

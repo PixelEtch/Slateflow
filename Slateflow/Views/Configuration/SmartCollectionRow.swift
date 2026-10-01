@@ -26,7 +26,6 @@ struct SmartCollectionRow: View {
                     .foregroundStyle(spec.enabled ? spec.tint : Color.secondary)
             }
         }
-        .help(spec.summary)
     }
 }
 

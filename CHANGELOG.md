@@ -14,6 +14,9 @@ All notable changes to Slateflow are listed here.
 
 ### Changed
 - The Build Archives / Folder Preview switch and the archive actions sit in the window toolbar (Liquid Glass on macOS 26), with a gap between them; the actions have hover labels. They hide with the inspector.
+- Clear Archive (red) and Backup are separate toolbar buttons, always shown, so switching tabs never flashes them in.
+- Switching between Build Archives and Folder Preview cross-fades and keeps each pane's scroll position.
+- "Saved locally…" stays pinned to the bottom of Build Archives.
 - The form keeps a 440 pt minimum width, so controls and the Build button no longer clip when the window shrinks.
 - The form now runs Project Folder, Format, Footage Sources, then one Final Cut Pro section (Leave files in place + Smart Collections).
 - Footage source presets are two columns of checkboxes.

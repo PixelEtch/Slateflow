@@ -14,6 +14,7 @@ struct InspectorPane: View {
     @State private var pane: Pane
     @State private var showClearConfirm = false
     @State private var backupError: String?
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     /// Whether the inspector is showing. SwiftUI keeps an inspector's toolbar items
     /// after it's hidden, so they're only declared while it's shown.
@@ -26,9 +27,8 @@ struct InspectorPane: View {
         _pane = State(initialValue: store.history.builds.isEmpty ? .preview : .history)
     }
 
-    enum Pane: CaseIterable, Identifiable {
+    enum Pane: CaseIterable {
         case history, preview
-        var id: Self { self }
         var title: String {
             switch self {
             case .history: Strings.Inspector.archives
@@ -52,17 +52,20 @@ struct InspectorPane: View {
                 if isShown {
                     ToolbarItem {
                         Picker(Strings.Inspector.viewPicker, selection: $pane) {
-                            ForEach(Pane.allCases) { Label($0.title, systemImage: $0.symbol).tag($0) }
+                            ForEach(Pane.allCases, id: \.self) { Label($0.title, systemImage: $0.symbol).tag($0) }
                         }
                         .pickerStyle(.segmented)
                         .labelStyle(.titleAndIcon)
                         .labelsHidden()
                     }
-                    if pane == .history {
-                        // Gap so the archive actions don't read as more tabs of the switch.
-                        if #available(macOS 26, *) { ToolbarSpacer(.fixed) }
-                        ToolbarItemGroup { historyActionButtons }
-                    }
+                    // Always present: the glass toolbar draws newly inserted items as
+                    // empty outlines for a frame, so they're not toggled per pane.
+                    // Gap so the archive actions don't read as more tabs of the switch.
+                    if #available(macOS 26, *) { ToolbarSpacer(.fixed) }
+                    ToolbarItem { clearButton }
+                    // Own capsule, so Clear and Backup aren't one grouped control.
+                    if #available(macOS 26, *) { ToolbarSpacer(.fixed) }
+                    ToolbarItem { backupMenu }
                 }
             }
             .confirmationDialog(Strings.Inspector.clearConfirmTitle(count: store.history.builds.count),
@@ -82,13 +85,16 @@ struct InspectorPane: View {
             }
     }
 
-    @ViewBuilder private var historyActionButtons: some View {
+    private var clearButton: some View {
         Button(Strings.Inspector.clearHistory, systemImage: SFSymbol.clearHistory) {
             showClearConfirm = true
         }
+        .foregroundStyle(Palette.destructive)
         .help(Strings.Inspector.clearHistory)
         .disabled(store.history.builds.isEmpty)
+    }
 
+    private var backupMenu: some View {
         Menu {
             Button(Strings.Inspector.exportBackup) { exportBackup() }
                 .disabled(store.history.builds.isEmpty)
@@ -100,15 +106,18 @@ struct InspectorPane: View {
         .menuIndicator(.hidden)
     }
 
-    @ViewBuilder private var content: some View {
-        switch pane {
-        case .history:
+    /// Both panes stay mounted and cross-fade, so switching keeps each pane's scroll
+    /// position and doesn't rebuild the list or tree.
+    private var content: some View {
+        ZStack {
             HistoryList(store: store)
-        case .preview:
+                .paneVisible(pane == .history)
             FolderTreePreview(root: DirectoryNode.previewTemplate(
                 root: store.rootFolderName, footageSources: store.orderedFootageSources,
                 keepMediaInPlace: store.fcp.keepMediaInPlace))
+                .paneVisible(pane == .preview)
         }
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: pane)
     }
 
     /// Save a copy of the build archive - e.g. before wiping or reinstalling macOS.
@@ -137,5 +146,14 @@ struct InspectorPane: View {
         } catch {
             backupError = error.localizedDescription
         }
+    }
+}
+
+private extension View {
+    /// Shown, or hidden but still mounted: invisible, not clickable, skipped by VoiceOver.
+    func paneVisible(_ visible: Bool) -> some View {
+        opacity(visible ? 1 : 0)
+            .allowsHitTesting(visible)
+            .accessibilityHidden(!visible)
     }
 }

@@ -76,12 +76,6 @@ struct ContentView: View {
 
         isBuilding = true
         Task {
-            // NSOpenPanel already grants sandbox access to `url` for this session; the
-            // build writes immediately, so no persistent bookmark is needed. Bracket the
-            // write in a scoped-access pair for correctness if `url` ever comes from a bookmark.
-            let scoped = url.startAccessingSecurityScopedResource()
-            defer { if scoped { url.stopAccessingSecurityScopedResource() } }
-
             do { builtProject = try await store.buildProject(at: url) }
             catch { buildError = error.localizedDescription }
             isBuilding = false
@@ -139,15 +133,8 @@ struct BuildBar: View {
 // MARK: - Menu-bar wiring
 
 /// Lets the `Build Project…` menu command trigger the same flow as the bottom bar.
-struct BuildActionKey: FocusedValueKey {
-    typealias Value = () -> Void
-}
-
 extension FocusedValues {
-    var buildAction: (() -> Void)? {
-        get { self[BuildActionKey.self] }
-        set { self[BuildActionKey.self] = newValue }
-    }
+    @Entry var buildAction: (() -> Void)?
 }
 
 struct BuildCommand: View {
