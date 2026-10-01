@@ -40,6 +40,12 @@ struct HistoryList: View {
                     }
                 }
                 .animation(reduceMotion ? nil : .snappy, value: history.builds.count)
+
+                Text(Strings.History.storageNote)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(Spacing.sm)
             }
         }
     }

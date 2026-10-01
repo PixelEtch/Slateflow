@@ -17,13 +17,16 @@ struct ContentView: View {
 
     var body: some View {
         ConfigurationForm(store: store)
+            // Narrowest the form gets with the inspector open; below this the
+            // segmented controls and the Build button clip.
+            .frame(minWidth: 440)
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 BuildBar(rootFolderName: store.rootFolderName,
                          isBuilding: isBuilding,
                          action: chooseAndBuild)
             }
             .inspector(isPresented: $showInspector) {
-                InspectorPane(store: store)
+                InspectorPane(store: store, isShown: showInspector)
                     .inspectorColumnWidth(min: 300, ideal: 350, max: 460)
             }
             .focusedSceneValue(\.buildAction, chooseAndBuild)
@@ -37,7 +40,7 @@ struct ContentView: View {
                     .help(Strings.App.inspectorToggleHelp)
                 }
             }
-            .frame(minWidth: 640, minHeight: 520)
+            .frame(minHeight: 520)
             .alert(Strings.Build.errorTitle,
                    isPresented: Binding(get: { buildError != nil },
                                         set: { if !$0 { buildError = nil } })) {

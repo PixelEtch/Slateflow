@@ -15,8 +15,13 @@ struct InspectorPane: View {
     @State private var showClearConfirm = false
     @State private var backupError: String?
 
-    init(store: SlateStore) {
+    /// Whether the inspector is showing. SwiftUI keeps an inspector's toolbar items
+    /// after it's hidden, so they're only declared while it's shown.
+    let isShown: Bool
+
+    init(store: SlateStore, isShown: Bool) {
         _store = Bindable(store)
+        self.isShown = isShown
         // Start on Folder Preview until there's a build to show.
         _pane = State(initialValue: store.history.builds.isEmpty ? .preview : .history)
     }
@@ -30,75 +35,58 @@ struct InspectorPane: View {
             case .preview: Strings.Inspector.preview
             }
         }
+        var symbol: String {
+            switch self {
+            case .history: SFSymbol.historyEmpty
+            case .preview: SFSymbol.folder
+            }
+        }
     }
 
     var body: some View {
         content
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .safeAreaInset(edge: .top, spacing: 0) { header }
-            .safeAreaInset(edge: .bottom, spacing: 0) {
-                if pane == .history, !store.history.builds.isEmpty {
-                    footer
+            // In the window toolbar above the inspector, so the system draws them
+            // (Liquid Glass on macOS 26) instead of a custom bar.
+            .toolbar {
+                if isShown {
+                    ToolbarItem {
+                        Picker(Strings.Inspector.viewPicker, selection: $pane) {
+                            ForEach(Pane.allCases) { Label($0.title, systemImage: $0.symbol).tag($0) }
+                        }
+                        .pickerStyle(.segmented)
+                        .labelStyle(.titleAndIcon)
+                        .labelsHidden()
+                    }
+                    if pane == .history {
+                        // Gap so the archive actions don't read as more tabs of the switch.
+                        if #available(macOS 26, *) { ToolbarSpacer(.fixed) }
+                        ToolbarItemGroup { historyActionButtons }
+                    }
                 }
             }
-    }
-
-    private var footer: some View {
-        VStack(spacing: 0) {
-            Divider()
-            Text(Strings.History.storageNote)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, Spacing.sm)
-                .padding(.vertical, Spacing.xs)
-        }
-        .background(.bar)
-    }
-
-    private var header: some View {
-        VStack(spacing: 0) {
-            HStack(spacing: Spacing.xs) {
-                Picker(Strings.Inspector.viewPicker, selection: $pane) {
-                    ForEach(Pane.allCases) { Text($0.title).tag($0) }
+            .confirmationDialog(Strings.Inspector.clearConfirmTitle(count: store.history.builds.count),
+                               isPresented: $showClearConfirm, titleVisibility: .visible) {
+                Button(Strings.Inspector.clearConfirmAction, role: .destructive) {
+                    store.history.clear()
                 }
-                .pickerStyle(.segmented)
-                .labelsHidden()
-                .fixedSize()
-
-                Spacer(minLength: Spacing.sm)
-
-                if pane == .history {
-                    HStack(spacing: Spacing.sm) { historyActionButtons }
-                        .labelStyle(.iconOnly)
-                        .buttonStyle(.borderless)
-                }
+            } message: {
+                Text(Strings.Inspector.clearConfirmMessage)
             }
-            .padding(.horizontal, Spacing.sm)
-            .padding(.vertical, Spacing.xs)
-            Divider()
-        }
-        .background(.bar)
-        .confirmationDialog(Strings.Inspector.clearConfirmTitle(count: store.history.builds.count),
-                           isPresented: $showClearConfirm, titleVisibility: .visible) {
-            Button(Strings.Inspector.clearConfirmAction, role: .destructive) {
-                store.history.clear()
+            .alert(Strings.Inspector.backupErrorTitle,
+                   isPresented: Binding(get: { backupError != nil },
+                                        set: { if !$0 { backupError = nil } })) {
+                Button(Strings.Build.ok, role: .cancel) {}
+            } message: {
+                Text(backupError ?? "")
             }
-        } message: {
-            Text(Strings.Inspector.clearConfirmMessage)
-        }
-        .alert(Strings.Inspector.backupErrorTitle,
-               isPresented: Binding(get: { backupError != nil },
-                                    set: { if !$0 { backupError = nil } })) {
-            Button(Strings.Build.ok, role: .cancel) {}
-        } message: {
-            Text(backupError ?? "")
-        }
     }
 
     @ViewBuilder private var historyActionButtons: some View {
         Button(Strings.Inspector.clearHistory, systemImage: SFSymbol.clearHistory) {
             showClearConfirm = true
         }
+        .help(Strings.Inspector.clearHistory)
         .disabled(store.history.builds.isEmpty)
 
         Menu {
@@ -108,6 +96,7 @@ struct InspectorPane: View {
         } label: {
             Label(Strings.Inspector.backupMenu, systemImage: SFSymbol.backup)
         }
+        .help(Strings.Inspector.backupMenu)
         .menuIndicator(.hidden)
     }
 
