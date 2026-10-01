@@ -137,10 +137,10 @@ enum Strings {
     }
 
     enum About {
-        static let menuItem = "About Slate"
+        static let menuItem = "About Slateflow"
         static let openLog = "Open Log File"
         static let privacy =
-            "100% local & offline. Slate runs entirely on your Mac - no telemetry, no cloud, "
+            "100% local & offline. Slateflow runs entirely on your Mac - no telemetry, no cloud, "
             + "no tracking. Your files and configurations never leave this machine."
         static let github = "View on GitHub"
         static let license = "Released under the MIT License."

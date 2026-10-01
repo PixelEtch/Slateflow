@@ -2,7 +2,7 @@
 //  DirectoryNode.swift
 //  Slateflow
 //
-//  The Slate project folder hierarchy - real writer + a display-only preview.
+//  The Slateflow project folder hierarchy - real writer + a display-only preview.
 //
 
 import Foundation
@@ -19,7 +19,7 @@ struct DirectoryNode: Identifiable {
     /// `nil` for leaves - the shape `OutlineGroup(_:children:)` expects.
     var childNodes: [DirectoryNode]? { children.isEmpty ? nil : children }
 
-    /// Slate hierarchy rooted at `root` (`001 - SlateTemplate`).
+    /// Project folder hierarchy rooted at `root` (`001 - SlateTemplate`).
     /// `Admin` subfolders are fixed; `Footage` subfolders are one per entry in
     /// `footageSources`, in the given order; an empty list leaves `Footage` a leaf.
     nonisolated static func slateTemplate(root: String,

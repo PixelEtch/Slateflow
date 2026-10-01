@@ -2,7 +2,7 @@
 //  AboutView.swift
 //  Slateflow
 //
-//  "About Slate" window - version, privacy stance, MIT license, repo link, credit.
+//  "About Slateflow" window - version, privacy stance, MIT license, repo link, credit.
 //
 
 import SwiftUI
