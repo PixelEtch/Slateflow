@@ -202,6 +202,12 @@ func slateSelfCheck() {
     store.setFootageSource(.goPro, enabled: false)          // removes linked only - none
     assert(store.fcp.smartCollections.contains { $0.name == "GoPro" && !$0.isFootageLinked })
 
+    // Custom role: added to its list once, with a matching role collection.
+    store.addRole(name: " B-Roll ", to: \.videoRoles)
+    store.addRole(name: "B-Roll", to: \.videoRoles)          // duplicate → no-op
+    assert(store.fcp.videoRoles.filter { $0 == "B-Roll" }.count == 1 && !store.fcp.audioRoles.contains("B-Roll"))
+    assert(store.fcp.smartCollections.contains { $0.name == "B-Roll" && $0.rules == [.role("B-Roll")] })
+
     // Custom footage source (Lumix, Blackmagic, …)
     store.addCustomFootageSource("Lumix")
     assert(store.orderedFootageSources.contains { $0.folderName == "Lumix" && $0.isCustom })

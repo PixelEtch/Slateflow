@@ -55,10 +55,10 @@ struct SmartCollectionsSection: View {
         guard !value.isEmpty else { return }
         switch draft.kind {
         case .cameraAngle: store.addQuickCollection(.cameraAngle, value: value)
-        case .shootDay:    store.addQuickCollection(.day, value: value)
+        case .shootDay:    store.addQuickCollection(.keyword, value: value)
         case .keyword:     store.addQuickCollection(.keyword, value: value)
-        case .videoRole:   store.addRole(name: value, kind: .video)
-        case .audioRole:   store.addRole(name: value, kind: .audio)
+        case .videoRole:   store.addRole(name: value, to: \.videoRoles)
+        case .audioRole:   store.addRole(name: value, to: \.audioRoles)
         }
     }
 }

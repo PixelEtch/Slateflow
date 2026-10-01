@@ -195,22 +195,18 @@ final class SlateStore {
         fcp.smartCollections.removeAll { $0.isFootageLinked && $0.name == source.folderName }
     }
 
-    /// Add a custom role and a matching role-based Smart Collection.
-    func addRole(name: String, kind: RoleKind) {
+    /// Add a custom role to `roles` (`\.videoRoles` or `\.audioRoles`) and a matching
+    /// role-based Smart Collection.
+    func addRole(name: String, to roles: WritableKeyPath<FCPLibrarySettings, [String]>) {
         let trimmed = name.trimmingCharacters(in: .whitespaces)
-        guard !trimmed.isEmpty else { return }
-        switch kind {
-        case .video where !fcp.videoRoles.contains(trimmed): fcp.videoRoles.append(trimmed)
-        case .audio where !fcp.audioRoles.contains(trimmed): fcp.audioRoles.append(trimmed)
-        default: return
-        }
+        guard !trimmed.isEmpty, !fcp[keyPath: roles].contains(trimmed) else { return }
+        fcp[keyPath: roles].append(trimmed)
         addCollection(SmartCollectionSpec(name: trimmed, rules: [.role(trimmed)]))
     }
 
     enum QuickCollection {
         case cameraAngle    // Inspector ▸ Info ▸ Camera Angle
-        case day            // folder imported as Keyword Collection
-        case keyword
+        case keyword        // also day folders imported as Keyword Collections
         case nameContains   // + videoOnly, for screen recordings etc.
     }
 
@@ -221,7 +217,7 @@ final class SlateStore {
         let spec: SmartCollectionSpec
         switch kind {
         case .cameraAngle:  spec = .init(name: v, rules: [.property(key: "cameraAngle", value: v)])
-        case .day, .keyword: spec = .init(name: v, rules: [.keywords([v])])
+        case .keyword:      spec = .init(name: v, rules: [.keywords([v])])
         case .nameContains: spec = .init(name: v, rules: [.mediaType("videoOnly"), .text(v)])
         }
         addCollection(spec)

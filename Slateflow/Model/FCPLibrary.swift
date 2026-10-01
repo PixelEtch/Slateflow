@@ -7,11 +7,6 @@
 
 import Foundation
 
-// MARK: - Roles
-
-/// Which list a custom role goes in: `FCPLibrarySettings.videoRoles` or `.audioRoles`.
-enum RoleKind { case video, audio }
-
 // MARK: - Smart Collections
 
 /// A Smart Collection = a name and one or more rules, all of which must match.
