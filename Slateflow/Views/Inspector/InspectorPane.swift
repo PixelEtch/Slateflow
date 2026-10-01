@@ -14,6 +14,7 @@ struct InspectorPane: View {
     @SceneStorage("inspectorPane") private var pane: Pane = .preview
     @State private var showClearConfirm = false
     @State private var backupError: String?
+    @State private var hoveringAction = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     /// Whether the inspector is showing. SwiftUI keeps an inspector's toolbar items
@@ -60,14 +61,23 @@ struct InspectorPane: View {
                         .labelStyle(.titleAndIcon)
                         .labelsHidden()
                     }
-                    // Always present: the glass toolbar draws newly inserted items as
-                    // empty outlines for a frame, so they're not toggled per pane.
-                    // Gap so the archive actions don't read as more tabs of the switch.
-                    if #available(macOS 26, *) { ToolbarSpacer(.fixed) }
-                    ToolbarItem { clearButton }
-                    // Own capsule, so Clear and Backup aren't one grouped control.
-                    if #available(macOS 26, *) { ToolbarSpacer(.fixed) }
-                    ToolbarItem { backupMenu }
+                    // Xcode-style tray: Clear and Backup in one capsule (like Run / Stop),
+                    // set apart from the switch, shown only on Build Archives. Toolbar
+                    // items themselves never change - inserting, removing or hiding glass
+                    // items flashes empty outlines - so the tray fades its own content.
+                    if #available(macOS 26, *) {
+                        ToolbarSpacer(.fixed)
+                        ToolbarItem {
+                            // Own glass capsule instead of the toolbar's, so it can fade.
+                            archiveTray
+                                .padding(.horizontal, Spacing.xxs)
+                                .glassEffect(.regular, in: .capsule)
+                                .paneVisible(pane == .history)
+                        }
+                        .sharedBackgroundVisibility(.hidden)
+                    } else {
+                        ToolbarItem { archiveTray.paneVisible(pane == .history) }
+                    }
                 }
             }
             .confirmationDialog(Strings.Inspector.clearConfirmTitle(count: store.history.builds.count),
@@ -85,6 +95,31 @@ struct InspectorPane: View {
             } message: {
                 Text(backupError ?? "")
             }
+    }
+
+    /// Pinned under the archive list, so it stays visible however long it gets.
+    private var storageNote: some View {
+        Text(Strings.History.storageNote)
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, Spacing.sm)
+            .padding(.vertical, Spacing.xs)
+    }
+
+    /// Clear | Backup with a firm 1 pt rule between (Divider is too faint). The rule
+    /// hides while either button is hovered, as in Xcode's tray.
+    private var archiveTray: some View {
+        HStack(spacing: 0) {
+            clearButton
+            Rectangle()
+                .fill(.secondary)
+                .frame(width: 1, height: 18)
+                .padding(.horizontal, Spacing.xxs / 2)
+                .opacity(hoveringAction ? 0 : 1)
+            backupMenu
+        }
+        .onHover { hoveringAction = $0 }
     }
 
     private var clearButton: some View {
@@ -113,6 +148,7 @@ struct InspectorPane: View {
     private var content: some View {
         ZStack {
             HistoryList(store: store)
+                .safeAreaInset(edge: .bottom, spacing: 0) { storageNote }
                 .paneVisible(pane == .history)
             FolderTreePreview(root: DirectoryNode.previewTemplate(
                 root: store.rootFolderName, footageSources: store.orderedFootageSources,

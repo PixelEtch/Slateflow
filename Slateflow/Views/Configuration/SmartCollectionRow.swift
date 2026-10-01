@@ -10,8 +10,10 @@ import SwiftUI
 struct SmartCollectionRow: View {
     @Binding var spec: SmartCollectionSpec
 
+    // Built as label + switch (not `Toggle { label }`), so the switch centres on the
+    // two-line row instead of sitting beside the first line.
     var body: some View {
-        Toggle(isOn: $spec.enabled) {
+        HStack {
             Label {
                 VStack(alignment: .leading, spacing: Spacing.xxs / 2) {
                     Text(spec.name)
@@ -25,6 +27,10 @@ struct SmartCollectionRow: View {
                 Image(systemName: spec.iconName)
                     .foregroundStyle(spec.enabled ? spec.tint : Color.secondary)
             }
+            Spacer()
+            Toggle(spec.name, isOn: $spec.enabled)
+                .toggleStyle(.switch)
+                .labelsHidden()
         }
     }
 }

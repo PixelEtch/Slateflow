@@ -18,11 +18,18 @@ struct ConfigurationForm: View {
             FootageSourcesSection(store: store)
 
             Section {
+                // Same shape as a collection row: text, then a centred switch.
                 HStack {
-                    Toggle(isOn: $store.fcp.keepMediaInPlace) {
+                    VStack(alignment: .leading, spacing: Spacing.xxs / 2) {
                         Text(Strings.FCP.leaveFilesInPlace)
                         Text(Strings.FCP.leaveFilesInPlaceHelp)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
+                    Spacer()
+                    Toggle(Strings.FCP.leaveFilesInPlace, isOn: $store.fcp.keepMediaInPlace)
+                        .toggleStyle(.switch)
+                        .labelsHidden()
                     // Same trailing space as a collection's remove button, so the
                     // switches below line up with this one.
                     Image(systemName: SFSymbol.remove).hidden()

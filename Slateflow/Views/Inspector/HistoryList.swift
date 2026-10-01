@@ -41,15 +41,6 @@ struct HistoryList: View {
                 }
                 .animation(reduceMotion ? nil : .snappy, value: history.builds.count)
             }
-            // Pinned below the list, so it stays visible however long the archive gets.
-            .safeAreaInset(edge: .bottom, spacing: 0) {
-                Text(Strings.History.storageNote)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, Spacing.sm)
-                    .padding(.vertical, Spacing.xs)
-            }
         }
     }
 }
