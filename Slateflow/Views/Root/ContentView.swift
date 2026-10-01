@@ -133,8 +133,17 @@ struct BuildBar: View {
 // MARK: - Menu-bar wiring
 
 /// Lets the `Build Project…` menu command trigger the same flow as the bottom bar.
+// A FocusedValueKey, not `@Entry`: `@Entry` warns that a stored closure can't be
+// compared, so every update would invalidate the menu command.
+struct BuildActionKey: FocusedValueKey {
+    typealias Value = () -> Void
+}
+
 extension FocusedValues {
-    @Entry var buildAction: (() -> Void)?
+    var buildAction: (() -> Void)? {
+        get { self[BuildActionKey.self] }
+        set { self[BuildActionKey.self] = newValue }
+    }
 }
 
 struct BuildCommand: View {
