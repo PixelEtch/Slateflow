@@ -9,84 +9,44 @@ import Foundation
 
 // MARK: - Roles
 
-struct MediaRole: Hashable, Identifiable {
-    enum Kind: String, CaseIterable { case video, audio }
-    var name: String
-    var kind: Kind
-    var id: String { "\(kind.rawValue):\(name)" }
-}
-
-extension MediaRole {
-    static let defaultVideo: [MediaRole] = [
-        .init(name: "Footage", kind: .video),
-        .init(name: "Graphics", kind: .video),
-        .init(name: "Titles", kind: .video),
-    ]
-    static let defaultAudio: [MediaRole] = [
-        .init(name: "Dialogue", kind: .audio),
-        .init(name: "Music", kind: .audio),
-        .init(name: "Effects", kind: .audio),
-    ]
-}
+/// Which list a custom role goes in: `FCPLibrarySettings.videoRoles` or `.audioRoles`.
+enum RoleKind { case video, audio }
 
 // MARK: - Smart Collections
 
-/// A Smart Collection = a name, a match mode (all/any), and one or more rules.
+/// A Smart Collection = a name and one or more rules, all of which must match.
 /// Each rule maps to one FCPXML `match-*` element. Rules only bite if the
 /// matching signal (role, keyword, metadata) is stamped on the asset at import
 /// - see the header notes on each `Rule` case.
 struct SmartCollectionSpec: Hashable, Identifiable {
-    enum Match: String, Hashable { case all, any }
-
     enum Rule: Hashable {
-        /// `videoOnly | audioOnly | stills | videoWithAudio` - the FCPXML DTD's
-        /// enumerated `match-media` type values.
+        /// A `match-media` type from the FCPXML DTD, e.g. `videoOnly`, `stills`.
         case mediaType(String)
         /// Assigned role or sub-role ("Video.Screen Recording"). Stamp via Assign Role on import.
-        case role(String, include: Bool = true)
+        case role(String)
         /// Keyword Collections - e.g. day folders imported with "Keywords: from folders".
-        case keywords([String], all: Bool = false)
+        case keywords([String])
         /// Clip name + notes substring. Least stable signal; pair with `mediaType`.
-        case text(String, include: Bool = true)
-        /// Inspector ▸ Info metadata. `key` examples: "cameraAngle", "cameraName", "reel", "scene".
-        case property(key: String, value: String, equals: Bool = true)
+        case text(String)
+        /// Inspector ▸ Info metadata, e.g. key "cameraAngle".
+        case property(key: String, value: String)
 
         /// Plain-English description for the UI.
         var summary: String {
             switch self {
-            case .mediaType(let t):
-                switch t {
-                case "videoOnly":      return "video clips only"
-                case "audioOnly":      return "audio clips only"
-                case "stills":         return "still images only"
-                case "videoWithAudio": return "video with audio"
-                default:               return t
-                }
-            case .role(let name, let include):
-                return "\(include ? "has" : "excludes") the “\(name)” role"
-            case .keywords(let words, let all):
-                let list = words.map { "“\($0)”" }.joined(separator: all ? " and " : " or ")
-                return "keyword \(list)"
-            case .text(let value, let include):
-                return "name \(include ? "contains" : "does not contain") “\(value)”"
-            case .property(let key, let value, let equals):
-                return "\(friendlyKey(key)) \(equals ? "is" : "is not") “\(value)”"
-            }
-        }
-
-        private func friendlyKey(_ key: String) -> String {
-            switch key {
-            case "cameraAngle": return "Camera Angle"
-            case "cameraName":  return "Camera Name"
-            case "reel":        return "Reel"
-            case "scene":       return "Scene"
-            default:            return key
+            case .mediaType("videoOnly"): return "video clips only"
+            case .mediaType("stills"):    return "still images only"
+            case .mediaType(let t):       return t
+            case .role(let name):         return "has the “\(name)” role"
+            case .keywords(let words):    return "keyword " + words.map { "“\($0)”" }.joined(separator: " or ")
+            case .text(let value):        return "name contains “\(value)”"
+            case .property(let key, let value):
+                return "\(key == "cameraAngle" ? "Camera Angle" : key) is “\(value)”"
             }
         }
     }
 
     var name: String
-    var match: Match = .all
     var rules: [Rule]
     var enabled = true
     /// True when this collection was generated from an enabled Footage Source and
@@ -96,7 +56,7 @@ struct SmartCollectionSpec: Hashable, Identifiable {
 
     /// One-line description of the whole collection, for the UI and `.help()` tooltip.
     var summary: String {
-        rules.map(\.summary).joined(separator: match == .all ? " · and " : " · or ")
+        rules.map(\.summary).joined(separator: " · and ")
     }
 
     /// SF Symbol for the list row, chosen from the first rule.
@@ -104,7 +64,6 @@ struct SmartCollectionSpec: Hashable, Identifiable {
         if isFootageLinked { return "video.fill" }
         switch rules.first {
         case .mediaType("stills"):      return "photo"
-        case .mediaType("audioOnly"):   return "waveform"
         case .mediaType:                return "film"
         case .role:                     return "tag"
         case .keywords:                 return "number"
@@ -116,18 +75,18 @@ struct SmartCollectionSpec: Hashable, Identifiable {
 }
 
 extension SmartCollectionSpec {
-    static func defaults(video: [MediaRole], audio: [MediaRole]) -> [SmartCollectionSpec] {
+    static func defaults(roles: [String]) -> [SmartCollectionSpec] {
         var specs = [
             SmartCollectionSpec(name: "Footage", rules: [.mediaType("videoOnly")]),
             SmartCollectionSpec(name: "Stills",  rules: [.mediaType("stills")]),
-            SmartCollectionSpec(name: "Screen Recordings", match: .all,
+            SmartCollectionSpec(name: "Screen Recordings",
                                 rules: [.mediaType("videoOnly"), .text("Screen Recording")]),
         ]
         // One collection per role, skipping any name already taken (e.g. "Footage").
         let taken = Set(specs.map(\.name))
-        specs += (video + audio)
-            .filter { !taken.contains($0.name) }
-            .map { SmartCollectionSpec(name: $0.name, rules: [.role($0.name)]) }
+        specs += roles
+            .filter { !taken.contains($0) }
+            .map { SmartCollectionSpec(name: $0, rules: [.role($0)]) }
         return specs
     }
 }
@@ -182,10 +141,12 @@ struct FCPLibrarySettings {
     /// "Leave files in place" - media stays in the project folders, not copied into the library.
     var keepMediaInPlace = true
     var frameRate: FrameRate = .fps25
-    var videoRoles: [MediaRole] = MediaRole.defaultVideo
-    var audioRoles: [MediaRole] = MediaRole.defaultAudio
-    var smartCollections: [SmartCollectionSpec] =
-        SmartCollectionSpec.defaults(video: MediaRole.defaultVideo, audio: MediaRole.defaultAudio)
+    static let defaultVideoRoles = ["Footage", "Graphics", "Titles"]
+    static let defaultAudioRoles = ["Dialogue", "Music", "Effects"]
+
+    var videoRoles = defaultVideoRoles
+    var audioRoles = defaultAudioRoles
+    var smartCollections = SmartCollectionSpec.defaults(roles: defaultVideoRoles + defaultAudioRoles)
 
     nonisolated var frameDurationFCPX: String { frameRate.frameDurationFCPX }
 
@@ -265,7 +226,7 @@ nonisolated enum FCPXML {
     private static func collection(_ spec: SmartCollectionSpec) -> String {
         let body = spec.rules.map { rule($0) }.joined(separator: "\n")
         return """
-        <smart-collection name="\(escape(spec.name))" match="\(spec.match.rawValue)">
+        <smart-collection name="\(escape(spec.name))" match="all">
         \(body)
         </smart-collection>
         """
@@ -275,24 +236,24 @@ nonisolated enum FCPXML {
         switch rule {
         case .mediaType(let type):
             return #"<match-media rule="is" type="\#(type)"/>"#
-        case .role(let name, let include):
+        case .role(let name):
             return """
-            <match-roles rule="\(include ? "includesAny" : "doesNotInclude")">
+            <match-roles rule="includesAny">
             <role name="\(escape(name))"/>
             </match-roles>
             """
-        case .keywords(let words, let all):
+        case .keywords(let words):
             // `keyword-name` is EMPTY per the DTD - the text goes in `value`, not as content.
             let items = words.map { #"<keyword-name value="\#(escape($0))"/>"# }.joined(separator: "\n")
             return """
-            <match-keywords rule="\(all ? "includesAll" : "includesAny")">
+            <match-keywords rule="includesAny">
             \(items)
             </match-keywords>
             """
-        case .text(let value, let include):
-            return #"<match-text rule="\#(include ? "includes" : "doesNotInclude")" value="\#(escape(value))"/>"#
-        case .property(let key, let value, let equals):
-            return #"<match-property key="\#(escape(key))" type="string" value="\#(escape(value))" rule="\#(equals ? "is" : "isNot")" enabled="1"/>"#
+        case .text(let value):
+            return #"<match-text rule="includes" value="\#(escape(value))"/>"#
+        case .property(let key, let value):
+            return #"<match-property key="\#(escape(key))" type="string" value="\#(escape(value))" rule="is" enabled="1"/>"#
         }
     }
 

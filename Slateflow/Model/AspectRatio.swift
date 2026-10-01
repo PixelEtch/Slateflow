@@ -59,8 +59,8 @@ enum AspectRatio: String, CaseIterable, Identifiable {
         let (w, h) = ratio
         let tier = min(base.width, base.height)
         return w >= h
-            ? VideoFormat(name: base.name, width: even(tier * w / h), height: tier)
-            : VideoFormat(name: base.name, width: tier, height: even(tier * h / w))
+            ? VideoFormat(width: even(tier * w / h), height: tier)
+            : VideoFormat(width: tier, height: even(tier * h / w))
     }
 }
 

@@ -5,14 +5,11 @@
 //  Pixel dimensions + aspect-ratio math shared by the resolution presets.
 //
 
-struct VideoFormat: Hashable, Identifiable, Codable, CustomStringConvertible {
-    var name: String
+struct VideoFormat: Equatable {
     var width: Int
     var height: Int
 
-    var id: String { "\(name)-\(width)x\(height)" }
     var pixelDimensions: String { "\(width) × \(height)" }
-    var description: String { "\(name) - \(pixelDimensions)" }
 
     /// Reduced ratio derived from the dimensions, e.g. "16:9". "-" when unknown.
     var aspectRatio: String {
@@ -25,15 +22,15 @@ struct VideoFormat: Hashable, Identifiable, Codable, CustomStringConvertible {
 private func gcd(_ a: Int, _ b: Int) -> Int { b == 0 ? a : gcd(b, a % b) }
 
 extension VideoFormat {
-    static let hd1080 = VideoFormat(name: "1080p", width: 1920, height: 1080)
-    static let k2     = VideoFormat(name: "2K",    width: 2048, height: 1080)   // DCI 2K, as in Final Cut
-    static let uhd4k  = VideoFormat(name: "4K",    width: 3840, height: 2160)
-    static let uhd8k  = VideoFormat(name: "8K",    width: 7680, height: 4320)
+    static let hd1080 = VideoFormat(width: 1920, height: 1080)
+    static let k2     = VideoFormat(width: 2048, height: 1080)   // DCI 2K, as in Final Cut
+    static let uhd4k  = VideoFormat(width: 3840, height: 2160)
+    static let uhd8k  = VideoFormat(width: 7680, height: 4320)
 
     /// Clamped to a 2 px floor and rounded down to even, matching how the
     /// orientation presets are re-shaped - Final Cut rejects odd dimensions.
     static func custom(width: Int, height: Int) -> VideoFormat {
-        VideoFormat(name: "Custom", width: even(max(2, width)), height: even(max(2, height)))
+        VideoFormat(width: even(max(2, width)), height: even(max(2, height)))
     }
 }
 

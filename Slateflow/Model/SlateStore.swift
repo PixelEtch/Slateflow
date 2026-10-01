@@ -196,13 +196,12 @@ final class SlateStore {
     }
 
     /// Add a custom role and a matching role-based Smart Collection.
-    func addRole(name: String, kind: MediaRole.Kind) {
+    func addRole(name: String, kind: RoleKind) {
         let trimmed = name.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty else { return }
-        let role = MediaRole(name: trimmed, kind: kind)
         switch kind {
-        case .video where !fcp.videoRoles.contains(role): fcp.videoRoles.append(role)
-        case .audio where !fcp.audioRoles.contains(role): fcp.audioRoles.append(role)
+        case .video where !fcp.videoRoles.contains(trimmed): fcp.videoRoles.append(trimmed)
+        case .audio where !fcp.audioRoles.contains(trimmed): fcp.audioRoles.append(trimmed)
         default: return
         }
         addCollection(SmartCollectionSpec(name: trimmed, rules: [.role(trimmed)]))
@@ -224,17 +223,16 @@ final class SlateStore {
         switch kind {
         case .cameraAngle:  spec = .init(name: v, rules: [.property(key: "cameraAngle", value: v)])
         case .day, .keyword: spec = .init(name: v, rules: [.keywords([v])])
-        case .nameContains: spec = .init(name: v, match: .all,
-                                         rules: [.mediaType("videoOnly"), .text(v)])
+        case .nameContains: spec = .init(name: v, rules: [.mediaType("videoOnly"), .text(v)])
         }
         addCollection(spec)
     }
 
     func removeCollection(_ spec: SmartCollectionSpec) {
         // A single-rule role collection owns its role - drop both together.
-        if spec.rules.count == 1, case .role(let name, _) = spec.rules[0] {
-            fcp.videoRoles.removeAll { $0.name == name }
-            fcp.audioRoles.removeAll { $0.name == name }
+        if spec.rules.count == 1, case .role(let name) = spec.rules[0] {
+            fcp.videoRoles.removeAll { $0 == name }
+            fcp.audioRoles.removeAll { $0 == name }
         }
         fcp.smartCollections.removeAll { $0.id == spec.id }
     }

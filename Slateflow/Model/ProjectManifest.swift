@@ -36,8 +36,8 @@ nonisolated struct ProjectManifest: Codable {
         aspectRatio = store.format.aspectRatio
         frameRate = store.fcp.frameRate.label
         leaveFilesInPlace = store.fcp.keepMediaInPlace
-        videoRoles = store.fcp.videoRoles.map(\.name)
-        audioRoles = store.fcp.audioRoles.map(\.name)
+        videoRoles = store.fcp.videoRoles
+        audioRoles = store.fcp.audioRoles
         smartCollections = store.fcp.smartCollections.filter(\.enabled).map(\.name)
         footageSources = store.orderedFootageSources.map(\.folderName)
     }

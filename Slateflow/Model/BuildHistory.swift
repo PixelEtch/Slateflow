@@ -19,10 +19,7 @@ struct BuildRecord: Identifiable, Codable {
     let resolution: String
     let orientation: String
     let aspectRawValue: String        // `AspectRatio.rawValue` - exact, for restore
-    let dimensions: String
-    let aspectRatio: String           // reduced pixel ratio - display only
     let frameRateValue: Double        // `FrameRate.rawValue` - exact, for restore
-    let frameRate: String             // "25 fps" - display only
     let width: Int
     let height: Int
     let leaveFilesInPlace: Bool
@@ -38,10 +35,7 @@ struct BuildRecord: Identifiable, Codable {
         resolution = store.choice.rawValue
         orientation = store.choice == .custom ? "-" : store.orientation.rawValue
         aspectRawValue = store.choice == .custom ? "-" : store.aspect.rawValue
-        dimensions = store.format.pixelDimensions
-        aspectRatio = store.format.aspectRatio
         frameRateValue = store.fcp.frameRate.rawValue
-        frameRate = store.fcp.frameRate.label
         width = store.format.width
         height = store.format.height
         leaveFilesInPlace = store.fcp.keepMediaInPlace
@@ -49,6 +43,12 @@ struct BuildRecord: Identifiable, Codable {
         collectionCount = store.fcp.smartCollections.filter(\.enabled).count
         footageSourceCount = store.footageSources.count
     }
+
+    // Display values, derived from the stored raw values. Older archives also stored
+    // these as strings; decoding ignores the extra keys.
+    var dimensions: String { VideoFormat(width: width, height: height).pixelDimensions }
+    var aspectRatio: String { VideoFormat(width: width, height: height).aspectRatio }
+    var frameRate: String { FrameRate(rawValue: frameRateValue)?.label ?? "\(frameRateValue) fps" }
 }
 
 @MainActor

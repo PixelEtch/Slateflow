@@ -46,7 +46,6 @@ extension SmartCollectionSpec {
         }
         switch rules.first {
         case .mediaType("stills"):     return Palette.sourceStills
-        case .mediaType("audioOnly"):  return Palette.sourceAudio
         case .keywords:                return Palette.sourceKeyword
         case .text:                    return Palette.sourceText
         case .property:                return Palette.sourceProperty

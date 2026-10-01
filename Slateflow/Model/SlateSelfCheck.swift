@@ -28,7 +28,7 @@ func slateSelfCheck() {
     assert(VideoFormat.uhd4k.aspectRatio == "16:9")
     assert(VideoFormat.uhd8k.width == 7680 && VideoFormat.uhd8k.height == 4320)
     assert(VideoFormat.custom(width: 2000, height: 1000).aspectRatio == "2:1")
-    assert(VideoFormat(name: "z", width: 0, height: 0).aspectRatio == "-")
+    assert(VideoFormat(width: 0, height: 0).aspectRatio == "-")
     assert(ResolutionChoice.allCases.count == 5)
 
     // Aspect-ratio transforms - tier (shorter edge) preserved, other edge derived.
@@ -172,7 +172,7 @@ func slateSelfCheck() {
     // FCPXML: multi-rule collections for asset filtering
     var custom = FCPLibrarySettings()
     custom.smartCollections = [
-        SmartCollectionSpec(name: "Screen Recordings", match: .all,
+        SmartCollectionSpec(name: "Screen Recordings",
                             rules: [.mediaType("videoOnly"), .text("Screen Recording")]),
         SmartCollectionSpec(name: "Cam A", rules: [.property(key: "cameraAngle", value: "Cam A")]),
         SmartCollectionSpec(name: "Day 01", rules: [.keywords(["Day 01"])]),
