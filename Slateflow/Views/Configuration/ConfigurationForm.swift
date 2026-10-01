@@ -18,9 +18,14 @@ struct ConfigurationForm: View {
             FootageSourcesSection(store: store)
 
             Section {
-                Toggle(isOn: $store.fcp.keepMediaInPlace) {
-                    Text(Strings.FCP.leaveFilesInPlace)
-                    Text(Strings.FCP.leaveFilesInPlaceHelp)
+                HStack {
+                    Toggle(isOn: $store.fcp.keepMediaInPlace) {
+                        Text(Strings.FCP.leaveFilesInPlace)
+                        Text(Strings.FCP.leaveFilesInPlaceHelp)
+                    }
+                    // Same trailing space as a collection's remove button, so the
+                    // switches below line up with this one.
+                    Image(systemName: SFSymbol.remove).hidden()
                 }
                 SmartCollectionsSection(store: store)
             } header: {
