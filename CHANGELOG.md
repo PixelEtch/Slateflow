@@ -15,11 +15,6 @@ All notable changes to Slateflow are listed here.
 ### Changed
 - Footage sources (including custom ones), roles and Smart Collections are saved and restored on the next launch.
 - The inspector remembers whether it's shown and which tab is selected.
-
-### Fixed
-- "Leave files in place" and other Final Cut settings could reset at launch: restoring one setting saved the others before they were read.
-
-### Changed
 - The Build Archives / Folder Preview switch and the archive actions sit in the window toolbar (Liquid Glass on macOS 26), with a gap between them; the actions have hover labels. They hide with the inspector.
 - Clear Archive (red) and Backup are separate toolbar buttons, always shown, so switching tabs never flashes them in.
 - Switching between Build Archives and Folder Preview cross-fades and keeps each pane's scroll position.
@@ -33,6 +28,9 @@ All notable changes to Slateflow are listed here.
 - The build number is the commit count, so each release is higher than the last.
 - Copyright and app category (Video) are set, so they show in About and Finder's Get Info.
 - The About window's GitHub link points to github.com/DXC-Ashifali-Shaikh/Slateflow.
+
+### Fixed
+- "Leave files in place" and other Final Cut settings could reset at launch: restoring one setting saved the others before they were read.
 
 ## 2026-09-30
 
