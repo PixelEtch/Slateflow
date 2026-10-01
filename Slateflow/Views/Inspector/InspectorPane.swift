@@ -32,13 +32,6 @@ struct InspectorPane: View {
         }
     }
 
-    /// History and Preview are structurally very different (list rows vs. a tree), so
-    /// crossfading between them briefly overlaps two very different layouts - that
-    /// overlap is what reads as flicker, not a smooth fade. Switch instantly instead.
-    private var paneSelection: Binding<Pane> {
-        Binding(get: { pane }, set: { pane = $0 })
-    }
-
     var body: some View {
         content
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -65,7 +58,7 @@ struct InspectorPane: View {
     private var header: some View {
         VStack(spacing: 0) {
             HStack(spacing: Spacing.xs) {
-                Picker(Strings.Inspector.viewPicker, selection: paneSelection) {
+                Picker(Strings.Inspector.viewPicker, selection: $pane) {
                     ForEach(Pane.allCases) { Text($0.title).tag($0) }
                 }
                 .pickerStyle(.segmented)

@@ -51,9 +51,9 @@ struct HistoryRow: View {
             // animating height + opacity on a permanent view avoids that jump.
             VStack(alignment: .leading, spacing: Spacing.xs) {
                 // Two columns when the inspector is wide enough; one column when it isn't.
-                ViewThatFits(in: .horizontal) {
-                    stats(twoColumn: true).frame(minWidth: 320, alignment: .leading)
-                    stats(twoColumn: false)
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 140), spacing: Spacing.lg, alignment: .leading)],
+                          alignment: .leading, spacing: Spacing.xxs) {
+                    ForEach(statItems, id: \.label) { cell($0.label, $0.value) }
                 }
 
                 Label(record.leaveFilesInPlace ? Strings.History.leaveFilesInPlace
@@ -84,12 +84,12 @@ struct HistoryRow: View {
         .overlay(alignment: .bottom) { Divider() }
     }
 
-    /// "4K · 16:9 · 25 fps" - the format subtitle is Custom-aware: Custom builds have
-    /// no orientation, so the subtitle falls back to just size + frame rate.
     private func toggleExpanded() {
         withAnimation(reduceMotion ? nil : .snappy) { isExpanded.toggle() }
     }
 
+    /// "4K · 16:9 · 25 fps" - the format subtitle is Custom-aware: Custom builds have
+    /// no orientation, so the subtitle falls back to just size + frame rate.
     private var formatSubtitle: String {
         let resolution = record.resolution == "Custom" ? record.dimensions : record.resolution
         return [resolution, record.aspectRatio, record.frameRate].joined(separator: " · ")
@@ -101,21 +101,6 @@ struct HistoryRow: View {
          (Strings.History.roles, "\(record.roleCount)"),
          (Strings.History.collections, "\(record.collectionCount)"),
          (Strings.History.footageSources, "\(record.footageSourceCount)")]
-    }
-
-    @ViewBuilder
-    private func stats(twoColumn: Bool) -> some View {
-        let items = statItems
-        let perRow = twoColumn ? 2 : 1
-        Grid(alignment: .leading, horizontalSpacing: Spacing.lg, verticalSpacing: Spacing.xxs) {
-            ForEach(Array(stride(from: 0, to: items.count, by: perRow)), id: \.self) { start in
-                GridRow {
-                    ForEach(start..<min(start + perRow, items.count), id: \.self) { i in
-                        cell(items[i].label, items[i].value)
-                    }
-                }
-            }
-        }
     }
 
     private func cell(_ label: String, _ value: String) -> some View {
