@@ -47,14 +47,13 @@ enum Strings {
     }
 
     enum FCP {
-        static let section = "FCP Library"
+        static let section = "Final Cut Pro"
         static let leaveFilesInPlace = "Leave files in place"
         static let leaveFilesInPlaceHelp =
             "Media stays in the project’s folders instead of being copied into the FCP library."
     }
 
     enum SmartCollections {
-        static let section = "Smart Collections"
         static let footer =
             "Enabled collections go into the project's .fcpxml and sort clips automatically on import."
         static let add = "Add Collection"
@@ -66,8 +65,7 @@ enum Strings {
         static let videoRole = "Video Role…"
         static let audioRole = "Audio Role…"
         static let remove = "Remove"
-        static let footageLinkedHelp =
-            "Managed automatically by its Footage Source - turn that source off to remove it."
+        static let fromFootageSources = "from Footage Sources"
 
         enum Draft {
             static let cancel = "Cancel"

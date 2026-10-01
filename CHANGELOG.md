@@ -13,6 +13,9 @@ All notable changes to Slateflow are listed here.
 - `CONTRIBUTING.md`, `SECURITY.md`, issue templates and a pull request template.
 
 ### Changed
+- The form now runs Project Folder, Format, Footage Sources, then one Final Cut Pro section (Leave files in place + Smart Collections).
+- Footage source presets are two columns of checkboxes.
+- Smart Collections linked to a footage source say "from Footage Sources" in their summary, instead of a hover-only link icon.
 - Minimum macOS is now 15 (was 14.6, which was never tested).
 - The DMG app runs on both Apple silicon and Intel Macs.
 - The build number is the commit count, so each release is higher than the last.

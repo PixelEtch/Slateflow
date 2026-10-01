@@ -18,11 +18,16 @@ struct FootageSourcesSection: View {
 
     var body: some View {
         Section(Strings.FootageSources.section) {
-            ForEach(FootageSource.presets) { source in
-                Toggle(isOn: binding(for: source)) {
-                    Label(source.folderName, systemImage: source.symbol)
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), alignment: .leading), count: 2),
+                      alignment: .leading, spacing: Spacing.xs) {
+                ForEach(FootageSource.presets) { source in
+                    Toggle(isOn: binding(for: source)) {
+                        Label(source.folderName, systemImage: source.symbol)
+                    }
+                    .toggleStyle(.checkbox)
                 }
             }
+            .padding(.vertical, Spacing.xxs)
 
             ForEach(customSources) { source in
                 HStack {

@@ -14,16 +14,10 @@ struct SmartCollectionRow: View {
         Toggle(isOn: $spec.enabled) {
             Label {
                 VStack(alignment: .leading, spacing: Spacing.xxs / 2) {
-                    HStack(spacing: Spacing.xxs) {
-                        Text(spec.name)
-                        if spec.isFootageLinked {
-                            Image(systemName: SFSymbol.footageLinked)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                                .help(Strings.SmartCollections.footageLinkedHelp)
-                        }
-                    }
-                    Text(spec.summary)
+                    Text(spec.name)
+                    Text(spec.isFootageLinked
+                         ? "\(spec.summary) · \(Strings.SmartCollections.fromFootageSources)"
+                         : spec.summary)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }

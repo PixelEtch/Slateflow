@@ -13,15 +13,18 @@ struct ConfigurationForm: View {
 
     var body: some View {
         Form {
-            FormatSection(store: store)
             ProjectFolderSection(store: store)
+            FormatSection(store: store)
             FootageSourcesSection(store: store)
-            FCPLibrarySection(store: store)
 
             Section {
+                Toggle(isOn: $store.fcp.keepMediaInPlace) {
+                    Text(Strings.FCP.leaveFilesInPlace)
+                    Text(Strings.FCP.leaveFilesInPlaceHelp)
+                }
                 SmartCollectionsSection(store: store)
             } header: {
-                Text(Strings.SmartCollections.section)
+                Text(Strings.FCP.section)
             } footer: {
                 Text(Strings.SmartCollections.footer)
             }

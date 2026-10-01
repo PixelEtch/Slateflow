@@ -61,7 +61,6 @@ enum SFSymbol {
     static let backup = "square.and.arrow.up.on.square"
     static let reuse = "arrow.triangle.2.circlepath"
     static let warning = "exclamationmark.triangle"
-    static let footageLinked = "link"
     static let disclosure = "chevron.right"
     static let privacy = "lock.shield"
     static let success = "checkmark.circle.fill"
