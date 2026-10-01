@@ -38,7 +38,7 @@ nonisolated enum Log {
     }
 
     private static func append(_ mark: String, _ message: String) {
-        let line = "\(Self.stamp())  \(mark) \(message)\n"
+        let line = "\(Date.now.formatted(.iso8601))  \(mark) \(message)\n"
         queue.async {
             guard let data = line.data(using: .utf8) else { return }
             let fm = FileManager.default
@@ -56,11 +56,4 @@ nonisolated enum Log {
         }
     }
 
-    private static let formatter: ISO8601DateFormatter = {
-        let f = ISO8601DateFormatter()
-        f.formatOptions = [.withInternetDateTime]
-        return f
-    }()
-
-    private static func stamp() -> String { formatter.string(from: Date()) }
 }

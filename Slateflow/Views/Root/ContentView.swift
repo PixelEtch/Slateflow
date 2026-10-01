@@ -95,7 +95,10 @@ struct ContentView: View {
     private func openInFinalCut(_ url: URL) {
         let config = NSWorkspace.OpenConfiguration()
         config.activates = true
-        Task { try? await NSWorkspace.shared.open(url, configuration: config) }
+        Task {
+            do { try await NSWorkspace.shared.open(url, configuration: config) }
+            catch { Log.error("Open in Final Cut failed for \(url.lastPathComponent): \(error.localizedDescription)") }
+        }
     }
 }
 

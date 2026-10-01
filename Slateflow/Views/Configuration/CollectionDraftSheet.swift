@@ -41,9 +41,14 @@ struct CollectionDraft: Identifiable {
 }
 
 struct CollectionDraftSheet: View {
-    @State var draft: CollectionDraft
+    @State private var draft: CollectionDraft
     let onAdd: (CollectionDraft) -> Void
     @Environment(\.dismiss) private var dismiss
+
+    init(draft: CollectionDraft, onAdd: @escaping (CollectionDraft) -> Void) {
+        _draft = State(initialValue: draft)
+        self.onAdd = onAdd
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
