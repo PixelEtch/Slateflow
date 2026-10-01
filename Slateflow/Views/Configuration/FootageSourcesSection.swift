@@ -18,7 +18,8 @@ struct FootageSourcesSection: View {
 
     var body: some View {
         Section(Strings.FootageSources.section) {
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), alignment: .leading), count: 2),
+            // Two columns when the form is wide enough, one when it isn't.
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 160), alignment: .leading)],
                       alignment: .leading, spacing: Spacing.xs) {
                 ForEach(FootageSource.presets) { source in
                     Toggle(isOn: binding(for: source)) {
@@ -43,18 +44,18 @@ struct FootageSourcesSection: View {
             }
             .animation(reduceMotion ? nil : .snappy, value: customSources.count)
 
-            LabeledContent(Strings.FootageSources.addLabel) {
-                HStack(spacing: Spacing.xs) {
-                    TextField(Strings.FootageSources.addLabel, text: $newSource,
-                              prompt: Text(Strings.FootageSources.addPrompt))
-                        .labelsHidden()
-                        .textFieldStyle(.roundedBorder)
-                        .frame(maxWidth: Spacing.fieldWidth)
-                        .onSubmit(addCustom)
-                    Button(Strings.FootageSources.add, systemImage: SFSymbol.addCollection, action: addCustom)
-                        .labelStyle(.titleAndIcon)
-                        .disabled(newSource.trimmingCharacters(in: .whitespaces).isEmpty)
-                }
+            // Full-width field + compact bordered button: fits a narrow form.
+            HStack(spacing: Spacing.xs) {
+                TextField(Strings.FootageSources.addLabel, text: $newSource,
+                          prompt: Text(Strings.FootageSources.addPrompt))
+                    .labelsHidden()
+                    .textFieldStyle(.roundedBorder)
+                    .onSubmit(addCustom)
+                Button(Strings.FootageSources.add, systemImage: SFSymbol.addCollection, action: addCustom)
+                    .labelStyle(.iconOnly)
+                    .buttonStyle(.bordered)
+                    .help(Strings.FootageSources.add)
+                    .disabled(newSource.trimmingCharacters(in: .whitespaces).isEmpty)
             }
         }
     }

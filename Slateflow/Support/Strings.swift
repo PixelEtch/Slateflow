@@ -41,7 +41,7 @@ enum Strings {
     enum FootageSources {
         static let section = "Footage Sources"
         static let addLabel = "Other source"
-        static let addPrompt = "e.g. Lumix S5, Blackmagic"
+        static let addPrompt = "Other source, e.g. Lumix S5"
         static let add = "Add source"
         static let remove = "Remove source"
     }
