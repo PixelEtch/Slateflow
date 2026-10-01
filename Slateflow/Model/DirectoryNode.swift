@@ -63,13 +63,13 @@ struct DirectoryNode: Identifiable {
 
     /// Recursively create this folder and every descendant under `parent`.
     /// `name` is expected to be pre-sanitised; the `SafeName` pass here is defense in depth.
-    nonisolated func write(into parent: URL, fileManager: FileManager = .default) throws {
+    nonisolated func write(into parent: URL) throws {
         let dir = parent.appendingPathComponent(SafeName.component(name, fallback: "Folder"),
                                                 isDirectory: true)
-        try fileManager.createDirectory(
+        try FileManager.default.createDirectory(
             at: dir, withIntermediateDirectories: true,
             attributes: [.posixPermissions: FilePermissions.directory])
-        for child in children { try child.write(into: dir, fileManager: fileManager) }
+        for child in children { try child.write(into: dir) }
     }
 
     /// Flat relative paths - pure, for previews and checks.

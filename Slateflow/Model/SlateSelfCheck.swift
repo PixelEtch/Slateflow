@@ -11,9 +11,9 @@ import Foundation
 /// Smallest runnable proof of the non-trivial logic. Called from `SlateflowApp.init` in debug.
 @MainActor
 func slateSelfCheck() {
-    assert(FolderName(sequence: 1, templateName: "SlateTemplate").formatted == "001 - SlateTemplate")
-    assert(FolderName(sequence: 42, templateName: "X").formatted == "042 - X")
-    assert(FolderName(sequence: 1000, templateName: "X").formatted == "1000 - X")
+    assert(ProjectNaming.folderName(sequence: 1, templateName: "SlateTemplate") == "001 - SlateTemplate")
+    assert(ProjectNaming.folderName(sequence: 42, templateName: "X") == "042 - X")
+    assert(ProjectNaming.folderName(sequence: 1000, templateName: "X") == "1000 - X")
 
     // Frame rate - plain rates are 1/Ns; NTSC rates use the SMPTE drop-frame fraction.
     assert(FrameRate.fps25.frameDurationFCPX == "1/25s")
@@ -23,7 +23,7 @@ func slateSelfCheck() {
     assert(FrameRate.fps59_94.frameDurationFCPX == "1001/60000s")
     var settings29_97 = FCPLibrarySettings()
     settings29_97.frameRate = .fps29_97
-    assert(settings29_97.frameDurationFCPX == "1001/30000s")
+    assert(settings29_97.frameRate.frameDurationFCPX == "1001/30000s")
 
     assert(VideoFormat.uhd4k.aspectRatio == "16:9")
     assert(VideoFormat.uhd8k.width == 7680 && VideoFormat.uhd8k.height == 4320)

@@ -148,12 +148,9 @@ struct FCPLibrarySettings {
     var audioRoles = defaultAudioRoles
     var smartCollections = SmartCollectionSpec.defaults(roles: defaultVideoRoles + defaultAudioRoles)
 
-    nonisolated var frameDurationFCPX: String { frameRate.frameDurationFCPX }
-
     /// Write `<event>.fcpxml` (and an import note when media is kept in place) into `fcpFolder`.
-    nonisolated func write(into fcpFolder: URL, format: VideoFormat, eventName: String,
-                           fileManager: FileManager = .default) throws {
-        try fileManager.createDirectory(
+    nonisolated func write(into fcpFolder: URL, format: VideoFormat, eventName: String) throws {
+        try FileManager.default.createDirectory(
             at: fcpFolder, withIntermediateDirectories: true,
             attributes: [.posixPermissions: FilePermissions.directory])
 
@@ -207,7 +204,7 @@ nonisolated enum FCPXML {
         <!DOCTYPE fcpxml>
         <fcpxml version="1.11">
         <resources>
-        <format id="r1" name="\(escape(formatName))" width="\(format.width)" height="\(format.height)" frameDuration="\(settings.frameDurationFCPX)" colorSpace="1-1-1 (Rec. 709)"/>
+        <format id="r1" name="\(escape(formatName))" width="\(format.width)" height="\(format.height)" frameDuration="\(settings.frameRate.frameDurationFCPX)" colorSpace="1-1-1 (Rec. 709)"/>
         </resources>
         \(library)
         <event name="\(escape(eventName))">

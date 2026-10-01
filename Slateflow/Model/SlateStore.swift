@@ -93,7 +93,7 @@ final class SlateStore {
 
     /// The real root folder name for a given sequence number.
     func rootFolderName(sequence: Int) -> String {
-        FolderName(sequence: sequence, templateName: safeTemplateName).formatted
+        ProjectNaming.folderName(sequence: sequence, templateName: safeTemplateName)
     }
 
     /// `templateName` sanitised to a single safe path component (no separators,
@@ -146,7 +146,7 @@ final class SlateStore {
         templateName = Self.templateName(from: record.rootFolder)
     }
 
-    /// Strips the fixed `"NNN - "` sequence prefix `FolderName.formatted` always adds.
+    /// Strips the fixed `"NNN - "` sequence prefix `ProjectNaming.folderName` always adds.
     private static func templateName(from rootFolder: String) -> String {
         guard rootFolder.count > 6 else { return rootFolder }
         return String(rootFolder.dropFirst(6))
@@ -207,12 +207,11 @@ final class SlateStore {
         addCollection(SmartCollectionSpec(name: trimmed, rules: [.role(trimmed)]))
     }
 
-    enum QuickCollection: String, CaseIterable, Identifiable {
-        case cameraAngle = "Camera Angle"   // Inspector ▸ Info ▸ Camera Angle
-        case day = "Day"                    // folder imported as Keyword Collection
-        case keyword = "Keyword"
-        case nameContains = "Name contains" // + videoOnly, for screen recordings etc.
-        var id: String { rawValue }
+    enum QuickCollection {
+        case cameraAngle    // Inspector ▸ Info ▸ Camera Angle
+        case day            // folder imported as Keyword Collection
+        case keyword
+        case nameContains   // + videoOnly, for screen recordings etc.
     }
 
     /// Add a parameterised Smart Collection for the common filtering axes.
@@ -237,12 +236,10 @@ final class SlateStore {
         fcp.smartCollections.removeAll { $0.id == spec.id }
     }
 
-    /// Append unless a collection with the same name already exists. Returns whether it was added.
-    @discardableResult
-    private func addCollection(_ spec: SmartCollectionSpec) -> Bool {
-        guard !fcp.smartCollections.contains(where: { $0.name == spec.name }) else { return false }
+    /// Append unless a collection with the same name already exists.
+    private func addCollection(_ spec: SmartCollectionSpec) {
+        guard !fcp.smartCollections.contains(where: { $0.name == spec.name }) else { return }
         fcp.smartCollections.append(spec)
-        return true
     }
 
     /// Create the full directory hierarchy under `destination`, named `NNN - <template>`,
