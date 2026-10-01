@@ -8,8 +8,12 @@ All notable changes to Slateflow are listed here.
 - `--selftest` launch option for Debug builds, and a GitHub Actions CI workflow that builds the app and runs it.
 - README and this changelog.
 - `Tools/make-dmg.sh`: builds a Release app and packages it as a drag-to-Applications DMG in `dist/`.
+- DMG window background with an arrow and an install hint.
+- Privacy manifest (`PrivacyInfo.xcprivacy`) declaring no tracking or data collection, and why the app uses UserDefaults and file metadata.
+- `CONTRIBUTING.md`, `SECURITY.md`, issue templates and a pull request template.
 
 ### Changed
+- Minimum macOS is now 15 (was 14.6, which was never tested).
 - The DMG app runs on both Apple silicon and Intel Macs.
 - The build number is the commit count, so each release is higher than the last.
 - Copyright and app category (Video) are set, so they show in About and Finder's Get Info.

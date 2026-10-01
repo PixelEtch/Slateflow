@@ -49,6 +49,8 @@ echo "▸ Staging DMG contents…"
 STAGING="$(mktemp -d)"
 ditto "$APP" "$STAGING/$APP_NAME.app"
 ln -s /Applications "$STAGING/Applications"
+mkdir "$STAGING/.background"
+swift Tools/MakeDMGBackground.swift "$STAGING/.background/background.png"
 
 echo "▸ Creating image…"
 WORK="$(mktemp -d)"
@@ -71,6 +73,7 @@ tell application "Finder"
         set theOptions to the icon view options of container window
         set arrangement of theOptions to not arranged
         set icon size of theOptions to 128
+        set background picture of theOptions to file ".background:background.png"
         set position of item "$APP_NAME.app" of container window to {140, 160}
         set position of item "Applications" of container window to {400, 160}
         update without registering applications

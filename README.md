@@ -36,7 +36,7 @@ Final Cut creates the library itself, so it always matches your installed versio
 
 ## Requirements
 
-- macOS 14.6 or later
+- macOS 15 or later
 - Final Cut Pro, to open the generated project
 - Xcode 26 or later, to build from source
 

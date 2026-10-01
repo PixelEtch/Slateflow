@@ -1,0 +1,47 @@
+name: Bug report
+description: Something doesn't work as expected
+labels: [bug]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Set resolution to …
+        2. Click Choose Destination & Build…
+        3. …
+    validations:
+      required: true
+  - type: input
+    id: slateflow-version
+    attributes:
+      label: Slateflow version
+      description: Slateflow → About Slateflow
+      placeholder: 1.0.0 (Build 5)
+    validations:
+      required: true
+  - type: input
+    id: macos-version
+    attributes:
+      label: macOS version
+      placeholder: macOS 26.0
+    validations:
+      required: true
+  - type: input
+    id: fcp-version
+    attributes:
+      label: Final Cut Pro version (if relevant)
+      placeholder: "12.4"
+  - type: textarea
+    id: log
+    attributes:
+      label: Log
+      description: Help → Open Log File shows the log file. Paste the relevant lines.
+      render: text
