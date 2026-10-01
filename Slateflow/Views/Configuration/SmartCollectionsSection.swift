@@ -16,16 +16,17 @@ struct SmartCollectionsSection: View {
         ForEach($store.fcp.smartCollections) { $spec in
             HStack {
                 SmartCollectionRow(spec: $spec)
-                // Footage-linked collections follow their source toggle, so only
-                // manual ones get a visible remove button.
-                if !spec.isFootageLinked {
-                    Button(Strings.SmartCollections.remove, systemImage: SFSymbol.remove) {
-                        store.removeCollection(spec)
-                    }
-                    .labelStyle(.iconOnly)
-                    .buttonStyle(.borderless)
-                    .foregroundStyle(.secondary)
+                // Footage-linked collections follow their source toggle, so only manual
+                // ones get a remove button; linked rows keep its space so switches align.
+                Button(Strings.SmartCollections.remove, systemImage: SFSymbol.remove) {
+                    store.removeCollection(spec)
                 }
+                .labelStyle(.iconOnly)
+                .buttonStyle(.borderless)
+                .foregroundStyle(.secondary)
+                .opacity(spec.isFootageLinked ? 0 : 1)
+                .disabled(spec.isFootageLinked)
+                .accessibilityHidden(spec.isFootageLinked)
             }
             .contextMenu {
                 Button(Strings.SmartCollections.remove, role: .destructive) {

@@ -56,7 +56,7 @@ enum Strings {
     enum SmartCollections {
         static let section = "Smart Collections"
         static let footer =
-            "Enabled collections are written into the FCP library template and auto-sort clips on import."
+            "Enabled collections go into the project's .fcpxml and sort clips automatically on import."
         static let add = "Add Collection"
         static let screenRecordings = "Screen Recordings"
         static let screenRecordingsValue = "Screen Recording"
