@@ -10,6 +10,24 @@ A small macOS app that sets up a new Final Cut Pro project folder in one click, 
 - Writes an `.fcpxml` with the resolution, aspect ratio and frame rate you picked, plus Smart Collections for each footage source, media type and role.
 - Keeps a local archive of past builds, so a previous setup can be reused.
 
+## Installing
+
+Open `Slateflow-<version>.dmg` and drag **Slateflow** onto **Applications**.
+
+The app is signed ad hoc, not with an Apple Developer ID, so Gatekeeper rejects it: dragging it to Applications fails with "Could not install - This Mac could not verify the app". Until it is signed and notarized, install it from Terminal instead:
+
+```bash
+ditto "/Volumes/Slateflow/Slateflow.app" "/Applications/Slateflow.app"
+```
+
+To make the DMG yourself:
+
+```bash
+./Tools/make-dmg.sh
+```
+
+It builds a Release app and writes `dist/Slateflow-<version>.dmg`.
+
 ## Opening the project in Final Cut Pro
 
 After a build, click **Copy Name & Open in Final Cut Pro**. When Final Cut asks which library to import into, click **New…**, paste the name (⌘V), then click **Save**. The save window already opens in the project's `FCP` folder.

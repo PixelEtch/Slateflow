@@ -7,6 +7,13 @@ All notable changes to Slateflow are listed here.
 ### Added
 - `--selftest` launch option for Debug builds, and a GitHub Actions CI workflow that builds the app and runs it.
 - README and this changelog.
+- `Tools/make-dmg.sh`: builds a Release app and packages it as a drag-to-Applications DMG in `dist/`.
+
+### Changed
+- The DMG app runs on both Apple silicon and Intel Macs.
+- The build number is the commit count, so each release is higher than the last.
+- Copyright and app category (Video) are set, so they show in About and Finder's Get Info.
+- The About window's GitHub link points to github.com/DXC-Ashifali-Shaikh/Slateflow.
 
 ## 2026-09-30
 

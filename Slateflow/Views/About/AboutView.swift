@@ -14,14 +14,16 @@ enum AppInfo {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
     }
     static var build: String {
-        Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "2026.1"
+        Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
     }
     static var versionLine: String { "Version \(version) (Build \(build))" }
 
-    static let copyright = "© 2026 Ashifali Shaikh"
+    /// Single source: the Info.plist copyright Finder's Get Info also shows.
+    static var copyright: String {
+        Bundle.main.infoDictionary?["NSHumanReadableCopyright"] as? String ?? "© 2026 Ashifali Shaikh"
+    }
 
-    // TODO: point at the real repository before release.
-    static let repositoryURL = URL(string: "https://github.com/shaikhashif/Slateflow")!
+    static let repositoryURL = URL(string: "https://github.com/DXC-Ashifali-Shaikh/Slateflow")!
 }
 
 struct AboutMenuButton: View {
