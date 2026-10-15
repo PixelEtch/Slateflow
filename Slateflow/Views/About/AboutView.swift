@@ -23,7 +23,7 @@ enum AppInfo {
         Bundle.main.infoDictionary?["NSHumanReadableCopyright"] as? String ?? "© 2026 Sk Ashifali Shaikh"
     }
 
-    static let repositoryURL = URL(string: "https://github.com/DXC-Ashifali-Shaikh/Slateflow")!
+    static let repositoryURL = URL(string: "https://github.com/PixelEtch/Slateflow")!
 }
 
 struct AboutMenuButton: View {

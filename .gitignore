@@ -22,6 +22,8 @@ xcuserdata/
 .swiftpm/
 Packages/
 Package.resolved
+# The app pins its packages (Sparkle) so release builds are reproducible.
+!Slateflow.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
 
 # Local runtime data (never committed)
 *.log

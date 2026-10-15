@@ -7,9 +7,14 @@
 
 import SwiftUI
 import AppKit
+import Sparkle
 
 @main
 struct SlateflowApp: App {
+    // Started after the self-check so CI's --selftest run never touches the network.
+    private let updaterController = SPUStandardUpdaterController(
+        startingUpdater: false, updaterDelegate: nil, userDriverDelegate: nil)
+
     init() {
         #if DEBUG
         slateSelfCheck()
@@ -21,6 +26,7 @@ struct SlateflowApp: App {
         }
         #endif
         Log.event("Launched - \(AppInfo.versionLine)")
+        updaterController.startUpdater()
     }
 
     var body: some Scene {
@@ -29,7 +35,10 @@ struct SlateflowApp: App {
         }
         .defaultSize(width: 900, height: 640)
         .commands {
-            CommandGroup(replacing: .appInfo) { AboutMenuButton() }
+            CommandGroup(replacing: .appInfo) {
+                AboutMenuButton()
+                CheckForUpdatesView(updater: updaterController.updater)
+            }
             CommandGroup(after: .newItem) { BuildCommand() }
             CommandGroup(after: .help) {
                 Button(Strings.About.openLog) {

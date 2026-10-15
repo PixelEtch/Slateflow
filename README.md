@@ -60,7 +60,7 @@ It prints `Slateflow self-check passed` and exits 0; a failed check stops it wit
 
 ## Privacy
 
-Everything stays on your Mac. Build history is saved in Application Support, and the app has no network access, telemetry or cloud features.
+Everything stays on your Mac. Build history is saved in Application Support, and the app has no telemetry or cloud features. Its only network request is the update check (Sparkle), which you can turn off.
 
 ## License
 
