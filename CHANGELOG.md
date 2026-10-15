@@ -12,6 +12,7 @@ All notable changes to Slateflow are listed here.
 - Privacy manifest (`PrivacyInfo.xcprivacy`) declaring no tracking or data collection, and why the app uses UserDefaults and file metadata.
 - `CONTRIBUTING.md`, `SECURITY.md`, issue templates and a pull request template.
 - Check for Updates… in the app menu, using Sparkle. Updates come from the PixelEtch GitHub releases and are verified with an EdDSA signature before install.
+- Release pipeline: `Tools/make-dmg.sh` signs with Developer ID, notarizes and staples the DMG, and updates the Sparkle feed in `docs/appcast.xml` for GitHub Pages.
 
 ### Changed
 - Footage sources (including custom ones), roles and Smart Collections are saved and restored on the next launch.
@@ -27,6 +28,7 @@ All notable changes to Slateflow are listed here.
 - Smart Collections linked to a footage source say "from Footage Sources" in their summary, instead of a hover-only link icon.
 - Minimum macOS is now 15 (was 14.6, which was never tested).
 - The DMG app runs on both Apple silicon and Intel Macs.
+- The DMG is signed with a Developer ID and notarized, so it installs without Gatekeeper warnings.
 - The build number is the commit count, so each release is higher than the last.
 - Copyright and app category (Video) are set, so they show in About and Finder's Get Info.
 - The About window's GitHub link points to github.com/PixelEtch/Slateflow.

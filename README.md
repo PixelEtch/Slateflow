@@ -14,19 +14,27 @@ A small macOS app that sets up a new Final Cut Pro project folder in one click, 
 
 Open `Slateflow-<version>.dmg` and drag **Slateflow** onto **Applications**.
 
-The app is signed ad hoc, not with an Apple Developer ID, so Gatekeeper rejects it: dragging it to Applications fails with "Could not install - This Mac could not verify the app". Until it is signed and notarized, install it from Terminal instead:
+The app is signed with a Developer ID and notarized by Apple. Later versions arrive through **Slateflow > Check for Updates…**.
 
-```bash
-ditto "/Volumes/Slateflow/Slateflow.app" "/Applications/Slateflow.app"
-```
-
-To make the DMG yourself:
+## Releasing
 
 ```bash
 ./Tools/make-dmg.sh
 ```
 
-It builds a Release app and writes `dist/Slateflow-<version>.dmg`.
+One command, run on the maintainer's Mac:
+
+1. Builds a universal Release app signed with the Developer ID certificate, hardened runtime on.
+2. Packages `dist/Slateflow-<MARKETING_VERSION>.dmg`, signs it, notarizes it (`notarytool`, keychain profile `slateflow-notary`) and staples the ticket.
+3. Adds the DMG to the Sparkle feed `docs/appcast.xml`, signed with the EdDSA key in the login keychain (account `slateflow`). Its download URL is `https://github.com/PixelEtch/Slateflow/releases/download/v<version>/Slateflow-<version>.dmg`.
+
+The script creates no release and pushes nothing. To publish:
+
+1. Bump `MARKETING_VERSION` in Xcode before running the script (the build number is the commit count).
+2. Create GitHub release `v<version>` and attach the DMG.
+3. Commit and push `docs/appcast.xml` to `main`.
+
+GitHub Pages serves the feed from the `docs/` folder on `main` (Settings > Pages > Deploy from a branch > `main` / `/docs`) at `https://pixeletch.github.io/Slateflow/appcast.xml`, the `SUFeedURL` the app checks. Pages on a private repository needs a paid GitHub plan, so the repository must be public, or the feed hosted elsewhere and `SUFeedURL` changed.
 
 ## Opening the project in Final Cut Pro
 

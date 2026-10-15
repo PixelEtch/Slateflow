@@ -1,0 +1,15 @@
+<?xml version="1.0" standalone="yes"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>
+        <title>Slateflow</title>
+        <item>
+            <title>1.0.0</title>
+            <pubDate>Thu, 15 Oct 2026 23:28:20 +0800</pubDate>
+            <link>https://github.com/PixelEtch/Slateflow/releases</link>
+            <sparkle:version>24</sparkle:version>
+            <sparkle:shortVersionString>1.0.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/PixelEtch/Slateflow/releases/download/v1.0.0/Slateflow-1.0.0.dmg" length="3839667" type="application/octet-stream" sparkle:edSignature="aX/HLdwWxRRXp+domUvikTgy2Z0cUFOjP17LjQUsHqrzBsgku/z6wzgwpsGu6DuExF1BmUKAsFu6HqnBhB5kAw=="/>
+        </item>
+    </channel>
+</rss>

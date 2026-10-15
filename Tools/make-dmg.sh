@@ -1,12 +1,22 @@
 #!/bin/zsh
-# Builds a Release Slateflow.app and packages it as a drag-to-install DMG:
-# dist/Slateflow-<version>.dmg, a window with the app next to an Applications
-# shortcut. Signs ad hoc (no Apple Developer ID), so on other Macs the first
-# launch needs System Settings > Privacy & Security > Open Anyway.
+# Release pipeline: builds a Release Slateflow.app signed with Developer ID
+# (hardened runtime), packages it as dist/Slateflow-<version>.dmg (the app next
+# to an Applications shortcut), signs, notarizes and staples the DMG, then adds
+# it to the Sparkle feed in docs/appcast.xml (served by GitHub Pages).
+#
+# Needs: the Developer ID Application certificate, the notarytool keychain
+# profile "slateflow-notary", and Sparkle's EdDSA key in the login keychain
+# (account "slateflow"). Nothing is pushed or uploaded; see README > Releasing.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
 APP_NAME="Slateflow"
+IDENTITY="Developer ID Application: Sk Ashifali Shaikh (GG4G6A42SB)"
+TEAM_ID="GG4G6A42SB"
+NOTARY_PROFILE="slateflow-notary"
+SPARKLE_ACCOUNT="slateflow"
+REPO_URL="https://github.com/PixelEtch/Slateflow"
+APPCAST="docs/appcast.xml"
 BUILD="build/release"
 APP="$BUILD/Build/Products/Release/$APP_NAME.app"
 STAGING=""
@@ -24,19 +34,29 @@ trap cleanup EXIT
 BUILD_NUMBER="$(git rev-list --count HEAD)"
 
 echo "▸ Building Release (build $BUILD_NUMBER, Apple silicon + Intel)…"
-# CODE_SIGN_IDENTITY=- signs ad hoc but still embeds the sandbox entitlements.
 xcodebuild -project "$APP_NAME.xcodeproj" -scheme "$APP_NAME" -configuration Release \
     -destination 'generic/platform=macOS' -derivedDataPath "$BUILD" \
     CURRENT_PROJECT_VERSION="$BUILD_NUMBER" \
-    CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY=- DEVELOPMENT_TEAM= \
+    CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="$IDENTITY" DEVELOPMENT_TEAM="$TEAM_ID" \
+    OTHER_CODE_SIGN_FLAGS=--timestamp \
     build -quiet
 xattr -cr "$APP"
-# Xcode's ad hoc signature adds the debugger entitlement (get-task-allow); re-sign
-# with the app's own entitlements minus that one.
+
+echo "▸ Signing with Developer ID…"
+# Sparkle's helpers ship ad hoc signed; notarization needs every nested binary
+# signed with our identity, hardened runtime and a timestamp, inside out.
+sign() { codesign --force --timestamp --options runtime --sign "$IDENTITY" "$@"; }
+SPARKLE="$APP/Contents/Frameworks/Sparkle.framework/Versions/B"
+sign "$SPARKLE/XPCServices/Installer.xpc"
+sign --preserve-metadata=entitlements "$SPARKLE/XPCServices/Downloader.xpc"
+sign "$SPARKLE/Autoupdate"
+sign "$SPARKLE/Updater.app"
+sign "$APP/Contents/Frameworks/Sparkle.framework"
+# Re-sign the app with its own entitlements, minus the debugger one if present.
 ENT="$(mktemp)"
 codesign -d --entitlements - --xml "$APP" > "$ENT" 2>/dev/null
 /usr/libexec/PlistBuddy -c 'Delete :com.apple.security.get-task-allow' "$ENT" 2>/dev/null || true
-codesign --force --options runtime --entitlements "$ENT" --sign - "$APP"
+sign --entitlements "$ENT" "$APP"
 rm -f "$ENT"
 codesign --verify --deep --strict "$APP"
 [[ "$(lipo -archs "$APP/Contents/MacOS/$APP_NAME")" == *x86_64*arm64* || "$(lipo -archs "$APP/Contents/MacOS/$APP_NAME")" == *arm64*x86_64* ]] \
@@ -97,5 +117,33 @@ echo "▸ Compressing…"
 mkdir -p dist
 rm -f "$OUT"
 hdiutil convert "$RW" -format UDZO -imagekey zlib-level=9 -o "$OUT" -quiet
+codesign --force --timestamp --sign "$IDENTITY" "$OUT"
 
-echo "✓ DMG ready: $OUT"
+echo "▸ Notarizing (usually a few minutes)…"
+RESULT="$(xcrun notarytool submit "$OUT" --keychain-profile "$NOTARY_PROFILE" --wait --output-format json)"
+if [[ "$(jq -r .status <<<"$RESULT")" != "Accepted" ]]; then
+    echo "✗ Notarization failed: $RESULT" >&2
+    xcrun notarytool log "$(jq -r .id <<<"$RESULT")" --keychain-profile "$NOTARY_PROFILE" >&2 || true
+    exit 1
+fi
+xcrun stapler staple "$OUT"
+spctl -a -vv -t install "$OUT"
+
+echo "▸ Updating appcast…"
+# generate_appcast comes with the Sparkle package, resolved into the build folder.
+GENERATE_APPCAST="$BUILD/SourcePackages/artifacts/sparkle/Sparkle/bin/generate_appcast"
+[[ -x "$GENERATE_APPCAST" ]] || { echo "✗ Missing $GENERATE_APPCAST" >&2; exit 1; }
+# Run on a folder holding only this DMG plus the current feed, so the download
+# prefix (one tag per release) applies to the new item and older items stay as they are.
+FEED="$WORK/feed"
+mkdir -p "$FEED" docs
+cp "$OUT" "$FEED/"
+[[ -f "$APPCAST" ]] && cp "$APPCAST" "$FEED/appcast.xml"
+"$GENERATE_APPCAST" --account "$SPARKLE_ACCOUNT" \
+    --download-url-prefix "$REPO_URL/releases/download/v$VERSION/" \
+    --link "$REPO_URL/releases" --maximum-versions 0 "$FEED"
+cp "$FEED/appcast.xml" "$APPCAST"
+
+echo "✓ Notarized DMG: $PWD/$OUT"
+echo "✓ Appcast:       $PWD/$APPCAST"
+echo "  Next: create GitHub release v$VERSION with the DMG, then commit and push $APPCAST."
