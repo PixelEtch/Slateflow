@@ -20,7 +20,7 @@ enum AppInfo {
 
     /// Single source: the Info.plist copyright Finder's Get Info also shows.
     static var copyright: String {
-        Bundle.main.infoDictionary?["NSHumanReadableCopyright"] as? String ?? "© 2026 Ashifali Shaikh"
+        Bundle.main.infoDictionary?["NSHumanReadableCopyright"] as? String ?? "© 2026 Sk Ashifali Shaikh"
     }
 
     static let repositoryURL = URL(string: "https://github.com/DXC-Ashifali-Shaikh/Slateflow")!
