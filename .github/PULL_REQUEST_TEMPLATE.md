@@ -3,6 +3,7 @@
 ## How I tested it
 
 - [ ] `--selftest` passes
+- [ ] Release build compiles (see CONTRIBUTING.md)
 - [ ] Tried the change in the running app
 - [ ] Screenshot attached (UI changes)
 

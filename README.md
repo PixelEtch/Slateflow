@@ -78,7 +78,7 @@ Everything stays on your Mac. Build history is saved in Application Support, and
 
 - [Troubleshooting](docs/TROUBLESHOOTING.md)
 - [Privacy](docs/PRIVACY.md)
-- [Getting help](SUPPORT.md) · [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md)
+- [Getting help](SUPPORT.md) · [Contributing](CONTRIBUTING.md) · [Code of Conduct](CODE_OF_CONDUCT.md) · [Security](SECURITY.md)
 - [Architecture decisions](docs/adr/README.md): why it ships as a DMG with Sparkle, signs locally, and is MIT-licensed
 
 ## License

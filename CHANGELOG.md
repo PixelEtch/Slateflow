@@ -14,6 +14,7 @@ All notable changes to Slateflow are listed here.
 - Check for Updates… in the app menu, using Sparkle. Updates come from the PixelEtch GitHub releases and are verified with an EdDSA signature before install.
 - `SUPPORT.md`, `docs/PRIVACY.md`, `docs/TROUBLESHOOTING.md`, architecture decision records in `docs/adr/`, `CODEOWNERS` and Dependabot for GitHub Actions.
 - README sections for Uninstall and Documentation.
+- `CODE_OF_CONDUCT.md`, and merge requirements in `CONTRIBUTING.md`.
 - Release pipeline: `Tools/make-dmg.sh` signs with Developer ID, notarizes and staples the DMG, and updates the Sparkle feed in `docs/appcast.xml` for GitHub Pages.
 
 ### Changed

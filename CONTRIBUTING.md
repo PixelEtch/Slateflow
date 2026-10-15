@@ -1,6 +1,8 @@
 # Contributing to Slateflow
 
-Thanks for helping. Slateflow is a small macOS app, so the process is light.
+Thanks for helping. Slateflow is a small macOS app, so the process is light. Everyone taking part follows the [Code of Conduct](CODE_OF_CONDUCT.md).
+
+Before changing how the app is built or shipped, read [CONTEXT.md](CONTEXT.md) for the terms the code uses and the [architecture decisions](docs/adr/README.md) for what's already settled.
 
 ## Before you start
 
@@ -23,7 +25,11 @@ xcodebuild -project Slateflow.xcodeproj -scheme Slateflow -configuration Debug -
 build/Build/Products/Debug/Slateflow.app/Contents/MacOS/Slateflow --selftest
 ```
 
-CI runs the same build and check on every pull request.
+CI runs the same build and check on every pull request, plus an unsigned Release build for both Apple silicon and Intel:
+
+```bash
+xcodebuild -project Slateflow.xcodeproj -scheme Slateflow -configuration Release -destination 'generic/platform=macOS' -derivedDataPath build CODE_SIGNING_ALLOWED=NO build
+```
 
 When you change logic in `Slateflow/Model`, add an `assert` for it in `SlateSelfCheck.swift`.
 
@@ -36,9 +42,26 @@ When you change logic in `Slateflow/Model`, add an `assert` for it in `SlateSelf
 
 ## Pull requests
 
-- Branch from `main`.
+- Fork the repository and branch from `main`.
 - Describe what changed and why, and how you tested it. Add a screenshot for UI changes.
-- Make sure CI passes.
+- CI runs once a maintainer approves it for first-time contributors.
+
+A pull request is merged when:
+
+- the **Build & self-check** CI job passes (Debug build, `--selftest`, Release build),
+- the branch is up to date with `main`,
+- a code owner has approved it and every review conversation is resolved,
+- `CHANGELOG.md` has a line under **Unreleased** for anything a user would notice.
+
+Pull requests are squash-merged, so `main` gets one commit per change.
+
+These need an issue and agreement first, because they go against how Slateflow works today:
+
+- new network access beyond the update check, or any telemetry (see [docs/PRIVACY.md](docs/PRIVACY.md)),
+- turning off the App Sandbox or changing how updates are delivered ([ADR-0001](docs/adr/0001-dmg-with-sparkle-sandboxed.md)),
+- new third-party dependencies.
+
+Never include signing certificates, keys, tokens or other credentials in a pull request.
 
 ## License
 
