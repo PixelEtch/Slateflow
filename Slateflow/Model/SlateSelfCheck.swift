@@ -123,9 +123,9 @@ func slateSelfCheck() {
     saver.fcp.keepMediaInPlace = false
     saver.setFootageSource(.camB, enabled: false)
     saver.addCustomFootageSource("Lumix")
-    saver.addRole(name: "Interview", to: \.videoRoles)
-    saver.addRole(name: "Ambience", to: \.audioRoles)
-    saver.addQuickCollection(.keyword, value: "Day 01")
+    saver.fcp.addRole("Interview", to: \.videoRoles)
+    saver.fcp.addRole("Ambience", to: \.audioRoles)
+    saver.fcp.addCollection(.keyword, value: "Day 01")
     if let i = saver.fcp.smartCollections.firstIndex(where: { $0.name == "Day 01" }) {
         saver.fcp.smartCollections[i].enabled = false
     }
@@ -329,16 +329,31 @@ func slateSelfCheck() {
     store.setFootageSource(.drone, enabled: false)
     assert(!store.fcp.smartCollections.contains { $0.name == "Drone" }, "linked collection not removed")
     // A manually-added collection of the same name is left alone by a source toggle.
-    store.addQuickCollection(.keyword, value: "GoPro")      // manual, not linked
+    store.fcp.addCollection(.keyword, value: "GoPro")      // manual, not linked
     store.setFootageSource(.goPro, enabled: true)           // linked add skipped - name taken
     store.setFootageSource(.goPro, enabled: false)          // removes linked only - none
     assert(store.fcp.smartCollections.contains { $0.name == "GoPro" && !$0.isFootageLinked })
 
     // Custom role: added to its list once, with a matching role collection.
-    store.addRole(name: " B-Roll ", to: \.videoRoles)
-    store.addRole(name: "B-Roll", to: \.videoRoles)          // duplicate → no-op
+    store.fcp.addRole(" B-Roll ", to: \.videoRoles)
+    store.fcp.addRole("B-Roll", to: \.videoRoles)          // duplicate → no-op
     assert(store.fcp.videoRoles.filter { $0 == "B-Roll" }.count == 1 && !store.fcp.audioRoles.contains("B-Roll"))
     assert(store.fcp.smartCollections.contains { $0.name == "B-Roll" && $0.rules == [.role("B-Roll")] })
+
+    // Smart Collection rules: no duplicates by name or by rules; blanks ignored;
+    // removing a role collection removes its role.
+    var rules = FCPLibrarySettings()
+    let startCount = rules.smartCollections.count
+    rules.addCollection(.screenRecordings)                       // already a default
+    rules.addCollection(SmartCollectionSpec(name: "Screen Recording", rules: SmartCollectionSpec.screenRecordings.rules))
+    rules.addCollection(.keyword, value: "   ")
+    assert(rules.smartCollections.count == startCount, "duplicate or blank collection added")
+    rules.addCollection(.cameraAngle, value: " Cam C ")
+    assert(rules.smartCollections.last == SmartCollectionSpec(
+        name: "Cam C", rules: [.property(key: SmartCollectionSpec.cameraAngleKey, value: "Cam C")]))
+    rules.addRole("Interview", to: \.audioRoles)
+    rules.removeCollection(rules.smartCollections.first { $0.name == "Interview" }!)
+    assert(!rules.audioRoles.contains("Interview") && !rules.smartCollections.contains { $0.name == "Interview" })
 
     // Sources, roles and collections persist: a fresh store on the same defaults
     // restores exactly what this one has.

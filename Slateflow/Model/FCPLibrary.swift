@@ -36,7 +36,7 @@ struct SmartCollectionSpec: Hashable, Identifiable, Codable {
             case .keywords(let words):    return "keyword " + words.map { "“\($0)”" }.joined(separator: " or ")
             case .text(let value):        return "name contains “\(value)”"
             case .property(let key, let value):
-                return "\(key == "cameraAngle" ? "Camera Angle" : key) is “\(value)”"
+                return "\(key == SmartCollectionSpec.cameraAngleKey ? "Camera Angle" : key) is “\(value)”"
             }
         }
     }
@@ -70,12 +70,23 @@ struct SmartCollectionSpec: Hashable, Identifiable, Codable {
 }
 
 extension SmartCollectionSpec {
+    /// Inspector ▸ Info ▸ Camera Angle - the metadata key FCPXML matches on.
+    static let cameraAngleKey = "cameraAngle"
+    /// Video clips whose name mentions "Screen Recording" (macOS's default file name).
+    static let screenRecordings = SmartCollectionSpec(
+        name: "Screen Recordings", rules: [.mediaType("videoOnly"), .text("Screen Recording")])
+
+    /// The collections a user adds by typing one value.
+    enum Kind {
+        case cameraAngle    // Inspector ▸ Info ▸ Camera Angle
+        case keyword        // also shoot-day folders imported as Keyword Collections
+    }
+
     static func defaults(roles: [String]) -> [SmartCollectionSpec] {
         var specs = [
             SmartCollectionSpec(name: "Footage", rules: [.mediaType("videoOnly")]),
             SmartCollectionSpec(name: "Stills",  rules: [.mediaType("stills")]),
-            SmartCollectionSpec(name: "Screen Recordings",
-                                rules: [.mediaType("videoOnly"), .text("Screen Recording")]),
+            screenRecordings,
         ]
         // One collection per role, skipping any name already taken (e.g. "Footage").
         let taken = Set(specs.map(\.name))
@@ -83,6 +94,62 @@ extension SmartCollectionSpec {
             .filter { !taken.contains($0) }
             .map { SmartCollectionSpec(name: $0, rules: [.role($0)]) }
         return specs
+    }
+}
+
+// MARK: - Smart Collection rules
+
+/// Every change to roles and Smart Collections goes through these, so the rules
+/// (trimming, no duplicates, a role owning its collection, footage links) live in one place.
+extension FCPLibrarySettings {
+    /// Adds `spec` unless a collection with the same name or the same rules exists.
+    mutating func addCollection(_ spec: SmartCollectionSpec) {
+        guard !smartCollections.contains(where: { $0.name == spec.name || $0.rules == spec.rules })
+        else { return }
+        smartCollections.append(spec)
+    }
+
+    /// A collection named after `value`; blank values are ignored.
+    mutating func addCollection(_ kind: SmartCollectionSpec.Kind, value: String) {
+        let v = value.trimmingCharacters(in: .whitespaces)
+        guard !v.isEmpty else { return }
+        switch kind {
+        case .cameraAngle:
+            addCollection(.init(name: v, rules: [.property(key: SmartCollectionSpec.cameraAngleKey, value: v)]))
+        case .keyword:
+            addCollection(.init(name: v, rules: [.keywords([v])]))
+        }
+    }
+
+    /// Add a custom role to `roles` (`\.videoRoles` or `\.audioRoles`) with a matching
+    /// role collection. Blank names and roles already in the list are ignored.
+    mutating func addRole(_ name: String, to roles: WritableKeyPath<FCPLibrarySettings, [String]>) {
+        let trimmed = name.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty, !self[keyPath: roles].contains(trimmed) else { return }
+        self[keyPath: roles].append(trimmed)
+        addCollection(SmartCollectionSpec(name: trimmed, rules: [.role(trimmed)]))
+    }
+
+    mutating func removeCollection(_ spec: SmartCollectionSpec) {
+        // A single-rule role collection owns its role - drop both together.
+        if spec.rules.count == 1, case .role(let name) = spec.rules[0] {
+            videoRoles.removeAll { $0 == name }
+            audioRoles.removeAll { $0 == name }
+        }
+        smartCollections.removeAll { $0.id == spec.id }
+    }
+
+    /// A collection matching the keyword FCP stamps when `Footage/<name>` is imported
+    /// with “Keywords: from folders”. Skipped when a collection already covers it.
+    mutating func linkFootageSource(_ name: String) {
+        var spec = SmartCollectionSpec(name: name, rules: [.keywords([name])])
+        spec.isFootageLinked = true
+        addCollection(spec)
+    }
+
+    /// Removes the linked collection only - a manually added one of the same name stays.
+    mutating func unlinkFootageSource(_ name: String) {
+        smartCollections.removeAll { $0.isFootageLinked && $0.name == name }
     }
 }
 

@@ -43,6 +43,7 @@ All notable changes to Slateflow are listed here.
 - The Build Archives entry and `Slate Project.json` always describe the same configuration, even if the form is edited while a build runs.
 - "Leave files in place" and other Final Cut settings could reset at launch: restoring one setting saved the others before they were read.
 - A saved Portrait or Vertical aspect ratio, such as 9:21, came back as that orientation's default (9:16) at launch.
+- Add Collection > Screen Recordings no longer adds a second copy of the built-in Screen Recordings collection; collections with the same rules are never added twice.
 
 ## 2026-09-30
 

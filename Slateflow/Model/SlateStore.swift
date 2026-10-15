@@ -58,7 +58,7 @@ final class SlateStore {
         var loaded = SavedSettings.load(from: defaults)
         // Keep Smart Collections in sync with the enabled footage sources.
         for source in loaded.footageSources {
-            Self.addFootageLinkedCollection(source, to: &loaded.fcp)
+            loaded.fcp.linkFootageSource(source.folderName)
         }
         // First assignment runs the init accessor, not `didSet`: building a store writes nothing.
         settings = loaded
@@ -122,10 +122,10 @@ final class SlateStore {
         if enabled {
             guard !footageSources.contains(source) else { return }
             footageSources.append(source)
-            Self.addFootageLinkedCollection(source, to: &fcp)
+            fcp.linkFootageSource(source.folderName)
         } else {
             footageSources.removeAll { $0 == source }
-            removeFootageLinkedCollection(source)
+            fcp.unlinkFootageSource(source.folderName)
         }
     }
 
@@ -144,65 +144,6 @@ final class SlateStore {
                   $0.folderName.caseInsensitiveCompare(safe) == .orderedSame
               }) else { return }
         setFootageSource(.custom(safe), enabled: true)
-    }
-
-    /// A Smart Collection that matches the FCP keyword created when the source's
-    /// `Footage/<name>` folder is imported with “Keywords: from folders”.
-    private static func addFootageLinkedCollection(_ source: FootageSource,
-                                                   to fcp: inout FCPLibrarySettings) {
-        let name = source.folderName
-        guard !fcp.smartCollections.contains(where: { $0.name == name }) else { return }
-        var spec = SmartCollectionSpec(name: name, rules: [.keywords([name])])
-        spec.isFootageLinked = true
-        fcp.smartCollections.append(spec)
-    }
-
-    /// Removes the linked collection only - a manually-added collection of the same name stays.
-    private func removeFootageLinkedCollection(_ source: FootageSource) {
-        fcp.smartCollections.removeAll { $0.isFootageLinked && $0.name == source.folderName }
-    }
-
-    /// Add a custom role to `roles` (`\.videoRoles` or `\.audioRoles`) and a matching
-    /// role-based Smart Collection.
-    func addRole(name: String, to roles: WritableKeyPath<FCPLibrarySettings, [String]>) {
-        let trimmed = name.trimmingCharacters(in: .whitespaces)
-        guard !trimmed.isEmpty, !fcp[keyPath: roles].contains(trimmed) else { return }
-        fcp[keyPath: roles].append(trimmed)
-        addCollection(SmartCollectionSpec(name: trimmed, rules: [.role(trimmed)]))
-    }
-
-    enum QuickCollection {
-        case cameraAngle    // Inspector ▸ Info ▸ Camera Angle
-        case keyword        // also day folders imported as Keyword Collections
-        case nameContains   // + videoOnly, for screen recordings etc.
-    }
-
-    /// Add a parameterised Smart Collection for the common filtering axes.
-    func addQuickCollection(_ kind: QuickCollection, value: String) {
-        let v = value.trimmingCharacters(in: .whitespaces)
-        guard !v.isEmpty else { return }
-        let spec: SmartCollectionSpec
-        switch kind {
-        case .cameraAngle:  spec = .init(name: v, rules: [.property(key: "cameraAngle", value: v)])
-        case .keyword:      spec = .init(name: v, rules: [.keywords([v])])
-        case .nameContains: spec = .init(name: v, rules: [.mediaType("videoOnly"), .text(v)])
-        }
-        addCollection(spec)
-    }
-
-    func removeCollection(_ spec: SmartCollectionSpec) {
-        // A single-rule role collection owns its role - drop both together.
-        if spec.rules.count == 1, case .role(let name) = spec.rules[0] {
-            fcp.videoRoles.removeAll { $0 == name }
-            fcp.audioRoles.removeAll { $0 == name }
-        }
-        fcp.smartCollections.removeAll { $0.id == spec.id }
-    }
-
-    /// Append unless a collection with the same name already exists.
-    private func addCollection(_ spec: SmartCollectionSpec) {
-        guard !fcp.smartCollections.contains(where: { $0.name == spec.name }) else { return }
-        fcp.smartCollections.append(spec)
     }
 
     /// Build the next numbered project in `destination` from one snapshot of the

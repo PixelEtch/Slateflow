@@ -58,7 +58,6 @@ enum Strings {
             "Enabled collections go into the project's .fcpxml and sort clips automatically on import."
         static let add = "Add Collection"
         static let screenRecordings = "Screen Recordings"
-        static let screenRecordingsValue = "Screen Recording"
         static let byCameraAngle = "By Camera Angle…"
         static let byShootDay = "By Shoot Day…"
         static let byKeyword = "By Keyword…"

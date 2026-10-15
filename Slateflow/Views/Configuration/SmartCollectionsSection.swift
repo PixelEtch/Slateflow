@@ -19,7 +19,7 @@ struct SmartCollectionsSection: View {
                 // Footage-linked collections follow their source toggle, so only manual
                 // ones get a remove button; linked rows keep its space so switches align.
                 Button(Strings.SmartCollections.remove, systemImage: SFSymbol.remove) {
-                    store.removeCollection(spec)
+                    store.fcp.removeCollection(spec)
                 }
                 .labelStyle(.iconOnly)
                 .buttonStyle(.borderless)
@@ -30,7 +30,7 @@ struct SmartCollectionsSection: View {
             }
             .contextMenu {
                 Button(Strings.SmartCollections.remove, role: .destructive) {
-                    store.removeCollection(spec)
+                    store.fcp.removeCollection(spec)
                 }
             }
         }
@@ -38,7 +38,7 @@ struct SmartCollectionsSection: View {
 
         Menu(Strings.SmartCollections.add, systemImage: SFSymbol.addCollection) {
             Button(Strings.SmartCollections.screenRecordings) {
-                store.addQuickCollection(.nameContains, value: Strings.SmartCollections.screenRecordingsValue)
+                store.fcp.addCollection(.screenRecordings)
             }
             Divider()
             Button(Strings.SmartCollections.byCameraAngle) { draft = CollectionDraft(kind: .cameraAngle) }
@@ -52,14 +52,11 @@ struct SmartCollectionsSection: View {
     }
 
     private func apply(_ draft: CollectionDraft) {
-        let value = draft.value.trimmingCharacters(in: .whitespaces)
-        guard !value.isEmpty else { return }
         switch draft.kind {
-        case .cameraAngle: store.addQuickCollection(.cameraAngle, value: value)
-        case .shootDay:    store.addQuickCollection(.keyword, value: value)
-        case .keyword:     store.addQuickCollection(.keyword, value: value)
-        case .videoRole:   store.addRole(name: value, to: \.videoRoles)
-        case .audioRole:   store.addRole(name: value, to: \.audioRoles)
+        case .cameraAngle:        store.fcp.addCollection(.cameraAngle, value: draft.value)
+        case .shootDay, .keyword: store.fcp.addCollection(.keyword, value: draft.value)
+        case .videoRole:          store.fcp.addRole(draft.value, to: \.videoRoles)
+        case .audioRole:          store.fcp.addRole(draft.value, to: \.audioRoles)
         }
     }
 }
