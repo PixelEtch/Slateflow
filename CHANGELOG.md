@@ -4,6 +4,8 @@ All notable changes to Slateflow are listed here.
 
 ## Unreleased
 
+## 1.0.0 - 2026-10-16
+
 ### Added
 - `--selftest` launch option for Debug builds, and a GitHub Actions CI workflow that builds the app and runs it.
 - README and this changelog.
