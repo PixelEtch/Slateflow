@@ -20,6 +20,33 @@ func slateSelfCheck() {
         scratchSuites.append(name)
         return UserDefaults(suiteName: name)!
     }
+    // Throwaway Build Archives files, so no store here reads or writes the user's archive.
+    let archiveTmp = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(UUID().uuidString)
+    try? FileManager.default.createDirectory(at: archiveTmp, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: archiveTmp) }
+    func scratchHistory() -> SelectionHistory {
+        SelectionHistory(fileURL: archiveTmp.appendingPathComponent("\(UUID().uuidString).json"))
+    }
+
+    // Build Archives: records persist, export/import round-trips, importing twice adds nothing.
+    let archiveSnapshot = BuildSnapshot(
+        templateName: "A", choice: .hd1080, orientation: .landscape, aspect: .wide169,
+        format: .hd1080, fcp: FCPLibrarySettings(), footageSources: [.camA])
+    let archive = scratchHistory()
+    archive.record(BuildRecord(snapshot: archiveSnapshot, rootFolder: "001 - A"))
+    archive.record(BuildRecord(snapshot: archiveSnapshot, rootFolder: "002 - A"))
+    assert(SelectionHistory(fileURL: archive.fileURL).builds.map(\.rootFolder) == ["001 - A", "002 - A"],
+           "Build Archives not restored from disk")
+    let exported = archiveTmp.appendingPathComponent("export.json")
+    try! archive.exportBackup(to: exported)
+    let restored = scratchHistory()
+    try! restored.importBackup(from: exported)
+    try! restored.importBackup(from: exported)
+    assert(restored.builds.map(\.id) == archive.builds.map(\.id), "import lost or duplicated records")
+    restored.remove(restored.builds[0])
+    assert(SelectionHistory(fileURL: restored.fileURL).builds.map(\.rootFolder) == ["002 - A"])
+    restored.clear()
+    assert(SelectionHistory(fileURL: restored.fileURL).builds.isEmpty)
 
     assert(ProjectLayout.rootName(sequence: 1, template: "SlateTemplate") == "001 - SlateTemplate")
     assert(ProjectLayout.rootName(sequence: 42, template: "X") == "042 - X")
@@ -63,29 +90,29 @@ func slateSelfCheck() {
     // Orientation groups its ratios; the store snaps a stale ratio back in range.
     assert(Orientation.landscape.ratios.contains(.wide169))
     assert(Orientation.vertical.ratios.allSatisfy { $0.ratio.w < $0.ratio.h })
-    let osc = SlateStore(defaults: scratch())
+    let osc = SlateStore(defaults: scratch(), history: scratchHistory())
     osc.aspect = .cinema239                 // landscape ratio
     osc.orientation = .vertical             // should force aspect back into the vertical set
     assert(Orientation.vertical.ratios.contains(osc.aspect))
 
     // A saved non-landscape orientation must not snap the saved aspect on restore.
     let orientDefaults = scratch()
-    let orientSaver = SlateStore(defaults: orientDefaults)
+    let orientSaver = SlateStore(defaults: orientDefaults, history: scratchHistory())
     orientSaver.orientation = .vertical
     orientSaver.aspect = .vertical921
-    let orientReopened = SlateStore(defaults: orientDefaults)
+    let orientReopened = SlateStore(defaults: orientDefaults, history: scratchHistory())
     assert(orientReopened.orientation == .vertical, "orientation not restored")
     assert(orientReopened.aspect == .vertical921, "aspect snapped to default on restore")
 
     // Building a store writes nothing - not even the defaults or linked collections.
     let untouchedDefaults = scratch()
-    _ = SlateStore(defaults: untouchedDefaults)
+    _ = SlateStore(defaults: untouchedDefaults, history: scratchHistory())
     assert(untouchedDefaults.persistentDomain(forName: scratchSuites.last!)?.isEmpty ?? true,
            "constructing a store wrote to defaults")
 
     // Every persisted field round-trips through a fresh store on the same defaults.
     let roundTripDefaults = scratch()
-    let saver = SlateStore(defaults: roundTripDefaults)
+    let saver = SlateStore(defaults: roundTripDefaults, history: scratchHistory())
     saver.choice = .custom
     saver.orientation = .portrait
     saver.aspect = .classic34
@@ -102,7 +129,7 @@ func slateSelfCheck() {
     if let i = saver.fcp.smartCollections.firstIndex(where: { $0.name == "Day 01" }) {
         saver.fcp.smartCollections[i].enabled = false
     }
-    let loaded = SlateStore(defaults: roundTripDefaults)
+    let loaded = SlateStore(defaults: roundTripDefaults, history: scratchHistory())
     assert(loaded.choice == .custom, "choice not restored")
     assert(loaded.orientation == .portrait, "orientation not restored")
     assert(loaded.aspect == .classic34, "aspect not restored")
@@ -118,7 +145,7 @@ func slateSelfCheck() {
 
     // Build Archives round-trip: a record captures enough to restore format,
     // naming, and leave-in-place - not roles/collections/footage specifics.
-    let sourceStore = SlateStore(defaults: scratch())
+    let sourceStore = SlateStore(defaults: scratch(), history: scratchHistory())
     sourceStore.choice = .uhd4k
     sourceStore.orientation = .vertical
     sourceStore.aspect = .vertical921
@@ -130,7 +157,7 @@ func slateSelfCheck() {
                                rootFolder: ProjectLayout.rootName(sequence: 1000, template: sourceStore.safeTemplateName))
     assert(snapshot.rootFolder == "1000 - Commercial")
 
-    let destStore = SlateStore(defaults: scratch())
+    let destStore = SlateStore(defaults: scratch(), history: scratchHistory())
     destStore.applyConfiguration(from: snapshot)
     assert(destStore.choice == .uhd4k)
     assert(destStore.orientation == .vertical)
@@ -140,12 +167,12 @@ func slateSelfCheck() {
     assert(destStore.templateName == "Commercial")
 
     // Custom resolution restores exact width/height, not orientation/aspect.
-    let customSource = SlateStore(defaults: scratch())
+    let customSource = SlateStore(defaults: scratch(), history: scratchHistory())
     customSource.choice = .custom
     customSource.customWidth = 1000
     customSource.customHeight = 500
     let customSnapshot = BuildRecord(snapshot: customSource.snapshot, rootFolder: "001 - X")
-    let customDest = SlateStore(defaults: scratch())
+    let customDest = SlateStore(defaults: scratch(), history: scratchHistory())
     customDest.applyConfiguration(from: customSnapshot)
     assert(customDest.choice == .custom)
     assert(customDest.customWidth == 1000 && customDest.customHeight == 500)
@@ -294,7 +321,7 @@ func slateSelfCheck() {
 
     // Footage Source ↔ Smart Collection linkage.
     let scratchDefaults = scratch()
-    let store = SlateStore(defaults: scratchDefaults)
+    let store = SlateStore(defaults: scratchDefaults, history: scratchHistory())
     assert(store.fcp.smartCollections.contains { $0.name == "Cam A" && $0.isFootageLinked },
            "default footage source did not seed its linked collection")
     store.setFootageSource(.drone, enabled: true)
@@ -316,7 +343,7 @@ func slateSelfCheck() {
     // Sources, roles and collections persist: a fresh store on the same defaults
     // restores exactly what this one has.
     store.setFootageSource(.drone, enabled: true)
-    let reopened = SlateStore(defaults: scratchDefaults)
+    let reopened = SlateStore(defaults: scratchDefaults, history: scratchHistory())
     assert(reopened.footageSources == store.footageSources, "footage sources not restored")
     assert(reopened.fcp.videoRoles == store.fcp.videoRoles, "roles not restored")
     assert(reopened.fcp.smartCollections == store.fcp.smartCollections, "collections not restored")
@@ -348,7 +375,7 @@ func slateSelfCheck() {
     assert(SafeName.component("   ", fallback: "SlateTemplate") == "SlateTemplate")
     assert(SafeName.component(String(repeating: "z", count: 500), fallback: "X").count <= 200)
 
-    let escaper = SlateStore(defaults: scratchDefaults)
+    let escaper = SlateStore(defaults: scratchDefaults, history: scratchHistory())
     escaper.templateName = "../../../tmp/pwn"
     assert(!escaper.rootFolderName.contains("..") && !escaper.rootFolderName.contains("/"))
     escaper.addCustomFootageSource("../evil")

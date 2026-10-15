@@ -66,12 +66,16 @@ final class SelectionHistory {
         return dir
     }()
 
-    nonisolated static let fileURL = directoryURL.appendingPathComponent("BuildHistory.json")
+    nonisolated static let defaultFileURL = directoryURL.appendingPathComponent("BuildHistory.json")
 
-    init() {
+    /// Where this archive lives: Application Support in the app, a temp file in the self-check.
+    @ObservationIgnored let fileURL: URL
+
+    init(fileURL: URL = SelectionHistory.defaultFileURL) {
+        self.fileURL = fileURL
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
-        if let data = try? Data(contentsOf: Self.fileURL),
+        if let data = try? Data(contentsOf: fileURL),
            let decoded = try? decoder.decode([BuildRecord].self, from: data) {
             builds = decoded
         }
@@ -94,15 +98,23 @@ final class SelectionHistory {
         persist()
     }
 
+    /// Write every record to `url` in the same format `importBackup` reads.
+    func exportBackup(to url: URL) throws {
+        try Self.encoded(builds).write(to: url, options: .atomic)
+    }
+
     private func persist() {
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-        encoder.dateEncodingStrategy = .iso8601
         do {
-            let data = try encoder.encode(builds)
-            try data.write(to: Self.fileURL, options: .atomic)
+            try Self.encoded(builds).write(to: fileURL, options: .atomic)
         } catch {
             Log.error("Build Archives save failed: \(error.localizedDescription)")
         }
+    }
+
+    private static func encoded(_ builds: [BuildRecord]) throws -> Data {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        encoder.dateEncodingStrategy = .iso8601
+        return try encoder.encode(builds)
     }
 }

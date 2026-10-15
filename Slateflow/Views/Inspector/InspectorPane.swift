@@ -165,7 +165,7 @@ struct InspectorPane: View {
         panel.allowedContentTypes = [.json]
         guard panel.runModal() == .OK, let url = panel.url else { return }
         do {
-            try Data(contentsOf: SelectionHistory.fileURL).write(to: url, options: .atomic)
+            try store.history.exportBackup(to: url)
         } catch {
             backupError = error.localizedDescription
         }

@@ -50,10 +50,11 @@ final class SlateStore {
         return FootageSource.presets.filter(enabled.contains) + footageSources.filter(\.isCustom)
     }
 
-    let history = SelectionHistory()
+    let history: SelectionHistory
 
-    init(defaults: UserDefaults = .standard) {
+    init(defaults: UserDefaults = .standard, history: SelectionHistory = SelectionHistory()) {
         self.defaults = defaults
+        self.history = history
         var loaded = SavedSettings.load(from: defaults)
         // Keep Smart Collections in sync with the enabled footage sources.
         for source in loaded.footageSources {
