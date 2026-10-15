@@ -8,7 +8,7 @@
 
 import Foundation
 
-enum SlateError: LocalizedError {
+nonisolated enum SlateError: LocalizedError {
     /// The computed project path resolves outside the folder the user chose.
     case destinationEscape(String)
     /// A folder with the computed name already exists at the destination.
@@ -63,7 +63,7 @@ nonisolated enum SafeName {
 extension URL {
     /// True when `self` is `parent` or resolves to somewhere inside it
     /// (after resolving `.`, `..`, and symlinks on both sides).
-    func isContained(in parent: URL) -> Bool {
+    nonisolated func isContained(in parent: URL) -> Bool {
         let child = resolvingSymlinksInPath().standardizedFileURL.path
         let root = parent.resolvingSymlinksInPath().standardizedFileURL.path
         return child == root || child.hasPrefix(root.hasSuffix("/") ? root : root + "/")

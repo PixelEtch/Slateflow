@@ -40,7 +40,7 @@ final class SlateStore {
     var customHeight = 2160 {
         didSet { defaults.set(customHeight, forKey: Key.customHeight) }
     }
-    var templateName = ProjectNaming.defaultTemplateName {
+    var templateName = ProjectLayout.defaultTemplateName {
         didSet { defaults.set(templateName, forKey: Key.templateName) }
     }
     /// Enabled sources (presets + customs) in insertion order. Saved by name.
@@ -110,17 +110,12 @@ final class SlateStore {
 
     /// Display name before a destination is picked: the `NNN` prefix depends on the
     /// numbered folders already there, so it is only known at build time.
-    var rootFolderName: String { "NNN - \(safeTemplateName)" }
-
-    /// The real root folder name for a given sequence number.
-    func rootFolderName(sequence: Int) -> String {
-        ProjectNaming.folderName(sequence: sequence, templateName: safeTemplateName)
-    }
+    var rootFolderName: String { ProjectLayout.pendingRootName(template: safeTemplateName) }
 
     /// `templateName` sanitised to a single safe path component (no separators,
     /// no `..`) so it can never escape the chosen destination.
-    private var safeTemplateName: String {
-        SafeName.component(templateName, fallback: ProjectNaming.defaultTemplateName)
+    var safeTemplateName: String {
+        SafeName.component(templateName, fallback: ProjectLayout.defaultTemplateName)
     }
 
     /// Derived live from (choice, aspect, custom dimensions) - no stored copy,
@@ -164,13 +159,7 @@ final class SlateStore {
             fcp.frameRate = rate
         }
         fcp.keepMediaInPlace = record.leaveFilesInPlace
-        templateName = Self.templateName(from: record.rootFolder)
-    }
-
-    /// Strips the fixed `"NNN - "` sequence prefix `ProjectNaming.folderName` always adds.
-    private static func templateName(from rootFolder: String) -> String {
-        guard rootFolder.count > 6 else { return rootFolder }
-        return String(rootFolder.dropFirst(6))
+        templateName = ProjectLayout.parse(rootName: record.rootFolder)?.template ?? record.rootFolder
     }
 
     func setFootageSource(_ source: FootageSource, enabled: Bool) {
@@ -259,54 +248,17 @@ final class SlateStore {
         fcp.smartCollections.append(spec)
     }
 
-    /// Create the full directory hierarchy under `destination`, named `NNN - <template>`,
-    /// write the FCPXML (`<root>/FCP/…`) and the manifest, then record history.
+    /// Build the next numbered project in `destination` from one snapshot of the
+    /// current configuration, then record that same snapshot in Build Archives.
     @discardableResult
     func buildProject(at destination: URL) async throws -> URL {
-        let root = rootFolderName(sequence: ProjectNaming.nextSequence(in: destination))
-        let rootURL = destination.appendingPathComponent(root)
-
-        // Backstop: even with `root` sanitised, refuse to write outside the chosen folder.
-        guard rootURL.isContained(in: destination) else {
-            Log.error("Refused build: “\(root)” resolves outside \(destination.path)")
-            throw SlateError.destinationEscape(root)
-        }
-        // Never merge into (or follow a symlink at) a folder that already exists -
-        // build into a fresh directory only.
-        guard !FileManager.default.fileExists(atPath: rootURL.path) else {
-            Log.error("Refused build: “\(root)” already exists at the destination")
-            throw SlateError.destinationOccupied(root)
-        }
-        Log.event("Build started: “\(root)” → \(destination.path)")
-
-        // Snapshot the configuration, then run the disk writes off the main actor so
-        // the window stays responsive on slow or network volumes.
-        let tree = DirectoryNode.slateTemplate(root: root, footageSources: orderedFootageSources)
-        let sourceCount = orderedFootageSources.count
-        let settings = fcp
-        let fmt = format
-        let manifest = ProjectManifest(store: self, root: root)
-
-        do {
-            try await Task.detached(priority: .userInitiated) {
-                // Recursively creates <root> and every nested subfolder, including the
-                // fixed Admin set and only the selected Footage sources.
-                try tree.write(into: destination)
-                Log.event("Directory tree written (\(sourceCount) footage sources)")
-
-                try settings.write(into: rootURL.appendingPathComponent("FCP"), format: fmt, eventName: root)
-                Log.event("FCPXML + import notes written to \(root)/FCP")
-
-                try manifest.write(to: rootURL)
-                Log.event("Manifest written; build complete: “\(root)”")
-            }.value
-        } catch {
-            Log.error("Build failed for “\(root)”: \(error.localizedDescription)")
-            throw error
-        }
-
+        let snapshot = snapshot
+        // Disk writes run off the main actor so the window stays responsive on slow volumes.
+        let rootURL = try await Task.detached(priority: .userInitiated) {
+            try ProjectLayout.build(snapshot, in: destination)
+        }.value
         // Only a successful build records history - the final locked-in state.
-        history.record(BuildRecord(store: self, rootFolder: root))
+        history.record(BuildRecord(snapshot: snapshot, rootFolder: rootURL.lastPathComponent))
         return rootURL
     }
 }

@@ -27,21 +27,20 @@ struct BuildRecord: Identifiable, Codable {
     let collectionCount: Int
     let footageSourceCount: Int
 
-    @MainActor
-    init(store: SlateStore, rootFolder: String) {
+    init(snapshot s: BuildSnapshot, rootFolder: String) {
         id = UUID()
         time = Date()
         self.rootFolder = rootFolder
-        resolution = store.choice.rawValue
-        orientation = store.choice == .custom ? "-" : store.orientation.rawValue
-        aspectRawValue = store.choice == .custom ? "-" : store.aspect.rawValue
-        frameRateValue = store.fcp.frameRate.rawValue
-        width = store.format.width
-        height = store.format.height
-        leaveFilesInPlace = store.fcp.keepMediaInPlace
-        roleCount = store.fcp.videoRoles.count + store.fcp.audioRoles.count
-        collectionCount = store.fcp.smartCollections.filter(\.enabled).count
-        footageSourceCount = store.footageSources.count
+        resolution = s.choice.rawValue
+        orientation = s.orientationLabel
+        aspectRawValue = s.choice == .custom ? "-" : s.aspect.rawValue
+        frameRateValue = s.fcp.frameRate.rawValue
+        width = s.format.width
+        height = s.format.height
+        leaveFilesInPlace = s.fcp.keepMediaInPlace
+        roleCount = s.fcp.videoRoles.count + s.fcp.audioRoles.count
+        collectionCount = s.fcp.smartCollections.filter(\.enabled).count
+        footageSourceCount = s.footageSources.count
     }
 
     // Display values, derived from the stored raw values. Older archives also stored

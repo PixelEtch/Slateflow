@@ -5,7 +5,7 @@
 //  Pixel dimensions + aspect-ratio math shared by the resolution presets.
 //
 
-struct VideoFormat: Equatable {
+nonisolated struct VideoFormat: Equatable {
     var width: Int
     var height: Int
 
@@ -19,7 +19,7 @@ struct VideoFormat: Equatable {
     }
 }
 
-private func gcd(_ a: Int, _ b: Int) -> Int { b == 0 ? a : gcd(b, a % b) }
+nonisolated private func gcd(_ a: Int, _ b: Int) -> Int { b == 0 ? a : gcd(b, a % b) }
 
 extension VideoFormat {
     static let hd1080 = VideoFormat(width: 1920, height: 1080)

@@ -11,9 +11,15 @@ import Foundation
 /// Smallest runnable proof of the non-trivial logic. Called from `SlateflowApp.init` in debug.
 @MainActor
 func slateSelfCheck() {
-    assert(ProjectNaming.folderName(sequence: 1, templateName: "SlateTemplate") == "001 - SlateTemplate")
-    assert(ProjectNaming.folderName(sequence: 42, templateName: "X") == "042 - X")
-    assert(ProjectNaming.folderName(sequence: 1000, templateName: "X") == "1000 - X")
+    assert(ProjectLayout.rootName(sequence: 1, template: "SlateTemplate") == "001 - SlateTemplate")
+    assert(ProjectLayout.rootName(sequence: 42, template: "X") == "042 - X")
+    assert(ProjectLayout.rootName(sequence: 1000, template: "X") == "1000 - X")
+    // Parsing round-trips past 999 and keeps " - " inside the template name.
+    assert(ProjectLayout.parse(rootName: "1000 - X")! == (1000, "X"))
+    assert(ProjectLayout.parse(rootName: "007 - A - B")! == (7, "A - B"))
+    assert(ProjectLayout.parse(rootName: "notes") == nil)
+    assert(ProjectLayout.parse(rootName: "12 - X") == nil)
+    assert(ProjectLayout.parse(rootName: "001 -X") == nil)
 
     // Frame rate - plain rates are 1/Ns; NTSC rates use the SMPTE drop-frame fraction.
     assert(FrameRate.fps25.frameDurationFCPX == "1/25s")
@@ -62,8 +68,9 @@ func slateSelfCheck() {
     sourceStore.fcp.keepMediaInPlace = false
     sourceStore.templateName = "Commercial"
     assert(sourceStore.rootFolderName == "NNN - Commercial")   // number unknown until build
-    let snapshot = BuildRecord(store: sourceStore, rootFolder: sourceStore.rootFolderName(sequence: 1))
-    assert(snapshot.rootFolder == "001 - Commercial")
+    let snapshot = BuildRecord(snapshot: sourceStore.snapshot,
+                               rootFolder: ProjectLayout.rootName(sequence: 1000, template: sourceStore.safeTemplateName))
+    assert(snapshot.rootFolder == "1000 - Commercial")
 
     let destStore = SlateStore(defaults: UserDefaults(suiteName: "SlateflowSelfCheck-\(UUID().uuidString)")!)
     destStore.applyConfiguration(from: snapshot)
@@ -79,7 +86,7 @@ func slateSelfCheck() {
     customSource.choice = .custom
     customSource.customWidth = 1000
     customSource.customHeight = 500
-    let customSnapshot = BuildRecord(store: customSource, rootFolder: customSource.rootFolderName(sequence: 1))
+    let customSnapshot = BuildRecord(snapshot: customSource.snapshot, rootFolder: "001 - X")
     let customDest = SlateStore(defaults: UserDefaults(suiteName: "SlateflowSelfCheck-\(UUID().uuidString)")!)
     customDest.applyConfiguration(from: customSnapshot)
     assert(customDest.choice == .custom)
@@ -90,7 +97,11 @@ func slateSelfCheck() {
     defer { try? FileManager.default.removeItem(at: tmp) }
     try? DirectoryNode(name: "007 - Old").write(into: tmp)
     try? DirectoryNode(name: "notes").write(into: tmp)                 // ignored: no "NNN - " prefix
-    assert(ProjectNaming.nextSequence(in: tmp) == 8)
+    assert(ProjectLayout.nextSequence(in: tmp) == 8)
+    try? DirectoryNode(name: "999 - Big").write(into: tmp)
+    assert(ProjectLayout.nextSequence(in: tmp) == 1000)
+    try? DirectoryNode(name: "1000 - Bigger").write(into: tmp)
+    assert(ProjectLayout.nextSequence(in: tmp) == 1001, "numbering stalls past 999")
 
     // Default Smart Collections have unique names (no duplicate "Footage")
     let names = FCPLibrarySettings().smartCollections.map(\.name)
@@ -98,16 +109,16 @@ func slateSelfCheck() {
 
     // Preview enrichment never touches the real (write()-tested) tree shape below,
     // and only adds the library row when the app actually ships a template.
-    let previewOn = DirectoryNode.previewTemplate(root: "R", keepMediaInPlace: true)
+    let previewOn = ProjectLayout.plan(root: "R", footageSources: [], keepMediaInPlace: true)
         .children.first { $0.name == "FCP" }!
-    let previewOff = DirectoryNode.previewTemplate(root: "R", keepMediaInPlace: false)
+    let previewOff = ProjectLayout.plan(root: "R", footageSources: [], keepMediaInPlace: false)
         .children.first { $0.name == "FCP" }!
     assert(previewOn.children.contains { $0.name == "Import Settings.md" })
     assert(!previewOff.children.contains { $0.name == "Import Settings.md" })
 
     // Directory tree - fixed Admin subfolders + only the selected Footage sources
     let sources: [FootageSource] = [.camA, .drone, .stockFootage]
-    let tree = DirectoryNode.slateTemplate(root: "001 - SlateTemplate", footageSources: sources)
+    let tree = ProjectLayout.plan(root: "001 - SlateTemplate", footageSources: sources, keepMediaInPlace: true)
     let expectedTree: Set<String> = [
         "001 - SlateTemplate",
         "001 - SlateTemplate/Admin",
@@ -121,6 +132,8 @@ func slateSelfCheck() {
         "001 - SlateTemplate/Audio/Sound Effects",
         "001 - SlateTemplate/Backup",
         "001 - SlateTemplate/FCP",
+        "001 - SlateTemplate/FCP/001 - SlateTemplate.fcpxml",
+        "001 - SlateTemplate/FCP/Import Settings.md",
         "001 - SlateTemplate/Final Exports",
         "001 - SlateTemplate/Footage",
         "001 - SlateTemplate/Footage/Cam A",
@@ -128,6 +141,7 @@ func slateSelfCheck() {
         "001 - SlateTemplate/Footage/Stock Footage",
         "001 - SlateTemplate/Graphics",
         "001 - SlateTemplate/Images",
+        "001 - SlateTemplate/Slate Project.json",
     ]
     assert(Set(tree.paths()) == expectedTree,
            "tree mismatch: \(Set(tree.paths()).symmetricDifference(expectedTree))")
@@ -136,23 +150,59 @@ func slateSelfCheck() {
     let footage = tree.children.first { $0.name == "Footage" }!
     assert(footage.children.map(\.name) == ["Cam A", "Drone", "Stock Footage"])
     // Empty selection → Footage is a leaf
-    assert(DirectoryNode.slateTemplate(root: "R").children.first { $0.name == "Footage" }!.children.isEmpty)
+    assert(ProjectLayout.plan(root: "R", footageSources: [], keepMediaInPlace: true)
+        .children.first { $0.name == "Footage" }!.children.isEmpty)
 
+    // End-to-end build into a temp folder: every planned folder and file exists,
+    // and nothing else - the preview is exactly what gets written.
     let buildTmp = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(UUID().uuidString)
     try? FileManager.default.createDirectory(at: buildTmp, withIntermediateDirectories: true)
     defer { try? FileManager.default.removeItem(at: buildTmp) }
-    try? tree.write(into: buildTmp)
-    for rel in expectedTree {
+    let buildSnapshot = BuildSnapshot(
+        templateName: "SlateTemplate", choice: .uhd4k, orientation: .landscape, aspect: .wide169,
+        format: .uhd4k, fcp: FCPLibrarySettings(), footageSources: sources)
+    let built = try! ProjectLayout.build(buildSnapshot, in: buildTmp)
+    assert(built.lastPathComponent == "001 - SlateTemplate")
+    let planned = ProjectLayout.plan(root: "001 - SlateTemplate", footageSources: sources,
+                                     keepMediaInPlace: buildSnapshot.fcp.keepMediaInPlace)
+    func walk(_ node: DirectoryNode, _ prefix: String) -> [(String, Bool)] {
+        let here = prefix.isEmpty ? node.name : "\(prefix)/\(node.name)"
+        return [(here, node.isFile)] + node.children.flatMap { walk($0, here) }
+    }
+    for (rel, isFile) in walk(planned, "") {
         var isDir: ObjCBool = false
         let exists = FileManager.default.fileExists(
             atPath: buildTmp.appendingPathComponent(rel).path, isDirectory: &isDir)
-        assert(exists && isDir.boolValue, "not created on disk: \(rel)")
+        assert(exists && isDir.boolValue != isFile, "not created as planned: \(rel)")
     }
+    let onDisk = FileManager.default.enumerator(atPath: buildTmp.path)!.allObjects as! [String]
+    assert(Set(onDisk) == Set(planned.paths()),
+           "disk differs from plan: \(Set(onDisk).symmetricDifference(Set(planned.paths())))")
     // Unselected source must NOT be created
-    var goProDir: ObjCBool = false
     assert(!FileManager.default.fileExists(
-        atPath: buildTmp.appendingPathComponent("001 - SlateTemplate/Footage/GoPro").path,
-        isDirectory: &goProDir))
+        atPath: buildTmp.appendingPathComponent("001 - SlateTemplate/Footage/GoPro").path))
+    assert(ProjectLayout.fcpxmlURL(root: built).path == built.path + "/FCP/001 - SlateTemplate.fcpxml")
+    // Manifest and archive record come from the same snapshot.
+    let manifestData = try! Data(contentsOf: built.appendingPathComponent(ProjectLayout.manifestFile))
+    let manifestJSON = try! JSONSerialization.jsonObject(with: manifestData) as! [String: Any]
+    let builtRecord = BuildRecord(snapshot: buildSnapshot, rootFolder: built.lastPathComponent)
+    assert(manifestJSON["template"] as? String == builtRecord.rootFolder)
+    assert(manifestJSON["orientation"] as? String == builtRecord.orientation)
+    assert(manifestJSON["width"] as? Int == builtRecord.width)
+    // The next build takes the next number.
+    assert(try! ProjectLayout.build(buildSnapshot, in: buildTmp).lastPathComponent == "002 - SlateTemplate")
+
+    // A failed build removes the folder it created: a 245-character template fits the
+    // root folder (251 bytes) but not "<root>.fcpxml" (258 > 255), so the FCPXML write fails.
+    let failTmp = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(UUID().uuidString)
+    try? FileManager.default.createDirectory(at: failTmp, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: failTmp) }
+    let tooLong = BuildSnapshot(
+        templateName: String(repeating: "x", count: 245), choice: .uhd4k, orientation: .landscape,
+        aspect: .wide169, format: .uhd4k, fcp: FCPLibrarySettings(), footageSources: [])
+    assert((try? ProjectLayout.build(tooLong, in: failTmp)) == nil, "oversized build should fail")
+    assert((try? FileManager.default.contentsOfDirectory(atPath: failTmp.path))?.isEmpty == true,
+           "failed build left a partial folder")
 
     // FCPXML: format/project carry resolution + aspect; roles + smart collections
     let vertical4k = AspectRatio.vertical916.apply(to: .uhd4k)

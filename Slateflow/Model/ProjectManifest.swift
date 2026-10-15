@@ -8,6 +8,7 @@
 import Foundation
 
 /// Written to `<root>/Slate Project.json` so the template folder self-documents.
+/// Built from the same `BuildSnapshot` as the folders and the Build Archives entry.
 nonisolated struct ProjectManifest: Codable {
     var template: String
     var created: Date
@@ -24,29 +25,28 @@ nonisolated struct ProjectManifest: Codable {
     var smartCollections: [String]
     var footageSources: [String]
 
-    @MainActor
-    init(store: SlateStore, root: String) {
+    init(snapshot s: BuildSnapshot, root: String) {
         template = root
         created = Date()
-        resolution = store.choice.rawValue
-        orientation = store.choice == .custom ? "-" : store.orientation.rawValue
-        aspect = store.choice == .custom ? store.format.aspectRatio : store.aspect.rawValue
-        width = store.format.width
-        height = store.format.height
-        aspectRatio = store.format.aspectRatio
-        frameRate = store.fcp.frameRate.label
-        leaveFilesInPlace = store.fcp.keepMediaInPlace
-        videoRoles = store.fcp.videoRoles
-        audioRoles = store.fcp.audioRoles
-        smartCollections = store.fcp.smartCollections.filter(\.enabled).map(\.name)
-        footageSources = store.orderedFootageSources.map(\.folderName)
+        resolution = s.choice.rawValue
+        orientation = s.orientationLabel
+        aspect = s.choice == .custom ? s.format.aspectRatio : s.aspect.rawValue
+        width = s.format.width
+        height = s.format.height
+        aspectRatio = s.format.aspectRatio
+        frameRate = s.fcp.frameRate.label
+        leaveFilesInPlace = s.fcp.keepMediaInPlace
+        videoRoles = s.fcp.videoRoles
+        audioRoles = s.fcp.audioRoles
+        smartCollections = s.fcp.smartCollections.filter(\.enabled).map(\.name)
+        footageSources = s.footageSources.map(\.folderName)
     }
 
-    nonisolated func write(to rootFolder: URL) throws {
+    func write(to rootFolder: URL) throws {
         let enc = JSONEncoder()
         enc.outputFormatting = [.prettyPrinted, .sortedKeys]
         enc.dateEncodingStrategy = .iso8601
-        let url = rootFolder.appendingPathComponent("Slate Project.json")
+        let url = rootFolder.appendingPathComponent(ProjectLayout.manifestFile)
         try enc.encode(self).write(to: url, options: .atomic)
         FilePermissions.harden(file: url)
     }

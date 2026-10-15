@@ -168,7 +168,7 @@ struct FCPLibrarySettings {
 
         Media lives alongside this folder: ../Footage, ../Audio, ../Graphics, ../Images.
         """
-        let noteURL = fcpFolder.appendingPathComponent("Import Settings.md")
+        let noteURL = fcpFolder.appendingPathComponent(ProjectLayout.importNoteFile)
         try note.write(to: noteURL, atomically: true, encoding: .utf8)
         FilePermissions.harden(file: noteURL)
     }

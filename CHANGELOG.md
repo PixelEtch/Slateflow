@@ -35,8 +35,12 @@ All notable changes to Slateflow are listed here.
 - Copyright and app category (Video) are set, so they show in About and Finder's Get Info.
 - The About window's GitHub link points to github.com/PixelEtch/Slateflow.
 - The privacy note and README mention the update check, the app's only network request.
+- The Folder Preview also lists `Slate Project.json`, so it shows every file a build writes.
 
 ### Fixed
+- Project numbering continues past 999; before, every build after `999 - …` failed with "already exists".
+- A build that fails partway removes the folder it started, so a retry reuses the same number.
+- The Build Archives entry and `Slate Project.json` always describe the same configuration, even if the form is edited while a build runs.
 - "Leave files in place" and other Final Cut settings could reset at launch: restoring one setting saved the others before they were read.
 
 ## 2026-09-30

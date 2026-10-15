@@ -150,7 +150,7 @@ struct InspectorPane: View {
             HistoryList(store: store)
                 .safeAreaInset(edge: .bottom, spacing: 0) { storageNote }
                 .paneVisible(pane == .history)
-            FolderTreePreview(root: DirectoryNode.previewTemplate(
+            FolderTreePreview(root: ProjectLayout.plan(
                 root: store.rootFolderName, footageSources: store.orderedFootageSources,
                 keepMediaInPlace: store.fcp.keepMediaInPlace))
                 .paneVisible(pane == .preview)

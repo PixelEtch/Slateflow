@@ -58,7 +58,7 @@ struct ContentView: View {
                             // Ready to paste into Final Cut's New Library name field.
                             NSPasteboard.general.clearContents()
                             NSPasteboard.general.setString(builtProject.lastPathComponent, forType: .string)
-                            openInFinalCut(fcpxmlURL(for: builtProject))
+                            openInFinalCut(ProjectLayout.fcpxmlURL(root: builtProject))
                         },
                         onReveal: { NSWorkspace.shared.activateFileViewerSelecting([builtProject]) })
                 }
@@ -80,11 +80,6 @@ struct ContentView: View {
             catch { buildError = error.localizedDescription }
             isBuilding = false
         }
-    }
-
-    /// `<root>/FCP/<root>.fcpxml` - matches the name `FCPLibrarySettings.write` gives it.
-    private func fcpxmlURL(for root: URL) -> URL {
-        root.appendingPathComponent("FCP").appendingPathComponent("\(root.lastPathComponent).fcpxml")
     }
 
     /// `NSWorkspace.open(_:)` (the plain Bool-returning overload) doesn't reliably
