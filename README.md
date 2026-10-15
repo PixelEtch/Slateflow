@@ -10,11 +10,15 @@ A small macOS app that sets up a new Final Cut Pro project folder in one click, 
 - Writes an `.fcpxml` with the resolution, aspect ratio and frame rate you picked, plus Smart Collections for each footage source, media type and role.
 - Keeps a local archive of past builds, so a previous setup can be reused.
 
-## Installing
+## Install
 
-Open `Slateflow-<version>.dmg` and drag **Slateflow** onto **Applications**.
+Download `Slateflow-<version>.dmg` from [Releases](https://github.com/PixelEtch/Slateflow/releases/latest), open it and drag **Slateflow** onto **Applications**.
 
 The app is signed with a Developer ID and notarized by Apple. Later versions arrive through **Slateflow > Check for Updates…**.
+
+## Uninstall
+
+Quit Slateflow and move it from Applications to the Trash. To also remove its settings, build history and log, delete `~/Library/Containers/com.ashifali.Slateflow`. Projects you built are not touched.
 
 ## Releasing
 
@@ -48,7 +52,7 @@ Final Cut creates the library itself, so it always matches your installed versio
 - Final Cut Pro, to open the generated project
 - Xcode 26 or later, to build from source
 
-## Building
+## Build it yourself
 
 Open `Slateflow.xcodeproj` in Xcode and run the **Slateflow** scheme, or from Terminal:
 
@@ -68,7 +72,14 @@ It prints `Slateflow self-check passed` and exits 0; a failed check stops it wit
 
 ## Privacy
 
-Everything stays on your Mac. Build history is saved in Application Support, and the app has no telemetry or cloud features. Its only network request is the update check (Sparkle), which you can turn off.
+Everything stays on your Mac. Build history is saved in Application Support, and the app has no telemetry or cloud features. Its only network request is the update check (Sparkle), which you can turn off. Details in [docs/PRIVACY.md](docs/PRIVACY.md).
+
+## Documentation
+
+- [Troubleshooting](docs/TROUBLESHOOTING.md)
+- [Privacy](docs/PRIVACY.md)
+- [Getting help](SUPPORT.md) · [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md)
+- [Architecture decisions](docs/adr/README.md): why it ships as a DMG with Sparkle, signs locally, and is MIT-licensed
 
 ## License
 
