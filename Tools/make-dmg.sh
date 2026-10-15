@@ -6,7 +6,7 @@
 #
 # Needs: the Developer ID Application certificate, the notarytool keychain
 # profile "slateflow-notary", and Sparkle's EdDSA key in the login keychain
-# (account "slateflow"). Nothing is pushed or uploaded; see README > Releasing.
+# (account "slateflow"). Nothing is pushed or uploaded; see docs/RELEASING.md.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 

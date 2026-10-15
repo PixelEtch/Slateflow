@@ -30,4 +30,4 @@ Releases are built on the maintainer's Mac with `Tools/make-dmg.sh`, using the k
 - Releases need the maintainer's Mac.
 
 ### Risks
-- Steps get skipped by hand. Mitigation: the script prints the remaining steps; README > Releasing lists them. Revisit with a protected-environment workflow once releases are frequent.
+- Steps get skipped by hand. Mitigation: the script prints the remaining steps; docs/RELEASING.md lists them. Revisit with a protected-environment workflow once releases are frequent.
