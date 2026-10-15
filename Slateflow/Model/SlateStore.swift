@@ -10,53 +10,38 @@ import Foundation
 @MainActor
 @Observable
 final class SlateStore {
-    // Everything the form configures persists across launches.
-    private enum Key {
-        static let choice = "choice", orientation = "orientation", aspect = "aspect"
-        static let customWidth = "customWidth", customHeight = "customHeight"
-        static let templateName = "templateName", keepMediaInPlace = "keepMediaInPlace"
-        static let frameRate = "frameRate", footageSources = "footageSources"
-        static let videoRoles = "videoRoles", audioRoles = "audioRoles"
-        static let smartCollections = "smartCollections"
-    }
     @ObservationIgnored private let defaults: UserDefaults
 
-    var choice: ResolutionChoice = .uhd4k {
-        didSet { defaults.set(choice.rawValue, forKey: Key.choice) }
+    /// Everything the form configures, saved whole on every change.
+    private var settings: SavedSettings {
+        didSet { settings.save(to: defaults) }
     }
-    var orientation: Orientation = .landscape {
-        didSet {
-            defaults.set(orientation.rawValue, forKey: Key.orientation)
-            // Snap the aspect ratio back into range for the new orientation.
-            if !orientation.ratios.contains(aspect) { aspect = orientation.defaultRatio }
-        }
+
+    var choice: ResolutionChoice {
+        get { settings.choice } set { settings.choice = newValue }
     }
-    var aspect: AspectRatio = .wide169 {
-        didSet { defaults.set(aspect.rawValue, forKey: Key.aspect) }
+    /// Setting it snaps `aspect` back into range - see `SavedSettings.orientation`.
+    var orientation: Orientation {
+        get { settings.orientation } set { settings.orientation = newValue }
     }
-    var customWidth = 3840 {
-        didSet { defaults.set(customWidth, forKey: Key.customWidth) }
+    var aspect: AspectRatio {
+        get { settings.aspect } set { settings.aspect = newValue }
     }
-    var customHeight = 2160 {
-        didSet { defaults.set(customHeight, forKey: Key.customHeight) }
+    var customWidth: Int {
+        get { settings.customWidth } set { settings.customWidth = newValue }
     }
-    var templateName = ProjectLayout.defaultTemplateName {
-        didSet { defaults.set(templateName, forKey: Key.templateName) }
+    var customHeight: Int {
+        get { settings.customHeight } set { settings.customHeight = newValue }
     }
-    /// Enabled sources (presets + customs) in insertion order. Saved by name.
-    var footageSources: [FootageSource] = [.camA, .camB] {
-        didSet { defaults.set(footageSources.map(\.folderName), forKey: Key.footageSources) }
+    var templateName: String {
+        get { settings.templateName } set { settings.templateName = newValue }
     }
-    // ponytail: rewrites every fcp field on any change - a few small values and one
-    // short JSON array; split per field if collections ever grow large.
-    var fcp = FCPLibrarySettings() {
-        didSet {
-            defaults.set(fcp.keepMediaInPlace, forKey: Key.keepMediaInPlace)
-            defaults.set(fcp.frameRate.rawValue, forKey: Key.frameRate)
-            defaults.set(fcp.videoRoles, forKey: Key.videoRoles)
-            defaults.set(fcp.audioRoles, forKey: Key.audioRoles)
-            defaults.set(try? JSONEncoder().encode(fcp.smartCollections), forKey: Key.smartCollections)
-        }
+    /// Enabled sources (presets + customs) in insertion order.
+    var footageSources: [FootageSource] {
+        get { settings.footageSources } set { settings.footageSources = newValue }
+    }
+    var fcp: FCPLibrarySettings {
+        get { settings.fcp } set { settings.fcp = newValue }
     }
 
     /// Display / build order: enabled presets first (preset order), then customs.
@@ -69,43 +54,13 @@ final class SlateStore {
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
-
-        // Restore the last-used format + naming.
-        let d = defaults
-        if let raw = d.string(forKey: Key.choice), let c = ResolutionChoice(rawValue: raw) { choice = c }
-        if let raw = d.string(forKey: Key.orientation), let o = Orientation(rawValue: raw) { orientation = o }
-        if let raw = d.string(forKey: Key.aspect), let a = AspectRatio(rawValue: raw),
-           orientation.ratios.contains(a) { aspect = a }
-        if d.object(forKey: Key.customWidth) != nil { customWidth = d.integer(forKey: Key.customWidth) }
-        if d.object(forKey: Key.customHeight) != nil { customHeight = d.integer(forKey: Key.customHeight) }
-        if let name = d.string(forKey: Key.templateName), !name.isEmpty { templateName = name }
-        // Restore into a copy and assign once: each `fcp` assignment saves every fcp
-        // field, so piecemeal assignment would overwrite not-yet-read values.
-        var saved = fcp
-        if d.object(forKey: Key.frameRate) != nil,
-           let rate = FrameRate(rawValue: d.double(forKey: Key.frameRate)) {
-            saved.frameRate = rate
-        }
-        if d.object(forKey: Key.keepMediaInPlace) != nil {
-            saved.keepMediaInPlace = d.bool(forKey: Key.keepMediaInPlace)
-        }
-        if let roles = d.stringArray(forKey: Key.videoRoles) { saved.videoRoles = roles }
-        if let roles = d.stringArray(forKey: Key.audioRoles) { saved.audioRoles = roles }
-        if let data = d.data(forKey: Key.smartCollections),
-           let specs = try? JSONDecoder().decode([SmartCollectionSpec].self, from: data) {
-            saved.smartCollections = specs
-        }
-        fcp = saved
-        if let names = d.stringArray(forKey: Key.footageSources) {
-            footageSources = names.map { name in
-                FootageSource.presets.first { $0.folderName == name } ?? .custom(name)
-            }
-        }
-
+        var loaded = SavedSettings.load(from: defaults)
         // Keep Smart Collections in sync with the enabled footage sources.
-        for source in footageSources {
-            addFootageLinkedCollection(source)
+        for source in loaded.footageSources {
+            Self.addFootageLinkedCollection(source, to: &loaded.fcp)
         }
+        // First assignment runs the init accessor, not `didSet`: building a store writes nothing.
+        settings = loaded
     }
 
     /// Display name before a destination is picked: the `NNN` prefix depends on the
@@ -166,7 +121,7 @@ final class SlateStore {
         if enabled {
             guard !footageSources.contains(source) else { return }
             footageSources.append(source)
-            addFootageLinkedCollection(source)
+            Self.addFootageLinkedCollection(source, to: &fcp)
         } else {
             footageSources.removeAll { $0 == source }
             removeFootageLinkedCollection(source)
@@ -192,7 +147,8 @@ final class SlateStore {
 
     /// A Smart Collection that matches the FCP keyword created when the source's
     /// `Footage/<name>` folder is imported with “Keywords: from folders”.
-    private func addFootageLinkedCollection(_ source: FootageSource) {
+    private static func addFootageLinkedCollection(_ source: FootageSource,
+                                                   to fcp: inout FCPLibrarySettings) {
         let name = source.folderName
         guard !fcp.smartCollections.contains(where: { $0.name == name }) else { return }
         var spec = SmartCollectionSpec(name: name, rules: [.keywords([name])])

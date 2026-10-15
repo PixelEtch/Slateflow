@@ -11,6 +11,16 @@ import Foundation
 /// Smallest runnable proof of the non-trivial logic. Called from `SlateflowApp.init` in debug.
 @MainActor
 func slateSelfCheck() {
+    // Ephemeral defaults so the self-check never touches the user's persisted config;
+    // every suite it creates is removed on the way out.
+    var scratchSuites: [String] = []
+    defer { for name in scratchSuites { UserDefaults.standard.removePersistentDomain(forName: name) } }
+    func scratch() -> UserDefaults {
+        let name = "SlateflowSelfCheck-\(UUID().uuidString)"
+        scratchSuites.append(name)
+        return UserDefaults(suiteName: name)!
+    }
+
     assert(ProjectLayout.rootName(sequence: 1, template: "SlateTemplate") == "001 - SlateTemplate")
     assert(ProjectLayout.rootName(sequence: 42, template: "X") == "042 - X")
     assert(ProjectLayout.rootName(sequence: 1000, template: "X") == "1000 - X")
@@ -53,14 +63,62 @@ func slateSelfCheck() {
     // Orientation groups its ratios; the store snaps a stale ratio back in range.
     assert(Orientation.landscape.ratios.contains(.wide169))
     assert(Orientation.vertical.ratios.allSatisfy { $0.ratio.w < $0.ratio.h })
-    let osc = SlateStore(defaults: UserDefaults(suiteName: "SlateflowSelfCheck-\(UUID().uuidString)")!)
+    let osc = SlateStore(defaults: scratch())
     osc.aspect = .cinema239                 // landscape ratio
     osc.orientation = .vertical             // should force aspect back into the vertical set
     assert(Orientation.vertical.ratios.contains(osc.aspect))
 
+    // A saved non-landscape orientation must not snap the saved aspect on restore.
+    let orientDefaults = scratch()
+    let orientSaver = SlateStore(defaults: orientDefaults)
+    orientSaver.orientation = .vertical
+    orientSaver.aspect = .vertical921
+    let orientReopened = SlateStore(defaults: orientDefaults)
+    assert(orientReopened.orientation == .vertical, "orientation not restored")
+    assert(orientReopened.aspect == .vertical921, "aspect snapped to default on restore")
+
+    // Building a store writes nothing - not even the defaults or linked collections.
+    let untouchedDefaults = scratch()
+    _ = SlateStore(defaults: untouchedDefaults)
+    assert(untouchedDefaults.persistentDomain(forName: scratchSuites.last!)?.isEmpty ?? true,
+           "constructing a store wrote to defaults")
+
+    // Every persisted field round-trips through a fresh store on the same defaults.
+    let roundTripDefaults = scratch()
+    let saver = SlateStore(defaults: roundTripDefaults)
+    saver.choice = .custom
+    saver.orientation = .portrait
+    saver.aspect = .classic34
+    saver.customWidth = 1234
+    saver.customHeight = 5678
+    saver.templateName = "Round Trip"
+    saver.fcp.frameRate = .fps59_94
+    saver.fcp.keepMediaInPlace = false
+    saver.setFootageSource(.camB, enabled: false)
+    saver.addCustomFootageSource("Lumix")
+    saver.addRole(name: "Interview", to: \.videoRoles)
+    saver.addRole(name: "Ambience", to: \.audioRoles)
+    saver.addQuickCollection(.keyword, value: "Day 01")
+    if let i = saver.fcp.smartCollections.firstIndex(where: { $0.name == "Day 01" }) {
+        saver.fcp.smartCollections[i].enabled = false
+    }
+    let loaded = SlateStore(defaults: roundTripDefaults)
+    assert(loaded.choice == .custom, "choice not restored")
+    assert(loaded.orientation == .portrait, "orientation not restored")
+    assert(loaded.aspect == .classic34, "aspect not restored")
+    assert(loaded.customWidth == 1234 && loaded.customHeight == 5678, "custom size not restored")
+    assert(loaded.templateName == "Round Trip", "template name not restored")
+    assert(loaded.fcp.frameRate == .fps59_94, "frame rate not restored")
+    assert(loaded.fcp.keepMediaInPlace == false, "leave-in-place not restored")
+    assert(loaded.footageSources == [.camA, .custom("Lumix")], "footage sources not restored")
+    assert(loaded.fcp.videoRoles == saver.fcp.videoRoles && loaded.fcp.videoRoles.contains("Interview"))
+    assert(loaded.fcp.audioRoles == saver.fcp.audioRoles && loaded.fcp.audioRoles.contains("Ambience"))
+    assert(loaded.fcp.smartCollections == saver.fcp.smartCollections, "collections not restored")
+    assert(loaded.fcp.smartCollections.contains { $0.name == "Day 01" && !$0.enabled }, "enabled not restored")
+
     // Build Archives round-trip: a record captures enough to restore format,
     // naming, and leave-in-place - not roles/collections/footage specifics.
-    let sourceStore = SlateStore(defaults: UserDefaults(suiteName: "SlateflowSelfCheck-\(UUID().uuidString)")!)
+    let sourceStore = SlateStore(defaults: scratch())
     sourceStore.choice = .uhd4k
     sourceStore.orientation = .vertical
     sourceStore.aspect = .vertical921
@@ -72,7 +130,7 @@ func slateSelfCheck() {
                                rootFolder: ProjectLayout.rootName(sequence: 1000, template: sourceStore.safeTemplateName))
     assert(snapshot.rootFolder == "1000 - Commercial")
 
-    let destStore = SlateStore(defaults: UserDefaults(suiteName: "SlateflowSelfCheck-\(UUID().uuidString)")!)
+    let destStore = SlateStore(defaults: scratch())
     destStore.applyConfiguration(from: snapshot)
     assert(destStore.choice == .uhd4k)
     assert(destStore.orientation == .vertical)
@@ -82,12 +140,12 @@ func slateSelfCheck() {
     assert(destStore.templateName == "Commercial")
 
     // Custom resolution restores exact width/height, not orientation/aspect.
-    let customSource = SlateStore(defaults: UserDefaults(suiteName: "SlateflowSelfCheck-\(UUID().uuidString)")!)
+    let customSource = SlateStore(defaults: scratch())
     customSource.choice = .custom
     customSource.customWidth = 1000
     customSource.customHeight = 500
     let customSnapshot = BuildRecord(snapshot: customSource.snapshot, rootFolder: "001 - X")
-    let customDest = SlateStore(defaults: UserDefaults(suiteName: "SlateflowSelfCheck-\(UUID().uuidString)")!)
+    let customDest = SlateStore(defaults: scratch())
     customDest.applyConfiguration(from: customSnapshot)
     assert(customDest.choice == .custom)
     assert(customDest.customWidth == 1000 && customDest.customHeight == 500)
@@ -235,10 +293,7 @@ func slateSelfCheck() {
     assert(cx.contains(#"<keyword-name value="Day 01"/>"#))
 
     // Footage Source ↔ Smart Collection linkage.
-    // Ephemeral defaults so the self-check never touches the user's persisted config.
-    let scratchSuite = "SlateflowSelfCheck-\(UUID().uuidString)"
-    let scratchDefaults = UserDefaults(suiteName: scratchSuite)!
-    defer { scratchDefaults.removePersistentDomain(forName: scratchSuite) }
+    let scratchDefaults = scratch()
     let store = SlateStore(defaults: scratchDefaults)
     assert(store.fcp.smartCollections.contains { $0.name == "Cam A" && $0.isFootageLinked },
            "default footage source did not seed its linked collection")
