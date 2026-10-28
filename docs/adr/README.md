@@ -5,8 +5,9 @@ Why Slateflow is built and shipped the way it is. One file per decision; a super
 | ADR | Title | Status | Date |
 |-----|-------|--------|------|
 | [0001](0001-dmg-with-sparkle-sandboxed.md) | Direct-download DMG with Sparkle; App Sandbox stays on | accepted | 2026-10-15 |
-| [0002](0002-local-release-signing.md) | Sign and notarize releases locally, not in CI | accepted | 2026-10-15 |
+| [0002](0002-local-release-signing.md) | Sign and notarize releases locally, not in CI | superseded by [0007](0007-release-from-github-actions.md) | 2026-10-15 |
 | [0003](0003-public-repo-mit.md) | Public repository under the MIT License | accepted | 2026-10-15 |
 | [0004](0004-repo-conventions.md) | Repository conventions adopted from Vorssaint | accepted | 2026-10-15 |
 | [0005](0005-automate-fcp-library-creation.md) | Create the Final Cut library by driving Final Cut's dialog | superseded by [0006](0006-fcp-library-via-import-options.md) | 2026-10-19 |
 | [0006](0006-fcp-library-via-import-options.md) | Let Final Cut create the library from FCPXML's `library location` import option | accepted | 2026-10-28 |
+| [0007](0007-release-from-github-actions.md) | Sign, notarize and publish releases from GitHub Actions | accepted | 2026-10-28 |

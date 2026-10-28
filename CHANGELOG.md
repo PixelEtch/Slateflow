@@ -5,6 +5,7 @@ All notable changes to Slateflow are listed here.
 ## Unreleased
 
 ### Changed
+- Releases are built, signed, notarized and published by GitHub Actions when a version tag is pushed. The update feed is served from the `gh-pages` branch.
 - Open in Final Cut Pro now has Final Cut create the project's library in its `FCP` folder and import the project, with nothing to click in Final Cut. The `.fcpxml` names the library with FCPXML's `library location` import option. The button was "Copy Name & Open in Final Cut Pro".
 
 ### Fixed

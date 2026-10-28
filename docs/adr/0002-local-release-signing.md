@@ -1,7 +1,7 @@
 # ADR-0002: Sign and notarize releases locally, not in CI
 
 **Date**: 2026-10-15
-**Status**: accepted
+**Status**: superseded by [ADR-0007](0007-release-from-github-actions.md)
 **Deciders**: Sk Ashifali Shaikh
 
 ## Context

@@ -2,11 +2,15 @@
 # Release pipeline: builds a Release Slateflow.app signed with Developer ID
 # (hardened runtime), packages it as dist/Slateflow-<version>.dmg (the app next
 # to an Applications shortcut), signs, notarizes and staples the DMG, then adds
-# it to the Sparkle feed in docs/appcast.xml (served by GitHub Pages).
+# it to the Sparkle feed ($APPCAST, docs/appcast.xml by default). The release
+# workflow publishes the feed to the gh-pages branch, which GitHub Pages serves.
 #
-# Needs: the Developer ID Application certificate, the notarytool keychain
-# profile "slateflow-notary", and Sparkle's EdDSA key in the login keychain
-# (account "slateflow"). Nothing is pushed or uploaded; see docs/RELEASING.md.
+# Needs the Developer ID Application certificate in a keychain. On the maintainer's
+# Mac the notarytool profile "slateflow-notary" and Sparkle's EdDSA key (login
+# keychain, account "slateflow") are used; the release workflow passes them as
+# files instead: NOTARY_KEY_PATH + NOTARY_KEY_ID + NOTARY_ISSUER_ID, and
+# SPARKLE_KEY_FILE. APPCAST overrides the feed path. Nothing is pushed or
+# uploaded; see docs/RELEASING.md.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -16,8 +20,18 @@ TEAM_ID="GG4G6A42SB"
 NOTARY_PROFILE="slateflow-notary"
 SPARKLE_ACCOUNT="slateflow"
 REPO_URL="https://github.com/PixelEtch/Slateflow"
-APPCAST="docs/appcast.xml"
+APPCAST="${APPCAST:-docs/appcast.xml}"
 BUILD="build/release"
+if [[ -n "${NOTARY_KEY_PATH:-}" ]]; then
+    NOTARY_AUTH=(--key "$NOTARY_KEY_PATH" --key-id "$NOTARY_KEY_ID" --issuer "$NOTARY_ISSUER_ID")
+else
+    NOTARY_AUTH=(--keychain-profile "$NOTARY_PROFILE")
+fi
+if [[ -n "${SPARKLE_KEY_FILE:-}" ]]; then
+    SPARKLE_AUTH=(--ed-key-file "$SPARKLE_KEY_FILE")
+else
+    SPARKLE_AUTH=(--account "$SPARKLE_ACCOUNT")
+fi
 APP="$BUILD/Build/Products/Release/$APP_NAME.app"
 STAGING=""
 WORK=""
@@ -120,10 +134,10 @@ hdiutil convert "$RW" -format UDZO -imagekey zlib-level=9 -o "$OUT" -quiet
 codesign --force --timestamp --sign "$IDENTITY" "$OUT"
 
 echo "▸ Notarizing (usually a few minutes)…"
-RESULT="$(xcrun notarytool submit "$OUT" --keychain-profile "$NOTARY_PROFILE" --wait --output-format json)"
+RESULT="$(xcrun notarytool submit "$OUT" "${NOTARY_AUTH[@]}" --wait --output-format json)"
 if [[ "$(jq -r .status <<<"$RESULT")" != "Accepted" ]]; then
     echo "✗ Notarization failed: $RESULT" >&2
-    xcrun notarytool log "$(jq -r .id <<<"$RESULT")" --keychain-profile "$NOTARY_PROFILE" >&2 || true
+    xcrun notarytool log "$(jq -r .id <<<"$RESULT")" "${NOTARY_AUTH[@]}" >&2 || true
     exit 1
 fi
 xcrun stapler staple "$OUT"
@@ -136,14 +150,14 @@ GENERATE_APPCAST="$BUILD/SourcePackages/artifacts/sparkle/Sparkle/bin/generate_a
 # Run on a folder holding only this DMG plus the current feed, so the download
 # prefix (one tag per release) applies to the new item and older items stay as they are.
 FEED="$WORK/feed"
-mkdir -p "$FEED" docs
+mkdir -p "$FEED" "$(dirname "$APPCAST")"
 cp "$OUT" "$FEED/"
 [[ -f "$APPCAST" ]] && cp "$APPCAST" "$FEED/appcast.xml"
-"$GENERATE_APPCAST" --account "$SPARKLE_ACCOUNT" \
+"$GENERATE_APPCAST" "${SPARKLE_AUTH[@]}" \
     --download-url-prefix "$REPO_URL/releases/download/v$VERSION/" \
     --link "$REPO_URL/releases" --maximum-versions 0 "$FEED"
 cp "$FEED/appcast.xml" "$APPCAST"
 
 echo "✓ Notarized DMG: $PWD/$OUT"
 echo "✓ Appcast:       $PWD/$APPCAST"
-echo "  Next: create GitHub release v$VERSION with the DMG, then commit and push $APPCAST."
+echo "  Next (Mac releases only): create GitHub release v$VERSION with the DMG, then put $APPCAST on gh-pages as appcast.xml."
