@@ -36,7 +36,7 @@ When you change logic in `Slateflow/Model`, add an `assert` for it in `SlateSelf
 ## Code style
 
 - Match the surrounding code: naming, comment density, and SwiftUI idioms.
-- Put user-facing text in `Support/Strings.swift`, and spacing, colours and SF Symbol names in `Support/DesignSystem.swift`. Views reference those instead of literals.
+- Put user-facing text in `Support/Strings.swift`, and spacing, sizes, colours and SF Symbol names in `Support/DesignSystem.swift` (each size is a step on a small scale, such as `Size.Sheet.md`). Views reference those instead of literals.
 - Keep changes focused: one fix or feature per pull request.
 - Add a line to `CHANGELOG.md` under **Unreleased** for anything a user would notice.
 

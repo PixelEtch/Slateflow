@@ -15,9 +15,9 @@ The **Folder Preview** shows exactly what a build will create.
 
 ## Install
 
-Download `Slateflow-<version>.dmg` from [Releases](https://github.com/PixelEtch/Slateflow/releases/latest), open it and drag **Slateflow** onto **Applications**. It's signed and notarized by Apple, so it opens normally.
+Download `Slateflow-<version>.dmg` from [Releases](https://github.com/PixelEtch/Slateflow/releases), open it and drag **Slateflow** onto **Applications**. It's signed and notarized by Apple, so it opens normally.
 
-Updates arrive through **Slateflow > Check for Updates…**.
+Updates arrive through **Slateflow > Check for Updates…**. Versions marked alpha or beta are test builds.
 
 Requires macOS 15 or later, and Final Cut Pro to open the projects.
 
@@ -47,4 +47,4 @@ Everything stays on your Mac: no accounts, telemetry or cloud. The only network 
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE). Slateflow includes [Sparkle](https://sparkle-project.org) for updates; its license ships in the app as `ThirdPartyNotices.txt`.

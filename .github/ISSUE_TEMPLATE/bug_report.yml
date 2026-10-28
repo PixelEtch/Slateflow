@@ -24,7 +24,7 @@ body:
     attributes:
       label: Slateflow version
       description: Slateflow → About Slateflow
-      placeholder: 1.0.0 (Build 5)
+      placeholder: 1.0.0-alpha.1 (Build 73)
     validations:
       required: true
   - type: input

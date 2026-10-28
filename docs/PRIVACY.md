@@ -8,7 +8,7 @@ The app is sandboxed, so everything it keeps lives in its own container:
 
 | What | Where |
 |---|---|
-| Settings (footage sources, roles, Smart Collections, inspector state) | `~/Library/Containers/com.ashifali.Slateflow/Data/Library/Preferences/com.ashifali.Slateflow.plist` |
+| Settings (format, project name, footage sources, roles, Smart Collections, inspector state) | `~/Library/Containers/com.ashifali.Slateflow/Data/Library/Preferences/com.ashifali.Slateflow.plist` |
 | Build history | `~/Library/Containers/com.ashifali.Slateflow/Data/Library/Application Support/Slateflow/BuildHistory.json` |
 | Log | `~/Library/Containers/com.ashifali.Slateflow/Data/Library/Application Support/Slateflow/Slate.log` (**Help > Open Log File**) |
 
@@ -21,7 +21,7 @@ The only network request is the update check. Sparkle downloads `https://pixelet
 On the second launch Sparkle asks whether to check automatically. To turn automatic checks off later:
 
 ```bash
-defaults write com.ashifali.Slateflow SUEnableAutomaticChecks -bool NO
+defaults write ~/Library/Containers/com.ashifali.Slateflow/Data/Library/Preferences/com.ashifali.Slateflow SUEnableAutomaticChecks -bool NO
 ```
 
 ## Removing everything
