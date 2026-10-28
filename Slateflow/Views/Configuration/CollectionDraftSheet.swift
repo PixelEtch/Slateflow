@@ -59,7 +59,7 @@ struct CollectionDraftSheet: View {
             }
         }
         .padding(Spacing.lg)
-        .frame(width: 340)
+        .frame(width: Size.Sheet.sm)
     }
 
     private func add() {

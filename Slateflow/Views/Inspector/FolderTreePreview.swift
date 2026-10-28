@@ -63,8 +63,8 @@ extension DirectoryNode {
     /// files are told apart by extension.
     var previewIcon: String {
         guard isFile else { return childNodes == nil ? SFSymbol.folder : SFSymbol.folderFill }
-        if name.hasSuffix(".fcpxml") { return "doc.text" }
-        return "doc.plaintext"
+        if name.hasSuffix(".fcpxml") { return SFSymbol.fcpxmlFile }
+        return SFSymbol.textFile
     }
 
     var previewTint: Color {

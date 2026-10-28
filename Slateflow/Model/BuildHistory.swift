@@ -75,9 +75,16 @@ final class SelectionHistory {
         self.fileURL = fileURL
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
-        if let data = try? Data(contentsOf: fileURL),
-           let decoded = try? decoder.decode([BuildRecord].self, from: data) {
-            builds = decoded
+        guard let data = try? Data(contentsOf: fileURL) else { return }
+        do {
+            builds = try decoder.decode([BuildRecord].self, from: data)
+        } catch {
+            // Move it aside: starting empty and saving the next build would overwrite it.
+            let stamp = Date.now.formatted(.iso8601).replacingOccurrences(of: ":", with: "-")
+            let aside = fileURL.deletingPathExtension()
+                .appendingPathExtension("unreadable-\(stamp).json")
+            try? FileManager.default.moveItem(at: fileURL, to: aside)
+            Log.error("Build Archives unreadable, kept as \(aside.lastPathComponent): \(error.localizedDescription)")
         }
     }
 

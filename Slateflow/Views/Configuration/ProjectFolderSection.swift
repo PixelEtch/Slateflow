@@ -16,7 +16,7 @@ struct ProjectFolderSection: View {
                 TextField(Strings.ProjectFolder.templateName, text: $store.templateName)
                     .labelsHidden()
                     .textFieldStyle(.roundedBorder)
-                    .frame(maxWidth: Spacing.fieldWidth)
+                    .frame(maxWidth: Size.Field.md)
             }
 
             LabeledContent(Strings.ProjectFolder.rootFolder) {

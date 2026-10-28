@@ -48,6 +48,5 @@ nonisolated struct ProjectManifest: Codable {
         enc.dateEncodingStrategy = .iso8601
         let url = rootFolder.appendingPathComponent(ProjectLayout.manifestFile)
         try enc.encode(self).write(to: url, options: .atomic)
-        FilePermissions.harden(file: url)
     }
 }

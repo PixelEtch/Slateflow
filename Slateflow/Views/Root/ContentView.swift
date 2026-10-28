@@ -17,9 +17,7 @@ struct ContentView: View {
 
     var body: some View {
         ConfigurationForm(store: store)
-            // Narrowest the form gets with the inspector open; below this the
-            // segmented controls and the Build button clip.
-            .frame(minWidth: 440)
+            .frame(minWidth: Size.Window.formMinWidth)
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 BuildBar(rootFolderName: store.rootFolderName,
                          isBuilding: isBuilding,
@@ -27,7 +25,7 @@ struct ContentView: View {
             }
             .inspector(isPresented: $showInspector) {
                 InspectorPane(store: store, isShown: showInspector)
-                    .inspectorColumnWidth(min: 300, ideal: 350, max: 460)
+                    .inspectorColumnWidth(min: Size.Inspector.min, ideal: Size.Inspector.ideal, max: Size.Inspector.max)
             }
             .focusedSceneValue(\.buildAction, chooseAndBuild)
             .toolbar {
@@ -40,7 +38,7 @@ struct ContentView: View {
                     .help(Strings.App.inspectorToggleHelp)
                 }
             }
-            .frame(minHeight: 520)
+            .frame(minHeight: Size.Window.minHeight)
             .alert(Strings.Build.errorTitle,
                    isPresented: Binding(get: { buildError != nil },
                                         set: { if !$0 { buildError = nil } })) {
@@ -54,12 +52,7 @@ struct ContentView: View {
                 if let builtProject {
                     BuildSuccessSheet(
                         rootFolder: builtProject.lastPathComponent,
-                        onOpen: {
-                            // Ready to paste into Final Cut's New Library name field.
-                            NSPasteboard.general.clearContents()
-                            NSPasteboard.general.setString(builtProject.lastPathComponent, forType: .string)
-                            openInFinalCut(ProjectLayout.fcpxmlURL(root: builtProject))
-                        },
+                        onOpen: { await FinalCutLibrary.open(project: builtProject) },
                         onReveal: { NSWorkspace.shared.activateFileViewerSelecting([builtProject]) })
                 }
             }
@@ -79,17 +72,6 @@ struct ContentView: View {
             do { builtProject = try await store.buildProject(at: url) }
             catch { buildError = error.localizedDescription }
             isBuilding = false
-        }
-    }
-
-    /// `NSWorkspace.open(_:)` (the plain Bool-returning overload) doesn't reliably
-    /// bring an already-running app forward. Request activation explicitly.
-    private func openInFinalCut(_ url: URL) {
-        let config = NSWorkspace.OpenConfiguration()
-        config.activates = true
-        Task {
-            do { try await NSWorkspace.shared.open(url, configuration: config) }
-            catch { Log.error("Open in Final Cut failed for \(url.lastPathComponent): \(error.localizedDescription)") }
         }
     }
 }

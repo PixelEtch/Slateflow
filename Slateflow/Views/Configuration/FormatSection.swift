@@ -31,20 +31,24 @@ struct FormatSection: View {
                 LabeledContent(Strings.Format.dimensions) {
                     HStack(spacing: Spacing.xs) {
                         TextField(Strings.Format.width, value: $store.customWidth, format: .number)
-                            .labelsHidden().textFieldStyle(.roundedBorder).frame(width: 76)
+                            .labelsHidden().textFieldStyle(.roundedBorder).frame(width: Size.Field.sm)
                         Text(Strings.Format.dimensionSeparator).foregroundStyle(.secondary)
                         TextField(Strings.Format.height, value: $store.customHeight, format: .number)
-                            .labelsHidden().textFieldStyle(.roundedBorder).frame(width: 76)
+                            .labelsHidden().textFieldStyle(.roundedBorder).frame(width: Size.Field.sm)
                     }
                     .multilineTextAlignment(.trailing)
                 }
 
                 if let issue = store.customDimensionsIssue {
-                    Label(issue == .tooSmall ? Strings.Format.dimensionsTooSmall
-                                             : Strings.Format.dimensionsOdd,
-                          systemImage: SFSymbol.warning)
-                        .font(.caption)
-                        .foregroundStyle(Palette.warning)
+                    // Only the icon is orange: orange caption text fails contrast on light backgrounds.
+                    Label {
+                        Text(issue == .tooSmall ? Strings.Format.dimensionsTooSmall
+                                                : Strings.Format.dimensionsOdd)
+                            .foregroundStyle(.secondary)
+                    } icon: {
+                        Image(systemName: SFSymbol.warning).foregroundStyle(Palette.warning)
+                    }
+                    .font(.caption)
                 }
 
                 LabeledContent(Strings.Format.aspectRatio, value: store.format.aspectRatio)

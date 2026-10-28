@@ -25,7 +25,7 @@ Requires macOS 15 or later, and Final Cut Pro to open the projects.
 
 1. Pick the format, footage sources, roles and Smart Collections.
 2. Click **Choose Destination & Build…** and choose where the project goes.
-3. Click **Copy Name & Open in Final Cut Pro**. When Final Cut asks for a library, click **New…**, paste the name (⌘V) and click **Save**. The save window already opens in the project's `FCP` folder.
+3. Click **Open in Final Cut Pro**. Final Cut creates the library in the project's `FCP` folder and imports the project. There's nothing to click in Final Cut.
 
 Final Cut creates the library itself, so it always matches your installed version.
 

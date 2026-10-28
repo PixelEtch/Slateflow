@@ -213,15 +213,13 @@ struct FCPLibrarySettings {
     /// Write `<event>.fcpxml` (and an import note when media is kept in place) into `fcpFolder`.
     nonisolated func write(into fcpFolder: URL, format: VideoFormat, eventName: String) throws {
         try FileManager.default.createDirectory(
-            at: fcpFolder, withIntermediateDirectories: true,
-            attributes: [.posixPermissions: FilePermissions.directory])
+            at: fcpFolder, withIntermediateDirectories: true)
 
         let xmlURL = fcpFolder.appendingPathComponent("\(eventName).fcpxml")
-        let libraryURL = fcpFolder.appendingPathComponent("\(eventName).fcpbundle", isDirectory: true)
+        let libraryURL = fcpFolder.appendingPathComponent("\(eventName).fcpbundle", isDirectory: false)
         let xml = FCPXML.document(settings: self, format: format, eventName: eventName,
                                   libraryLocation: libraryURL)
         try xml.write(to: xmlURL, atomically: true, encoding: .utf8)
-        FilePermissions.harden(file: xmlURL)
 
         guard keepMediaInPlace else { return }
         // No FCPXML attribute controls this - it's an import-time preference. Leave a note.
@@ -237,7 +235,6 @@ struct FCPLibrarySettings {
         """
         let noteURL = fcpFolder.appendingPathComponent(ProjectLayout.importNoteFile)
         try note.write(to: noteURL, atomically: true, encoding: .utf8)
-        FilePermissions.harden(file: noteURL)
     }
 }
 
@@ -250,9 +247,10 @@ nonisolated enum FCPXML {
     // Verified against a real "Export XML" from Final Cut Pro (1.14): its <format> carries
     // colorSpace, and its <sequence> carries audioLayout/audioRate - both #IMPLIED per the
     // DTD (so structurally optional) but expected by FCP's importer for a project sequence.
-    /// `libraryLocation`: where the library should live. When nothing exists there yet,
-    /// FCP asks which library to import into, and its New… panel opens in that folder -
-    /// so the library FCP creates is always the installed FCP's version.
+    /// `libraryLocation`: the `.fcpbundle` to import into, as the `library location` import
+    /// option. Final Cut creates the library there when it doesn't exist yet (verified on
+    /// 12.4), so it is always the installed version's format. Without it, FCP asks which
+    /// library to use.
     static func document(settings: FCPLibrarySettings, format: VideoFormat, eventName: String,
                          libraryLocation: URL? = nil) -> String {
         let collections = settings.smartCollections
@@ -260,15 +258,24 @@ nonisolated enum FCPXML {
             .map { collection($0) }
             .joined(separator: "\n")
         let formatName = "Slate \(format.width)×\(format.height)"
-        let library = libraryLocation.map { #"<library location="\#(escape($0.absoluteString))">"# } ?? "<library>"
+        // Must be the first child of <fcpxml>.
+        let importOptions = libraryLocation.map { url in
+            """
+            <import-options>
+            <option key="library location" value="\(escape(url.absoluteString))"/>
+            <option key="suppress warnings" value="1"/>
+            </import-options>
+
+            """
+        } ?? ""
         return """
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE fcpxml>
         <fcpxml version="1.11">
-        <resources>
+        \(importOptions)<resources>
         <format id="r1" name="\(escape(formatName))" width="\(format.width)" height="\(format.height)" frameDuration="\(settings.frameRate.frameDurationFCPX)" colorSpace="1-1-1 (Rec. 709)"/>
         </resources>
-        \(library)
+        <library>
         <event name="\(escape(eventName))">
         <project name="\(escape(eventName))">
         <sequence format="r1" duration="0s" tcStart="0s" tcFormat="NDF" audioLayout="stereo" audioRate="48k">

@@ -20,7 +20,7 @@ struct ConfigurationForm: View {
             Section {
                 // Same shape as a collection row: text, then a centred switch.
                 HStack {
-                    VStack(alignment: .leading, spacing: Spacing.xxs / 2) {
+                    VStack(alignment: .leading, spacing: Spacing.xxxs) {
                         Text(Strings.FCP.leaveFilesInPlace)
                         Text(Strings.FCP.leaveFilesInPlaceHelp)
                             .font(.caption)

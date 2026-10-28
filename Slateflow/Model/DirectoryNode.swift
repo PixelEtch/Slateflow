@@ -13,7 +13,7 @@ struct DirectoryNode: Identifiable {
     var note: String? = nil            // shown in the Folder Preview only
     var isFile: Bool = false           // written by its owner (FCPXML, manifest), not by write()
 
-    // ponytail: names are unique across this template tree; use a path id if that changes.
+    // shortcut: names are unique within this template tree; use a path id if names can repeat.
     var id: String { name }
 
     /// `nil` for leaves - the shape `OutlineGroup(_:children:)` expects.
@@ -27,8 +27,7 @@ struct DirectoryNode: Identifiable {
         let dir = parent.appendingPathComponent(SafeName.component(name, fallback: "Folder"),
                                                 isDirectory: true)
         try FileManager.default.createDirectory(
-            at: dir, withIntermediateDirectories: true,
-            attributes: [.posixPermissions: FilePermissions.directory])
+            at: dir, withIntermediateDirectories: true)
         for child in children { try child.write(into: dir) }
     }
 

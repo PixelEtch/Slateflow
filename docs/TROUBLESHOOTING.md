@@ -12,7 +12,13 @@ The app is sandboxed and can only write where you've given it access. Pick the l
 
 ## Final Cut Pro doesn't open the project
 
-Click **Copy Name & Open in Final Cut Pro** again. When Final Cut asks which library to use, click **New…**, paste the name (⌘V) and click **Save**. Final Cut Pro must be installed in `/Applications`.
+Click **Open in Final Cut Pro** again. Final Cut Pro must be installed in `/Applications`.
+
+## Final Cut doesn't create the library
+
+- Wait for Final Cut to finish opening; the first launch can take a minute. Then click **Open in Final Cut Pro** again.
+- Close any dialog that's open in Final Cut first.
+- **Help > Open Log File** shows what Slateflow saw.
 
 ## Settings or build history look wrong
 

@@ -41,7 +41,7 @@ struct AboutView: View {
         VStack(spacing: Spacing.md) {
             Image(nsImage: NSApp.applicationIconImage)
                 .resizable()
-                .frame(width: 72, height: 72)
+                .frame(width: Size.Icon.lg, height: Size.Icon.lg)
 
             VStack(spacing: Spacing.xxs) {
                 Text(AppInfo.name).font(.title2.weight(.semibold))
@@ -57,7 +57,7 @@ struct AboutView: View {
                 Image(systemName: SFSymbol.privacy).foregroundStyle(Palette.secure)
             }
             .font(.callout)
-            .frame(maxWidth: 340, alignment: .leading)
+            .frame(maxWidth: .infinity, alignment: .leading)
 
             Divider()
 
@@ -74,8 +74,8 @@ struct AboutView: View {
                 Text(AppInfo.copyright).font(.caption).foregroundStyle(.secondary)
             }
         }
-        .padding(Spacing.lg + Spacing.xs)
-        .frame(width: 420)
+        .padding(Spacing.xl)
+        .frame(width: Size.Sheet.md)
         .sheet(isPresented: $showingLicense) { MITLicenseSheet() }
     }
 }
@@ -98,7 +98,8 @@ struct MITLicenseSheet: View {
             }
         }
         .padding(Spacing.lg)
-        .frame(minWidth: 420, idealWidth: 480, minHeight: 260, idealHeight: 340)
+        .frame(minWidth: Size.Sheet.md, idealWidth: Size.Sheet.lg,
+               minHeight: Size.Sheet.sm, idealHeight: Size.Sheet.sm)
     }
 }
 

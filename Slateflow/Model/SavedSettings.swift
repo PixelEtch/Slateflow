@@ -64,8 +64,8 @@ struct SavedSettings {
         return s
     }
 
-    // ponytail: rewrites every key on any change - a few small values and one short
-    // JSON array; diff against the last save if collections ever grow large.
+    // shortcut: rewrites every key on any change - fine for a few small values and one
+    // short JSON array; diff against the last save if collections ever grow large.
     func save(to d: UserDefaults) {
         d.set(choice.rawValue, forKey: Key.choice)
         d.set(orientation.rawValue, forKey: Key.orientation)

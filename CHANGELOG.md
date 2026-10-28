@@ -4,6 +4,14 @@ All notable changes to Slateflow are listed here.
 
 ## Unreleased
 
+### Changed
+- Open in Final Cut Pro now has Final Cut create the project's library in its `FCP` folder and import the project, with nothing to click in Final Cut. The `.fcpxml` names the library with FCPXML's `library location` import option. The button was "Copy Name & Open in Final Cut Pro".
+
+### Fixed
+- An unreadable Build Archives file is kept next to the archive as `BuildHistory.unreadable-<date>.json` instead of being overwritten by the next build.
+- The Build Archives storage note no longer overlaps the list when it scrolls.
+- Project folders and files use your Mac's default permissions. Before, Slateflow always made them readable by every account on the Mac, even if you had set new files to private.
+
 ## 1.0.0 - 2026-10-16
 
 ### Added

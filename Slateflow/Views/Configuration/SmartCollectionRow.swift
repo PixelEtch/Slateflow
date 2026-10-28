@@ -15,7 +15,7 @@ struct SmartCollectionRow: View {
     var body: some View {
         HStack {
             Label {
-                VStack(alignment: .leading, spacing: Spacing.xxs / 2) {
+                VStack(alignment: .leading, spacing: Spacing.xxxs) {
                     Text(spec.name)
                     Text(spec.isFootageLinked
                          ? "\(spec.summary) · \(Strings.SmartCollections.fromFootageSources)"

@@ -48,6 +48,17 @@ func slateSelfCheck() {
     restored.clear()
     assert(SelectionHistory(fileURL: restored.fileURL).builds.isEmpty)
 
+    // An unreadable archive is kept aside, not overwritten by the next build.
+    let corrupt = archiveTmp.appendingPathComponent("corrupt.json")
+    try! Data("not json".utf8).write(to: corrupt)
+    let recovering = SelectionHistory(fileURL: corrupt)
+    assert(recovering.builds.isEmpty)
+    recovering.record(BuildRecord(snapshot: archiveSnapshot, rootFolder: "003 - A"))
+    let kept = try! FileManager.default.contentsOfDirectory(at: archiveTmp, includingPropertiesForKeys: nil)
+        .filter { $0.lastPathComponent.hasPrefix("corrupt.unreadable-") }
+    assert(kept.count == 1 && (try? Data(contentsOf: kept[0])) == Data("not json".utf8),
+           "unreadable Build Archives file was overwritten")
+
     assert(ProjectLayout.rootName(sequence: 1, template: "SlateTemplate") == "001 - SlateTemplate")
     assert(ProjectLayout.rootName(sequence: 42, template: "X") == "042 - X")
     assert(ProjectLayout.rootName(sequence: 1000, template: "X") == "1000 - X")
@@ -401,10 +412,14 @@ func slateSelfCheck() {
     assert(dst.appendingPathComponent("001 - X").isContained(in: dst))
     assert(!dst.appendingPathComponent("../../X").isContained(in: dst))
 
-    // FCPXML library location - points FCP's New Library panel at <root>/FCP.
+    // FCPXML library location - the first child of <fcpxml>, so Final Cut creates the
+    // library at <root>/FCP/<root>.fcpbundle without asking.
     let located = FCPXML.document(settings: FCPLibrarySettings(), format: .hd1080, eventName: "E",
-                                  libraryLocation: URL(fileURLWithPath: "/tmp/A & B/E.fcpbundle", isDirectory: true))
-    assert(located.contains(#"<library location="file:///tmp/A%20&amp;%20B/E.fcpbundle/">"#))
-    assert(FCPXML.document(settings: FCPLibrarySettings(), format: .hd1080, eventName: "E").contains("<library>"))
+                                  libraryLocation: URL(fileURLWithPath: "/tmp/A & B/E.fcpbundle", isDirectory: false))
+    assert(located.contains(#"<fcpxml version="1.11">\#n<import-options>\#n<option key="library location" value="file:///tmp/A%20&amp;%20B/E.fcpbundle"/>"#),
+           "library location import option missing or not first")
+    assert(located.contains("<library>\n<event"))
+    let unlocated = FCPXML.document(settings: FCPLibrarySettings(), format: .hd1080, eventName: "E")
+    assert(!unlocated.contains("import-options") && unlocated.contains("<library>"))
 }
 #endif

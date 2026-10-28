@@ -105,6 +105,9 @@ struct InspectorPane: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, Spacing.sm)
             .padding(.vertical, Spacing.xs)
+            // Opaque bar so rows scroll behind the note instead of showing through it.
+            .background(.bar)
+            .overlay(alignment: .top) { Divider() }
     }
 
     /// Clear | Backup with a firm 1 pt rule between (Divider is too faint). The rule
@@ -114,8 +117,8 @@ struct InspectorPane: View {
             clearButton
             Rectangle()
                 .fill(.secondary)
-                .frame(width: 1, height: 18)
-                .padding(.horizontal, Spacing.xxs / 2)
+                .frame(width: 1, height: Size.Icon.md)
+                .padding(.horizontal, Spacing.xxxs)
                 .opacity(hoveringAction ? 0 : 1)
             backupMenu
         }
@@ -148,6 +151,8 @@ struct InspectorPane: View {
     private var content: some View {
         ZStack {
             HistoryList(store: store)
+                // Fill the pane even when empty, so the note sits at the bottom, not under the message.
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .safeAreaInset(edge: .bottom, spacing: 0) { storageNote }
                 .paneVisible(pane == .history)
             FolderTreePreview(root: ProjectLayout.plan(

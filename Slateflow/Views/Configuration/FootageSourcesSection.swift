@@ -19,7 +19,7 @@ struct FootageSourcesSection: View {
     var body: some View {
         Section(Strings.FootageSources.section) {
             // Two columns when the form is wide enough, one when it isn't.
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 160), alignment: .leading)],
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: Size.Column.md), alignment: .leading)],
                       alignment: .leading, spacing: Spacing.xs) {
                 ForEach(FootageSource.presets) { source in
                     Toggle(isOn: binding(for: source)) {

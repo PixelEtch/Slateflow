@@ -2,8 +2,9 @@
 //  Security.swift
 //  Slateflow
 //
-//  Trust-boundary helpers: filename sanitisation (path-traversal defense),
-//  a destination-containment check, and explicit POSIX permissions for output.
+//  Trust-boundary helpers: filename sanitisation (path-traversal defense)
+//  and a destination-containment check. Output files keep the user's default
+//  permissions (umask).
 //
 
 import Foundation
@@ -67,16 +68,5 @@ extension URL {
         let child = resolvingSymlinksInPath().standardizedFileURL.path
         let root = parent.resolvingSymlinksInPath().standardizedFileURL.path
         return child == root || child.hasPrefix(root.hasSuffix("/") ? root : root + "/")
-    }
-}
-
-nonisolated enum FilePermissions {
-    static let directory: Int = 0o755   // owner rwx, group/other r-x
-    static let file: Int = 0o644        // owner rw-, group/other r--
-
-    /// Best-effort chmod; a failure here never blocks a build.
-    static func harden(file url: URL) {
-        try? FileManager.default.setAttributes(
-            [.posixPermissions: file], ofItemAtPath: url.path)
     }
 }

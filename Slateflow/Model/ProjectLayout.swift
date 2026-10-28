@@ -92,8 +92,7 @@ nonisolated enum ProjectLayout {
         // or a symlink) already has this name, so there's no check-then-create race.
         do {
             try FileManager.default.createDirectory(
-                at: rootURL, withIntermediateDirectories: false,
-                attributes: [.posixPermissions: FilePermissions.directory])
+                at: rootURL, withIntermediateDirectories: false)
         } catch let error as CocoaError where error.code == .fileWriteFileExists {
             Log.error("Refused build: “\(root)” already exists at the destination")
             throw SlateError.destinationOccupied(root)

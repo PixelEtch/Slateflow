@@ -16,7 +16,7 @@ struct HistoryRow: View {
 
     /// Chevron width + the HStack spacing after it - lets the expanded content
     /// align under the title text, not under the chevron.
-    private static let contentIndent: CGFloat = 10 + Spacing.xs
+    private static let contentIndent: CGFloat = Size.Icon.sm + Spacing.xs
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -25,10 +25,10 @@ struct HistoryRow: View {
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.secondary)
                     .rotationEffect(.degrees(isExpanded ? 90 : 0))
-                    .frame(width: 10)
-                    .padding(.top, 2)
+                    .frame(width: Size.Icon.sm)
+                    .padding(.top, Spacing.xxxs)
 
-                VStack(alignment: .leading, spacing: Spacing.xxs / 2) {
+                VStack(alignment: .leading, spacing: Spacing.xxxs) {
                     Label(record.rootFolder, systemImage: SFSymbol.folderFill)
                         .font(.headline)
                     Text(formatSubtitle)
@@ -46,12 +46,12 @@ struct HistoryRow: View {
             .accessibilityAddTraits(.isButton)
             .accessibilityAction { toggleExpanded() }
 
-            // Always present (never inserted/removed) - List on macOS snaps row
-            // height instead of animating it when a child is conditionally added;
-            // animating height + opacity on a permanent view avoids that jump.
+            // Always present (never inserted/removed): a conditionally added child snaps
+            // the row height instead of animating it; animating height + opacity on a
+            // permanent view avoids that jump.
             VStack(alignment: .leading, spacing: Spacing.xs) {
                 // Two columns when the inspector is wide enough; one column when it isn't.
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 140), spacing: Spacing.lg, alignment: .leading)],
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: Size.Column.sm), spacing: Spacing.lg, alignment: .leading)],
                           alignment: .leading, spacing: Spacing.xxs) {
                     ForEach(statItems, id: \.label) { cell($0.label, $0.value) }
                 }
@@ -104,7 +104,7 @@ struct HistoryRow: View {
     }
 
     private func cell(_ label: String, _ value: String) -> some View {
-        VStack(alignment: .leading, spacing: Spacing.xxs / 2) {
+        VStack(alignment: .leading, spacing: Spacing.xxxs) {
             Text(label).font(.caption2).foregroundStyle(.secondary)
             Text(value).font(.callout)
         }

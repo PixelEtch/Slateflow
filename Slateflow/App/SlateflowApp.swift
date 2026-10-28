@@ -26,14 +26,18 @@ struct SlateflowApp: App {
         }
         #endif
         Log.event("Launched - \(AppInfo.versionLine)")
+        #if !DEBUG
+        // Debug builds never check: an update would replace them with the release build.
+        // Check for Updates… stays disabled because the updater isn't started.
         updaterController.startUpdater()
+        #endif
     }
 
     var body: some Scene {
         WindowGroup {
             ContentView()
         }
-        .defaultSize(width: 900, height: 640)
+        .defaultSize(Size.Window.size)
         .commands {
             CommandGroup(replacing: .appInfo) {
                 AboutMenuButton()

@@ -26,7 +26,7 @@ enum Orientation: String, CaseIterable, Identifiable {
 /// The exact ratio within an orientation. The resolution *tier* (the shorter
 /// reference edge: 1080p→1080, 4K→2160, 8K→4320) is kept and the other edge is
 /// derived; odd results round down - Final Cut rejects odd sizes.
-// ponytail: edit the ratios here if your house definitions differ - nothing
+// Edit the ratios here if your house definitions differ - nothing
 // else depends on the specific numbers.
 enum AspectRatio: String, CaseIterable, Identifiable {
     case wide169      = "16:9"

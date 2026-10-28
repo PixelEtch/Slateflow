@@ -2,17 +2,22 @@
 //  BuildSuccessSheet.swift
 //  Slateflow
 //
-//  Shown after a build: what to click in Final Cut's library dialog, with the
-//  exact controls called out so they're easy to spot there.
+//  Shown after a build. Open in Final Cut Pro opens the project; Final Cut creates
+//  its library in the project's FCP folder, and the sheet closes once it exists.
 //
 
 import SwiftUI
 
 struct BuildSuccessSheet: View {
     let rootFolder: String
-    let onOpen: () -> Void
+    /// Opens the project in Final Cut; true once Final Cut has created the library.
+    let onOpen: () async -> Bool
     let onReveal: () -> Void
     @Environment(\.dismiss) private var dismiss
+    @State private var isWorking = false
+    @State private var failed = false
+    /// Cancelled when the sheet closes, so Done stops waiting for the library.
+    @State private var openTask: Task<Void, Never>?
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
@@ -28,60 +33,46 @@ struct BuildSuccessSheet: View {
             Divider()
 
             Text(Strings.Build.nextStepsTitle).font(.subheadline.weight(.semibold))
-            VStack(alignment: .leading, spacing: Spacing.xs) {
-                step(1) { Text(Strings.Build.stepOpen) }
-                step(2) { HStack(spacing: Spacing.xxs) { Text(Strings.Build.stepClick); Chip(Strings.Build.fcpNew) } }
-                step(3) {
-                    HStack(spacing: Spacing.xxs) {
-                        Text(Strings.Build.stepPaste); Chip(Strings.Build.pasteShortcut)
-                        Text(Strings.Build.stepThen); Chip(Strings.Build.fcpSave)
-                    }
-                }
-            }
+            Text(failed ? Strings.Build.libraryFailed : Strings.Build.libraryNote)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
 
             HStack {
                 Button(Strings.Build.reveal) { onReveal() }
                 Spacer()
                 Button(Strings.Build.done) { dismiss() }
                     .keyboardShortcut(.cancelAction)
-                Button(Strings.Build.openInFCP) {
-                    onOpen()
-                    dismiss()
+                Button {
+                    open()
+                } label: {
+                    if isWorking {
+                        HStack(spacing: Spacing.xs) { ProgressView().controlSize(.small); Text(Strings.Build.creatingLibrary) }
+                    } else {
+                        Text(Strings.Build.openInFCP)
+                    }
                 }
+                .disabled(isWorking)
                 .keyboardShortcut(.defaultAction)
             }
             .padding(.top, Spacing.xs)
         }
         .padding(Spacing.lg)
-        .frame(width: 460)
+        .frame(width: Size.Sheet.lg)
+        .onDisappear { openTask?.cancel() }
     }
 
-    private func step(_ number: Int, @ViewBuilder content: () -> some View) -> some View {
-        HStack(spacing: Spacing.xs) {
-            Text("\(number)")
-                .font(.caption.weight(.bold))
-                .frame(width: 20, height: 20)
-                .background(.fill.secondary, in: .circle)
-            content()
+    private func open() {
+        isWorking = true
+        failed = false
+        openTask = Task {
+            let created = await onOpen()
+            guard !Task.isCancelled else { return }
+            isWorking = false
+            if created { dismiss() } else { failed = true }
         }
     }
 }
 
-/// A Final Cut control or shortcut, drawn like a button so it's recognisable there.
-private struct Chip: View {
-    let title: String
-    init(_ title: String) { self.title = title }
-
-    var body: some View {
-        Text(title)
-            .font(.callout.weight(.semibold))
-            .padding(.horizontal, Spacing.xs)
-            .padding(.vertical, Spacing.xxs / 2)
-            .foregroundStyle(.tint)
-            .background(.tint.opacity(0.15), in: .rect(cornerRadius: 6))
-    }
-}
-
 #Preview {
-    BuildSuccessSheet(rootFolder: "002 - Herdsman", onOpen: {}, onReveal: {})
+    BuildSuccessSheet(rootFolder: "002 - Herdsman", onOpen: { false }, onReveal: {})
 }
