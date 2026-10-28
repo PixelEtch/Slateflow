@@ -21,7 +21,7 @@ For the maintainer. Pushing a tag `vX.Y.Z` runs `.github/workflows/release.yml`,
 
 ## Each release
 
-1. Bump **`MARKETING_VERSION`** in Xcode (for example `1.1.0`). The build number is the commit count, set by the script.
+1. Bump **`MARKETING_VERSION`** in Xcode (for example `1.1.0`, or `1.1.0-beta.1` for a pre-release). The build number is the commit count, set by the script, so Sparkle always sees each release as newer than the last.
 2. Move the **Unreleased** entries in `CHANGELOG.md` under `## 1.1.0 - YYYY-MM-DD`. Merge both to `main`.
 3. Tag the merge commit and push the tag:
 
@@ -32,7 +32,9 @@ For the maintainer. Pushing a tag `vX.Y.Z` runs `.github/workflows/release.yml`,
 4. Approve the **Sign & notarize** job when GitHub asks (Actions → the run → Review deployments).
 5. When the run is green, check that `https://pixeletch.github.io/Slateflow/appcast.xml` lists the new version, then use **Slateflow > Check for Updates…** in an older copy.
 
-The workflow stops before signing if the tag isn't on `main`, doesn't match `MARKETING_VERSION`, or has no dated changelog heading. The release notes are that changelog section.
+The workflow stops before signing if the tag isn't on `main`, doesn't match `MARKETING_VERSION`, or has no dated changelog heading. The release notes are that changelog section. Tags with `-alpha.N`, `-beta.N` or `-rc.N` are published as GitHub pre-releases.
+
+Pre-releases go into the same Sparkle feed as final releases, so anyone on a pre-release is offered the next one, through to the final. After 1.0.0, put pre-releases on a separate Sparkle channel (`generate_appcast --channel beta`) before shipping one, or every 1.x user would be offered it.
 
 ## Releasing from the Mac instead
 

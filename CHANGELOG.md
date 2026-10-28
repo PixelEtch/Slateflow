@@ -4,6 +4,10 @@ All notable changes to Slateflow are listed here.
 
 ## Unreleased
 
+## 1.0.0-alpha.1 - 2026-10-28
+
+First public test build. A beta follows, then 1.0.0.
+
 ### Changed
 - Releases are built, signed, notarized and published by GitHub Actions when a version tag is pushed. The update feed is served from the `gh-pages` branch.
 - Open in Final Cut Pro now has Final Cut create the project's library in its `FCP` folder and import the project, with nothing to click in Final Cut. The `.fcpxml` names the library with FCPXML's `library location` import option. The button was "Copy Name & Open in Final Cut Pro".
@@ -13,7 +17,7 @@ All notable changes to Slateflow are listed here.
 - The Build Archives storage note no longer overlaps the list when it scrolls.
 - Project folders and files use your Mac's default permissions. Before, Slateflow always made them readable by every account on the Mac, even if you had set new files to private.
 
-## 1.0.0 - 2026-10-16
+## 2026-10-16
 
 ### Added
 - `--selftest` launch option for Debug builds, and a GitHub Actions CI workflow that builds the app and runs it.
