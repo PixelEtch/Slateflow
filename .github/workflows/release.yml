@@ -1,4 +1,5 @@
-name: Release
+name: Release (sign, notarize, publish)
+run-name: Release ${{ github.ref_name }}
 
 # Pushing a tag vX.Y.Z (or vX.Y.Z-alpha.N / -beta.N / -rc.N, published as a pre-release) builds, signs, notarizes and publishes Slateflow X.Y.Z (ADR-0007):
 #   preflight - checks with no secrets;

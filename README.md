@@ -18,7 +18,7 @@
 
 <p align="center">
   <a href="https://github.com/PixelEtch/Slateflow/releases"><img src="https://img.shields.io/github/v/release/PixelEtch/Slateflow?include_prereleases&label=release" alt="Latest release"></a>
-  <a href="https://github.com/PixelEtch/Slateflow/actions/workflows/ci.yml"><img src="https://github.com/PixelEtch/Slateflow/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI"></a>
+  <a href="https://github.com/PixelEtch/Slateflow/actions/workflows/ci.yml"><img src="https://github.com/PixelEtch/Slateflow/actions/workflows/ci.yml/badge.svg?branch=main" alt="Build &amp; self-check"></a>
   <img src="https://img.shields.io/badge/macOS-15%2B-000000?logo=apple" alt="macOS 15 or later">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT License"></a>
 </p>
