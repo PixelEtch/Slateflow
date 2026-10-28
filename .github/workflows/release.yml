@@ -2,7 +2,7 @@ name: Release (sign, notarize, publish)
 run-name: Release ${{ github.ref_name }}
 
 # Pushing a tag vX.Y.Z (or vX.Y.Z-alpha.N / -beta.N / -rc.N, published as a pre-release) builds, signs, notarizes and publishes Slateflow X.Y.Z (ADR-0007):
-#   preflight - checks with no secrets;
+#   preflight - checks with no secrets, on Ubuntu, reusing CI's result for the commit;
 #   release   - signs and notarizes in the protected `release-signing` environment;
 #   publish   - creates the GitHub release, then the Sparkle feed on gh-pages.
 # Signing secrets never reach the job that can write to the repository.
@@ -20,10 +20,11 @@ concurrency:
 jobs:
   preflight:
     name: Preflight
-    runs-on: macos-26
-    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: read
+      checks: read
     outputs:
       version: ${{ steps.check.outputs.version }}
     steps:
@@ -47,14 +48,21 @@ jobs:
             || { echo "::error::CHANGELOG.md has no dated '## $VERSION - YYYY-MM-DD' heading"; exit 1; }
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
-      - name: Select newest Xcode
-        run: sudo xcode-select -s "$(ls -d /Applications/Xcode*.app | sort -V | tail -1)"
-
-      - name: Build and self-check
+      # Reuse CI instead of rebuilding here: macOS runners are scarce, and CI already
+      # built this exact commit when it was pushed to main.
+      - name: Build & self-check passed for this commit
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          xcodebuild -project Slateflow.xcodeproj -scheme Slateflow -configuration Debug \
-            -destination 'platform=macOS' -derivedDataPath build CODE_SIGNING_ALLOWED=NO build -quiet
-          build/Build/Products/Debug/Slateflow.app/Contents/MacOS/Slateflow --selftest
+          RESULT="$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/check-runs?check_name=Build%20%26%20self-check" \
+            --jq '[.check_runs[].conclusion] | if index("success") then "success" elif length == 0 then "missing" else (.[0] // "running") end')"
+          case "$RESULT" in
+            success) ;;
+            skipped) echo "::notice::CI skipped this docs-only commit; the signing job still builds Release." ;;
+            missing) echo "::error::No Build & self-check run for $GITHUB_SHA. Push it to main and let CI finish first."; exit 1 ;;
+            running) echo "::error::Build & self-check hasn't finished for $GITHUB_SHA. Re-run this release when it has."; exit 1 ;;
+            *)       echo "::error::Build & self-check is '$RESULT' for $GITHUB_SHA."; exit 1 ;;
+          esac
 
   release:
     name: Sign & notarize
@@ -66,14 +74,15 @@ jobs:
       contents: read
     env:
       VERSION: ${{ needs.preflight.outputs.version }}
+      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer   # same Xcode as CI
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0   # the build number is the commit count
           persist-credentials: false
 
-      - name: Select newest Xcode
-        run: sudo xcode-select -s "$(ls -d /Applications/Xcode*.app | sort -V | tail -1)"
+      - name: Show Xcode
+        run: xcodebuild -version
 
       - name: Import signing credentials
         env:
