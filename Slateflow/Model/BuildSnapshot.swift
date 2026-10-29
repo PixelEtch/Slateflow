@@ -19,6 +19,7 @@ nonisolated struct BuildSnapshot {
     let format: VideoFormat
     let fcp: FCPLibrarySettings
     let footageSources: [FootageSource]
+    let folders: [String]
 
     /// Custom sizes have no orientation or preset aspect; records show "-" for them.
     var orientationLabel: String { choice == .custom ? "-" : orientation.rawValue }
@@ -29,6 +30,6 @@ extension SavedSettings {
         BuildSnapshot(
             templateName: safeTemplateName,
             choice: choice, orientation: orientation, aspect: aspect, format: format,
-            fcp: fcp, footageSources: orderedFootageSources)
+            fcp: fcp, footageSources: orderedFootageSources, folders: folders)
     }
 }

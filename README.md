@@ -23,7 +23,7 @@
 ## What it does
 
 - **Numbered project folders.** `001 - Name`, `002 - Name`, …, always the next free number in the folder you pick.
-- **The same structure every time.** Admin, Audio, Backup, FCP, Final Exports, Footage, Graphics and Images.
+- **The same structure every time.** Admin, Audio, Backup, FCP, Final Exports, Footage, Graphics and Images by default. Add, remove or nest your own folders in **Folders**.
 - **A folder per camera.** Turn on Cam A/B, Drone, GoPro, Insta360, DJI Osmo, Sony, iPhone, Webcam, Screen Recordings or Stock Footage, or type your own.
 - **A ready Final Cut project.** The `.fcpxml` carries your resolution, aspect ratio, frame rate, roles, and Smart Collections that sort clips on import.
 - **The library, created for you.** **Open in Final Cut Pro** has Final Cut create the library in the project's `FCP` folder and import the project. There's nothing to click in Final Cut, and the library always matches your installed version.
@@ -43,9 +43,9 @@ Updates arrive through **Slateflow > Check for Updates…**. Versions marked alp
 
 ## Use it
 
-1. Pick the format, footage sources, roles and Smart Collections.
-2. Click **Choose Destination & Build…** and choose where the project goes.
-3. Click **Open in Final Cut Pro**.
+1. Name the project, then pick the format, footage sources, folders, roles and Smart Collections.
+2. Click **Choose Destination & Build…** and choose where projects go. Slateflow remembers the folder, so next time the button is just **Build**. **Change…** picks another.
+3. Click **Open in Final Cut Pro**. In Final Cut Pro ▸ Settings ▸ Import, turn on **Leave files in place**, and when Final Cut asks for storage locations, set Backups to the project's `Backup` folder.
 
 ## What you need
 

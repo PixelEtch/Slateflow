@@ -16,6 +16,7 @@ struct ConfigurationForm: View {
             ProjectFolderSection(store: store)
             FormatSection(store: store)
             FootageSourcesSection(store: store)
+            FoldersSection(store: store)
 
             Section {
                 // Same shape as a collection row: text, then a centred switch.

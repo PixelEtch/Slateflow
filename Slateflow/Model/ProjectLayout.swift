@@ -15,6 +15,31 @@ nonisolated enum ProjectLayout {
     static let fcpFolder = "FCP"
     static let importNoteFile = "Import Settings.md"
     static let manifestFile = "Slate Project.json"
+    static let backupFolder = "Backup"
+    static let footageFolder = "Footage"
+
+    /// The folders users can change in the Folders section, as `/`-separated paths.
+    /// `Backup`, `FCP` and `Footage` are always created and can't be edited.
+    static let defaultFolders = [
+        "Admin/Scripts", "Admin/NDAs", "Admin/Fonts", "Admin/Guidelines",
+        "Audio/Dialogue", "Audio/Music", "Audio/Sound Effects",
+        "Final Exports", "Graphics", "Images",
+    ]
+
+    /// `path` split into safe path components (each sanitised, blanks dropped); nil when
+    /// nothing is left or it would land in or replace a folder or file Slateflow owns.
+    static func folderComponents(_ path: String) -> [String]? {
+        let parts = path.split(separator: "/")
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty }
+            .map { SafeName.component($0, fallback: "") }
+            .filter { !$0.isEmpty }
+        let owned = [backupFolder, fcpFolder, footageFolder, manifestFile]
+        guard let top = parts.first,
+              !owned.contains(where: { $0.caseInsensitiveCompare(top) == .orderedSame })
+        else { return nil }
+        return parts
+    }
 
     // MARK: Naming
 
@@ -46,30 +71,39 @@ nonisolated enum ProjectLayout {
 
     // MARK: Plan
 
-    /// Every folder and file a build creates under `root`. `Admin` subfolders are
-    /// fixed; `Footage` gets one subfolder per source, in order.
-    static func plan(root: String, footageSources: [FootageSource],
-                     keepMediaInPlace: Bool) -> DirectoryNode {
+    /// Every folder and file a build creates under `root`: the user's `folders`, plus
+    /// `Backup`, `FCP` and `Footage` (one subfolder per source, in order). Top-level
+    /// folders are sorted by name; subfolders keep the order they were added in.
+    static func plan(root: String, folders: [String] = defaultFolders,
+                     footageSources: [FootageSource], keepMediaInPlace: Bool) -> DirectoryNode {
         var fcpFiles = [DirectoryNode(name: "\(root).fcpxml", isFile: true)]
         if keepMediaInPlace { fcpFiles.append(DirectoryNode(name: importNoteFile, isFile: true)) }
 
-        return DirectoryNode(name: root, children: [
-            DirectoryNode(name: "Admin", children: [
-                .init(name: "Scripts"), .init(name: "NDAs"), .init(name: "Fonts"), .init(name: "Guidelines"),
-            ]),
-            DirectoryNode(name: "Audio", children: [
-                .init(name: "Dialogue"), .init(name: "Music"), .init(name: "Sound Effects"),
-            ]),
+        var top = [
             // Point the FCP "Set storage locations" prompt's Backups row here - kept
             // outside FCP/ so it survives a rebuild of the library itself.
-            DirectoryNode(name: "Backup", note: "point FCP's library Backups here"),
+            DirectoryNode(name: backupFolder, note: "point FCP's library Backups here"),
             DirectoryNode(name: fcpFolder, children: fcpFiles),
-            DirectoryNode(name: "Final Exports"),
-            DirectoryNode(name: "Footage", children: footageSources.map { DirectoryNode(name: $0.folderName) }),
-            DirectoryNode(name: "Graphics"),
-            DirectoryNode(name: "Images"),
-            DirectoryNode(name: manifestFile, isFile: true),
-        ])
+            DirectoryNode(name: footageFolder, children: footageSources.map { DirectoryNode(name: $0.folderName) }),
+        ]
+        for path in folders {
+            if let parts = folderComponents(path) { insert(parts[...], into: &top) }
+        }
+        top.sort { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+        return DirectoryNode(name: root, children: top + [DirectoryNode(name: manifestFile, isFile: true)])
+            .withPathIDs()
+    }
+
+    /// Adds the folder path to `nodes`, reusing a folder of the same name (any case).
+    private static func insert(_ parts: ArraySlice<String>, into nodes: inout [DirectoryNode]) {
+        guard let first = parts.first else { return }
+        if let i = nodes.firstIndex(where: { $0.name.caseInsensitiveCompare(first) == .orderedSame }) {
+            insert(parts.dropFirst(), into: &nodes[i].children)
+        } else {
+            var node = DirectoryNode(name: first)
+            insert(parts.dropFirst(), into: &node.children)
+            nodes.append(node)
+        }
     }
 
     // MARK: Build
@@ -99,7 +133,7 @@ nonisolated enum ProjectLayout {
         }
 
         do {
-            let tree = plan(root: root, footageSources: snapshot.footageSources,
+            let tree = plan(root: root, folders: snapshot.folders, footageSources: snapshot.footageSources,
                             keepMediaInPlace: snapshot.fcp.keepMediaInPlace)
             for child in tree.children { try child.write(into: rootURL) }
             Log.event("Directory tree written (\(snapshot.footageSources.count) footage sources)")

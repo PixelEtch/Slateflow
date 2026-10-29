@@ -20,14 +20,16 @@ struct ContentView: View {
             .frame(minWidth: Size.Window.formMinWidth)
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 BuildBar(rootFolderName: store.settings.rootFolderName,
+                         destination: store.destination,
                          isBuilding: isBuilding,
-                         action: chooseAndBuild)
+                         build: build,
+                         change: { _ = chooseDestination() })
             }
             .inspector(isPresented: $showInspector) {
                 InspectorPane(store: store, isShown: showInspector)
                     .inspectorColumnWidth(min: Size.Inspector.min, ideal: Size.Inspector.ideal, max: Size.Inspector.max)
             }
-            .focusedSceneValue(\.buildAction, chooseAndBuild)
+            .focusedSceneValue(\.buildAction, build)
             .toolbar {
                 ToolbarItem {
                     Button {
@@ -52,21 +54,39 @@ struct ContentView: View {
                 if let builtProject {
                     BuildSuccessSheet(
                         rootFolder: builtProject.lastPathComponent,
+                        keepMediaInPlace: store.settings.fcp.keepMediaInPlace,
                         onOpen: { await FinalCutLibrary.open(project: builtProject) },
                         onReveal: { NSWorkspace.shared.activateFileViewerSelecting([builtProject]) })
                 }
             }
     }
 
+    /// Builds into the remembered destination, or asks for one the first time.
+    private func build() {
+        guard let destination = store.destination else { return chooseAndBuild() }
+        build(at: destination)
+    }
+
     private func chooseAndBuild() {
-        guard !isBuilding else { return }
+        if chooseDestination(), let destination = store.destination { build(at: destination) }
+    }
+
+    /// Asks for a folder and remembers it. False when cancelled.
+    private func chooseDestination() -> Bool {
+        guard !isBuilding else { return false }
         let panel = NSOpenPanel()
         panel.canChooseDirectories = true
         panel.canChooseFiles = false
+        panel.directoryURL = store.destination
         panel.prompt = Strings.Build.panelPrompt
         panel.message = Strings.Build.panelMessage(rootFolder: store.settings.rootFolderName)
-        guard panel.runModal() == .OK, let url = panel.url else { return }
+        guard panel.runModal() == .OK, let url = panel.url else { return false }
+        store.setDestination(url)
+        return true
+    }
 
+    private func build(at url: URL) {
+        guard !isBuilding else { return }
         isBuilding = true
         Task {
             do { builtProject = try await store.buildProject(at: url) }
@@ -79,8 +99,11 @@ struct ContentView: View {
 /// The primary action, pinned below the form in a native macOS bottom bar.
 struct BuildBar: View {
     let rootFolderName: String
+    /// The remembered folder; nil until the first build picks one.
+    let destination: URL?
     let isBuilding: Bool
-    let action: () -> Void
+    let build: () -> Void
+    let change: () -> Void
 
     var body: some View {
         VStack(spacing: 0) {
@@ -91,11 +114,24 @@ struct BuildBar: View {
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
                     .truncationMode(.middle)
+                if let destination {
+                    Text(Strings.Build.destination(destination.lastPathComponent))
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                        .help(destination.path)
+                    Button(Strings.Build.change, action: change)
+                        .buttonStyle(.link)
+                        .help(Strings.Build.changeHelp)
+                        .disabled(isBuilding)
+                }
                 Spacer(minLength: Spacing.md)
                 if isBuilding {
                     ProgressView().controlSize(.small)
                 }
-                Button(Strings.Build.button, systemImage: SFSymbol.build, action: action)
+                Button(destination == nil ? Strings.Build.button : Strings.Build.buildHere,
+                       systemImage: SFSymbol.build, action: build)
                     .buttonStyle(.borderedProminent)
                     .controlSize(.large)
                     .disabled(isBuilding)

@@ -31,7 +31,7 @@ func slateSelfCheck() {
     // Build Archives: records persist, export/import round-trips, importing twice adds nothing.
     let archiveSnapshot = BuildSnapshot(
         templateName: "A", choice: .hd1080, orientation: .landscape, aspect: .wide169,
-        format: .hd1080, fcp: FCPLibrarySettings(), footageSources: [.camA])
+        format: .hd1080, fcp: FCPLibrarySettings(), footageSources: [.camA], folders: ProjectLayout.defaultFolders)
     let archive = scratchHistory()
     archive.record(BuildRecord(snapshot: archiveSnapshot, rootFolder: "001 - A"))
     archive.record(BuildRecord(snapshot: archiveSnapshot, rootFolder: "002 - A"))
@@ -82,6 +82,12 @@ func slateSelfCheck() {
     assert(VideoFormat.uhd4k.aspectRatio == "16:9")
     assert(VideoFormat.uhd8k.width == 7680 && VideoFormat.uhd8k.height == 4320)
     assert(VideoFormat.custom(width: 2000, height: 1000).aspectRatio == "2:1")
+    // Custom sizes below the floor are clamped and flagged, not built as a sliver.
+    assert(VideoFormat.custom(width: 3, height: 2160).width == VideoFormat.minimumSide)
+    var tiny = SavedSettings()
+    tiny.choice = .custom
+    tiny.customWidth = 3
+    assert(tiny.customDimensionsIssue == .tooSmall, "sub-minimum width not flagged")
     assert(VideoFormat(width: 0, height: 0).aspectRatio == "-")
     assert(ResolutionChoice.allCases.count == 5)
 
@@ -121,6 +127,15 @@ func slateSelfCheck() {
     assert(untouchedDefaults.persistentDomain(forName: scratchSuites.last!)?.isEmpty ?? true,
            "constructing a store wrote to defaults")
 
+    // The build destination is remembered across launches.
+    let destDefaults = scratch()
+    let destFolder = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(UUID().uuidString)
+    try? FileManager.default.createDirectory(at: destFolder, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: destFolder) }
+    SlateStore(defaults: destDefaults, history: scratchHistory()).setDestination(destFolder)
+    assert(SlateStore(defaults: destDefaults, history: scratchHistory()).destination?.standardizedFileURL.path
+           == destFolder.standardizedFileURL.path, "destination not remembered")
+
     // Every persisted field round-trips through a fresh store on the same defaults.
     let roundTripDefaults = scratch()
     let saver = SlateStore(defaults: roundTripDefaults, history: scratchHistory())
@@ -137,6 +152,8 @@ func slateSelfCheck() {
     saver.settings.fcp.addRole("Interview", to: \.videoRoles)
     saver.settings.fcp.addRole("Ambience", to: \.audioRoles)
     saver.settings.fcp.addCollection(.keyword, value: "Day 01")
+    saver.settings.addFolder("Admin/Contracts")
+    saver.settings.removeFolder("Images")
     if let i = saver.settings.fcp.smartCollections.firstIndex(where: { $0.name == "Day 01" }) {
         saver.settings.fcp.smartCollections[i].enabled = false
     }
@@ -152,6 +169,8 @@ func slateSelfCheck() {
     assert(loaded.settings.fcp.videoRoles == saver.settings.fcp.videoRoles && loaded.settings.fcp.videoRoles.contains("Interview"))
     assert(loaded.settings.fcp.audioRoles == saver.settings.fcp.audioRoles && loaded.settings.fcp.audioRoles.contains("Ambience"))
     assert(loaded.settings.fcp.smartCollections == saver.settings.fcp.smartCollections, "collections not restored")
+    assert(loaded.settings.folders == saver.settings.folders && loaded.settings.folders.contains("Admin/Contracts")
+           && !loaded.settings.folders.contains("Images"), "folders not restored")
     assert(loaded.settings.fcp.smartCollections.contains { $0.name == "Day 01" && !$0.enabled }, "enabled not restored")
 
     // Build Archives round-trip: a record captures enough to restore format,
@@ -245,6 +264,32 @@ func slateSelfCheck() {
     // Footage children follow the given list order
     let footage = tree.children.first { $0.name == "Footage" }!
     assert(footage.children.map(\.name) == ["Cam A", "Drone", "Stock Footage"])
+
+    // Editable folders: sanitised, no duplicates, never inside a folder Slateflow owns.
+    var folderRules = SavedSettings()
+    folderRules.addFolder(" Admin / Contracts ")
+    folderRules.addFolder("admin/contracts")                 // same folder, other case → no-op
+    folderRules.addFolder("Admin")                           // already a parent → no-op
+    folderRules.addFolder("Footage/Extra")                   // owned by Footage Sources
+    folderRules.addFolder("fcp")
+    folderRules.addFolder("../../etc")
+    folderRules.addFolder(" / ")
+    assert(folderRules.folders == ProjectLayout.defaultFolders + ["Admin/Contracts", "etc"],
+           "folder rules: \(folderRules.folders)")
+    assert(!folderRules.folders.contains { $0.contains("..") })
+    folderRules.removeFolder("Admin/Contracts")
+    folderRules.resetFolders()
+    assert(folderRules.folders == ProjectLayout.defaultFolders)
+
+    // Custom folders shape the plan; the same name under two parents stays two rows.
+    let customTree = ProjectLayout.plan(root: "R", folders: ["Zeta", "Audio/Music", "Graphics/Music", "Admin"],
+                                        footageSources: [], keepMediaInPlace: false)
+    assert(customTree.children.map(\.name) == ["Admin", "Audio", "Backup", "FCP", "Footage", "Graphics", "Zeta",
+                                               "Slate Project.json"], "custom top level: \(customTree.children.map(\.name))")
+    let ids = customTree.paths()
+    assert(ids.contains("R/Audio/Music") && ids.contains("R/Graphics/Music"))
+    func allIDs(_ n: DirectoryNode) -> [String] { [n.id] + n.children.flatMap(allIDs) }
+    assert(Set(allIDs(customTree)).count == allIDs(customTree).count, "duplicate row ids in the Folder Preview")
     // Empty selection → Footage is a leaf
     assert(ProjectLayout.plan(root: "R", footageSources: [], keepMediaInPlace: true)
         .children.first { $0.name == "Footage" }!.children.isEmpty)
@@ -256,7 +301,7 @@ func slateSelfCheck() {
     defer { try? FileManager.default.removeItem(at: buildTmp) }
     let buildSnapshot = BuildSnapshot(
         templateName: "SlateTemplate", choice: .uhd4k, orientation: .landscape, aspect: .wide169,
-        format: .uhd4k, fcp: FCPLibrarySettings(), footageSources: sources)
+        format: .uhd4k, fcp: FCPLibrarySettings(), footageSources: sources, folders: ProjectLayout.defaultFolders)
     let built = try! ProjectLayout.build(buildSnapshot, in: buildTmp)
     assert(built.lastPathComponent == "001 - SlateTemplate")
     let planned = ProjectLayout.plan(root: "001 - SlateTemplate", footageSources: sources,
@@ -295,7 +340,7 @@ func slateSelfCheck() {
     defer { try? FileManager.default.removeItem(at: failTmp) }
     let tooLong = BuildSnapshot(
         templateName: String(repeating: "x", count: 245), choice: .uhd4k, orientation: .landscape,
-        aspect: .wide169, format: .uhd4k, fcp: FCPLibrarySettings(), footageSources: [])
+        aspect: .wide169, format: .uhd4k, fcp: FCPLibrarySettings(), footageSources: [], folders: ProjectLayout.defaultFolders)
     assert((try? ProjectLayout.build(tooLong, in: failTmp)) == nil, "oversized build should fail")
     assert((try? FileManager.default.contentsOfDirectory(atPath: failTmp.path))?.isEmpty == true,
            "failed build left a partial folder")

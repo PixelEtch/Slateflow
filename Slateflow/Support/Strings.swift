@@ -26,12 +26,12 @@ enum Strings {
         static let aspectRatio = "Aspect ratio"
         static let dimensionSeparator = "×"
         static let dimensionsOdd = "Final Cut needs even dimensions - odd values round down on build."
-        static let dimensionsTooSmall = "Width and height must be at least 2 px."
+        static let dimensionsTooSmall = "Width and height must be at least \(VideoFormat.minimumSide) px."
     }
 
     enum ProjectFolder {
         static let section = "Project Folder"
-        static let templateName = "Template name"
+        static let templateName = "Project name"
         static let rootFolder = "Root folder"
         static let sequenceNote =
             "The 3-digit prefix is assigned on build, from the numbered folders already "
@@ -46,11 +46,23 @@ enum Strings {
         static let remove = "Remove source"
     }
 
+    enum Folders {
+        static let section = "Folders"
+        static let addLabel = "New folder"
+        static let addPrompt = "New folder, e.g. Admin/Contracts"
+        static let add = "Add folder"
+        static let remove = "Remove folder"
+        static let reset = "Restore Defaults"
+        static let footer = "Use / for a subfolder. Backup, FCP and Footage are always created."
+    }
+
     enum FCP {
         static let section = "Final Cut Pro"
         static let leaveFilesInPlace = "Leave files in place"
         static let leaveFilesInPlaceHelp =
-            "Media stays in the project’s folders instead of being copied into the FCP library."
+            "Media stays in the project’s folders instead of being copied into the FCP library. "
+            + "Also turn on Leave files in place in Final Cut Pro ▸ Settings ▸ Import: "
+            + "Final Cut doesn't take it from the project."
     }
 
     enum SmartCollections {
@@ -185,6 +197,10 @@ enum Strings {
     enum Build {
         static let menuItem = "Build Project…"
         static let button = "Choose Destination & Build…"
+        static let buildHere = "Build"
+        static func destination(_ folder: String) -> String { "in \(folder)" }
+        static let change = "Change…"
+        static let changeHelp = "Choose another folder for new projects"
         static let panelPrompt = "Build Here"
         static func panelMessage(rootFolder: String) -> String {
             "Choose where to create “\(rootFolder)”."
@@ -197,6 +213,7 @@ enum Strings {
         static let openInFCP = "Open in Final Cut Pro"
         static let creatingLibrary = "Creating library…"
         static let libraryNote = "Final Cut opens the project and creates its library in the project's FCP folder."
+        static let importHint = "Before importing media, turn on Leave files in place in Final Cut Pro ▸ Settings ▸ Import."
         static let backupsHint = "When Final Cut asks for storage locations, set Backups to this project's Backup folder. Media and render files already stay inside the project."
         static let libraryFailed = "Final Cut didn't create the library. Check that Final Cut Pro is installed, then click Open in Final Cut Pro again."
         static let reveal = "Reveal in Finder"

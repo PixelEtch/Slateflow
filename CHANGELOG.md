@@ -5,7 +5,14 @@ All notable changes to Slateflow are listed here.
 ## Unreleased
 
 ### Added
+- Folders: add, remove or nest the project's folders (Admin, Audio, Final Exports, Graphics, Images by default; type `Admin/Contracts` for a subfolder). Restore Defaults brings back the standard set. Backup, FCP and Footage are always created.
+- Slateflow remembers where you build. After the first build the button is just **Build**; **Change…** next to the folder name picks another.
 - After a build, the success window says to set Backups to the project's `Backup` folder when Final Cut asks for storage locations. Media and render files already stay inside the project; Final Cut has no setting Slateflow can use to choose the backup folder.
+
+### Changed
+- "Template name" is now "Project name".
+- The "Leave files in place" switch says to turn on the same setting in Final Cut Pro, which doesn't take it from the project. The success window repeats it.
+- Custom width and height must be at least 16 px; smaller values are raised on build. Before, a 2 px-wide project was allowed.
 
 ### Fixed
 - The mounted DMG shows the Slateflow icon instead of a generic disk icon. 1.0.0-alpha.2 was meant to, but Finder removed the icon while arranging the DMG window.

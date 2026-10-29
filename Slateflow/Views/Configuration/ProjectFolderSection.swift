@@ -2,7 +2,7 @@
 //  ProjectFolderSection.swift
 //  Slateflow
 //
-//  Template name + the live-computed root folder name.
+//  Project name + the live-computed root folder name.
 //
 
 import SwiftUI

@@ -27,10 +27,14 @@ extension VideoFormat {
     static let uhd4k  = VideoFormat(width: 3840, height: 2160)
     static let uhd8k  = VideoFormat(width: 7680, height: 4320)
 
-    /// Clamped to a 2 px floor and rounded down to even, matching how the
+    /// Smallest custom side. Smaller sizes make a degenerate frame (a 2 px-wide
+    /// project shows an aspect ratio like 1:1080).
+    static let minimumSide = 16
+
+    /// Clamped to `minimumSide` and rounded down to even, matching how the
     /// orientation presets are re-shaped - Final Cut rejects odd dimensions.
     static func custom(width: Int, height: Int) -> VideoFormat {
-        VideoFormat(width: even(max(2, width)), height: even(max(2, height)))
+        VideoFormat(width: even(max(minimumSide, width)), height: even(max(minimumSide, height)))
     }
 }
 
