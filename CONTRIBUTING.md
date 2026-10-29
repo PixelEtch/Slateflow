@@ -25,7 +25,7 @@ xcodebuild -project Slateflow.xcodeproj -scheme Slateflow -configuration Debug -
 build/Build/Products/Debug/Slateflow.app/Contents/MacOS/Slateflow --selftest
 ```
 
-CI runs the same build and check on every pull request, plus an unsigned Release build for both Apple silicon and Intel:
+CI runs the same build and check on every pull request, plus an unsigned Release build for both Apple silicon and Intel. Pull requests that only change docs skip the build:
 
 ```bash
 xcodebuild -project Slateflow.xcodeproj -scheme Slateflow -configuration Release -destination 'generic/platform=macOS' -derivedDataPath build CODE_SIGNING_ALLOWED=NO build

@@ -32,7 +32,7 @@ For the maintainer. Pushing a tag `vX.Y.Z` runs `.github/workflows/release.yml`,
 4. Approve the **Sign & notarize** job when GitHub asks (Actions → the run → Review deployments).
 5. When the run is green, check that `https://pixeletch.github.io/Slateflow/appcast.xml` lists the new version, then use **Slateflow > Check for Updates…** in an older copy.
 
-The workflow stops before signing if the tag isn't on `main`, doesn't match `MARKETING_VERSION`, or has no dated changelog heading. The release notes are that changelog section. Tags with `-alpha.N`, `-beta.N` or `-rc.N` are published as GitHub pre-releases.
+The workflow stops before signing if the tag isn't on `main`, doesn't match `MARKETING_VERSION`, has no dated changelog heading, or **Build & self-check** hasn't passed for that commit (push to `main` and let CI finish before tagging). The release notes are that changelog section. Tags with `-alpha.N`, `-beta.N` or `-rc.N` are published as GitHub pre-releases.
 
 Pre-releases go into the same Sparkle feed as final releases, so anyone on a pre-release is offered the next one, through to the final. After 1.0.0, put pre-releases on a separate Sparkle channel (`generate_appcast --channel beta`) before shipping one, or every 1.x user would be offered it.
 
