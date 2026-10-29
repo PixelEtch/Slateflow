@@ -83,8 +83,6 @@ echo "▸ Staging DMG contents…"
 STAGING="$(mktemp -d)"
 ditto "$APP" "$STAGING/$APP_NAME.app"
 ln -s /Applications "$STAGING/Applications"
-# The mounted disk shows the app icon instead of a generic one.
-cp "$APP/Contents/Resources/$APP_NAME.icns" "$STAGING/.VolumeIcon.icns"
 mkdir "$STAGING/.background"
 swift Tools/MakeDMGBackground.swift "$STAGING/.background/background.png"
 
@@ -94,7 +92,6 @@ RW="$WORK/rw.dmg"
 hdiutil detach "/Volumes/$APP_NAME" -force 2>/dev/null || true
 hdiutil create -volname "$APP_NAME" -srcfolder "$STAGING" -fs HFS+ -format UDRW -ov "$RW" -quiet
 MOUNT="$(hdiutil attach "$RW" -nobrowse | awk '/\/Volumes\// {print substr($0, index($0, "/Volumes/")); exit}')"
-SetFile -a C "$MOUNT"   # use .VolumeIcon.icns as the volume's icon
 
 echo "▸ Arranging window…"
 # Best effort: Finder automation needs permission and can hang headless; the DMG
@@ -125,6 +122,11 @@ if kill -0 "$STYLE_PID" 2>/dev/null; then
     kill -9 "$STYLE_PID" 2>/dev/null || true
     echo "  (window layout timed out; continuing unstyled)"
 fi
+
+# The mounted disk shows the app icon instead of a generic one. Set after the window
+# layout: Finder removes .VolumeIcon.icns and clears the flag when it arranges the window.
+cp "$APP/Contents/Resources/$APP_NAME.icns" "$MOUNT/.VolumeIcon.icns"
+SetFile -a C "$MOUNT"
 
 sync
 hdiutil detach "$MOUNT" -quiet || hdiutil detach "$MOUNT" -force -quiet
