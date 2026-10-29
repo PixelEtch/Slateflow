@@ -14,6 +14,8 @@ struct ContentView: View {
     @State private var builtProject: URL?
     @State private var isBuilding = false
     @SceneStorage("showInspector") private var showInspector = true
+    /// Set once the window's launch focus has been cleared - see `clearLaunchFocus`.
+    @State private var launchFocusCleared = false
 
     var body: some View {
         ConfigurationForm(store: store)
@@ -41,6 +43,8 @@ struct ContentView: View {
                 }
             }
             .frame(minHeight: Size.Window.minHeight)
+            .onReceive(NotificationCenter.default.publisher(for: NSWindow.didBecomeKeyNotification),
+                       perform: clearLaunchFocus)
             .alert(Strings.Build.errorTitle,
                    isPresented: Binding(get: { buildError != nil },
                                         set: { if !$0 { buildError = nil } })) {
@@ -59,6 +63,15 @@ struct ContentView: View {
                         onReveal: { NSWorkspace.shared.activateFileViewerSelecting([builtProject]) })
                 }
             }
+    }
+
+    /// AppKit focuses the first text field the first time the window becomes key and
+    /// selects the project name, so one stray key would replace it. Clear that once; a
+    /// click or Tab still edits. Waits a turn so it runs after AppKit sets the focus.
+    private func clearLaunchFocus(_ note: Notification) {
+        guard !launchFocusCleared, let window = note.object as? NSWindow else { return }
+        launchFocusCleared = true
+        DispatchQueue.main.async { window.makeFirstResponder(nil) }
     }
 
     /// Builds into the remembered destination, or asks for one the first time.
