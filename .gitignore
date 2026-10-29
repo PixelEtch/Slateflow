@@ -33,3 +33,8 @@ Package.resolved
 *~
 graphify-out/
 dist/
+
+# Local only: make-dmg.sh writes the feed here; the published copy lives on gh-pages.
+docs/appcast.xml
+# Launch-video working files (/brag).
+brag-output/
