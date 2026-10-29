@@ -27,7 +27,7 @@ struct ConfigurationForm: View {
                             .foregroundStyle(.secondary)
                     }
                     Spacer()
-                    Toggle(Strings.FCP.leaveFilesInPlace, isOn: $store.fcp.keepMediaInPlace)
+                    Toggle(Strings.FCP.leaveFilesInPlace, isOn: $store.settings.fcp.keepMediaInPlace)
                         .toggleStyle(.switch)
                         .labelsHidden()
                     // Same trailing space as a collection's remove button, so the

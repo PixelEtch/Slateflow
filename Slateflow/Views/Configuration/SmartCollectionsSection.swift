@@ -13,13 +13,13 @@ struct SmartCollectionsSection: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        ForEach($store.fcp.smartCollections) { $spec in
+        ForEach($store.settings.fcp.smartCollections) { $spec in
             HStack {
                 SmartCollectionRow(spec: $spec)
                 // Footage-linked collections follow their source toggle, so only manual
                 // ones get a remove button; linked rows keep its space so switches align.
                 Button(Strings.SmartCollections.remove, systemImage: SFSymbol.remove) {
-                    store.fcp.removeCollection(spec)
+                    store.settings.fcp.removeCollection(spec)
                 }
                 .labelStyle(.iconOnly)
                 .buttonStyle(.borderless)
@@ -30,15 +30,15 @@ struct SmartCollectionsSection: View {
             }
             .contextMenu {
                 Button(Strings.SmartCollections.remove, role: .destructive) {
-                    store.fcp.removeCollection(spec)
+                    store.settings.fcp.removeCollection(spec)
                 }
             }
         }
-        .animation(reduceMotion ? nil : .snappy, value: store.fcp.smartCollections.count)
+        .animation(reduceMotion ? nil : .snappy, value: store.settings.fcp.smartCollections.count)
 
         Menu(Strings.SmartCollections.add, systemImage: SFSymbol.addCollection) {
             Button(Strings.SmartCollections.screenRecordings) {
-                store.fcp.addCollection(.screenRecordings)
+                store.settings.fcp.addCollection(.screenRecordings)
             }
             Divider()
             Button(Strings.SmartCollections.byCameraAngle) { draft = CollectionDraft(kind: .cameraAngle) }
@@ -53,10 +53,10 @@ struct SmartCollectionsSection: View {
 
     private func apply(_ draft: CollectionDraft) {
         switch draft.kind {
-        case .cameraAngle:        store.fcp.addCollection(.cameraAngle, value: draft.value)
-        case .shootDay, .keyword: store.fcp.addCollection(.keyword, value: draft.value)
-        case .videoRole:          store.fcp.addRole(draft.value, to: \.videoRoles)
-        case .audioRole:          store.fcp.addRole(draft.value, to: \.audioRoles)
+        case .cameraAngle:        store.settings.fcp.addCollection(.cameraAngle, value: draft.value)
+        case .shootDay, .keyword: store.settings.fcp.addCollection(.keyword, value: draft.value)
+        case .videoRole:          store.settings.fcp.addRole(draft.value, to: \.videoRoles)
+        case .audioRole:          store.settings.fcp.addRole(draft.value, to: \.audioRoles)
         }
     }
 }

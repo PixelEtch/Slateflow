@@ -7,7 +7,7 @@
 
 import Foundation
 
-/// Everything a build needs, taken from `SlateStore` on the main actor before writing.
+/// Everything a build needs, taken from `SavedSettings` on the main actor before writing.
 /// The folders, `Slate Project.json` and the Build Archives entry all derive from this
 /// one value, so an edit made while a build runs can't make them disagree.
 nonisolated struct BuildSnapshot {
@@ -24,7 +24,7 @@ nonisolated struct BuildSnapshot {
     var orientationLabel: String { choice == .custom ? "-" : orientation.rawValue }
 }
 
-extension SlateStore {
+extension SavedSettings {
     var snapshot: BuildSnapshot {
         BuildSnapshot(
             templateName: safeTemplateName,

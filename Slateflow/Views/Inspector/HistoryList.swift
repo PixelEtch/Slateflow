@@ -28,11 +28,11 @@ struct HistoryList: View {
                 LazyVStack(spacing: 0) {
                     ForEach(history.builds.reversed()) { record in
                         HistoryRow(record: record,
-                                  onReuse: { store.applyConfiguration(from: record) },
+                                  onReuse: { store.settings.applyConfiguration(from: record) },
                                   onDelete: { history.remove(record) })
                             .transition(.move(edge: .top).combined(with: .opacity))
                             .contextMenu {
-                                Button(Strings.History.reuse) { store.applyConfiguration(from: record) }
+                                Button(Strings.History.reuse) { store.settings.applyConfiguration(from: record) }
                                 Button(Strings.History.delete, role: .destructive) {
                                     history.remove(record)
                                 }

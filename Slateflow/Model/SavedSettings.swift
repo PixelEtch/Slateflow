@@ -2,14 +2,15 @@
 //  SavedSettings.swift
 //  Slateflow
 //
-//  The form state that persists across launches, loaded and saved as one value.
+//  The form state that persists across launches, its rules, and what derives from it.
 //
 
 import Foundation
 
-/// Everything the form configures. `SlateStore` loads it once in `init` and saves
-/// the whole value on every change, so restore order can't matter and building a
-/// store writes nothing. Keys and formats match earlier releases' per-field saves.
+/// Everything the form configures, and the rules that keep it consistent. `SlateStore`
+/// loads it once in `init` and saves the whole value on every change, so restore order
+/// can't matter and building a store writes nothing. Keys and formats match earlier
+/// releases' per-field saves.
 struct SavedSettings {
     var choice: ResolutionChoice = .uhd4k
     var orientation: Orientation = .landscape {
@@ -20,9 +21,13 @@ struct SavedSettings {
     var customWidth = 3840
     var customHeight = 2160
     var templateName = ProjectLayout.defaultTemplateName
-    /// Enabled sources (presets + customs) in insertion order. Saved by name.
-    var footageSources: [FootageSource] = [.camA, .camB]
+    /// Enabled sources (presets + customs) in insertion order. Saved by name. Changed only
+    /// through `setFootageSource` / `addCustomFootageSource`, which keep the linked
+    /// Smart Collections in step.
+    private(set) var footageSources: [FootageSource] = [.camA, .camB]
     var fcp = FCPLibrarySettings()
+
+    init() { linkFootageSources() }
 
     private enum Key {
         static let choice = "choice", orientation = "orientation", aspect = "aspect"
@@ -61,6 +66,7 @@ struct SavedSettings {
            let specs = try? JSONDecoder().decode([SmartCollectionSpec].self, from: data) {
             s.fcp.smartCollections = specs
         }
+        s.linkFootageSources()
         return s
     }
 
@@ -79,5 +85,99 @@ struct SavedSettings {
         d.set(fcp.videoRoles, forKey: Key.videoRoles)
         d.set(fcp.audioRoles, forKey: Key.audioRoles)
         d.set(try? JSONEncoder().encode(fcp.smartCollections), forKey: Key.smartCollections)
+    }
+}
+
+// MARK: - Rules
+
+extension SavedSettings {
+    /// Display / build order: enabled presets first (preset order), then customs.
+    var orderedFootageSources: [FootageSource] {
+        let enabled = Set(footageSources)
+        return FootageSource.presets.filter(enabled.contains) + footageSources.filter(\.isCustom)
+    }
+
+    /// `templateName` sanitised to a single safe path component (no separators,
+    /// no `..`) so it can never escape the chosen destination.
+    var safeTemplateName: String {
+        SafeName.component(templateName, fallback: ProjectLayout.defaultTemplateName)
+    }
+
+    /// Display name before a destination is picked: the `NNN` prefix depends on the
+    /// numbered folders already there, so it is only known at build time.
+    var rootFolderName: String { ProjectLayout.pendingRootName(template: safeTemplateName) }
+
+    /// Derived live from (choice, aspect, custom dimensions) - no stored copy,
+    /// so binding the controls straight to `choice` / `aspect` / `customWidth`
+    /// keeps the output size and preview in sync with no "apply" step.
+    var format: VideoFormat {
+        if let preset = choice.preset { return aspect.apply(to: preset) }
+        return .custom(width: customWidth, height: customHeight)
+    }
+
+    /// Non-nil when the typed custom dimensions will be corrected on build.
+    var customDimensionsIssue: DimensionIssue? {
+        guard choice == .custom else { return nil }
+        if customWidth < 2 || customHeight < 2 { return .tooSmall }
+        if !customWidth.isMultiple(of: 2) || !customHeight.isMultiple(of: 2) { return .odd }
+        return nil
+    }
+
+    /// Reapply a past build's format, naming, and leave-in-place setting - what
+    /// "Build Archives" is actually for. Roles, Smart Collections, and footage
+    /// sources aren't restored: only their counts were ever recorded.
+    mutating func applyConfiguration(from record: BuildRecord) {
+        guard let restoredChoice = ResolutionChoice(rawValue: record.resolution) else { return }
+        choice = restoredChoice
+
+        if choice == .custom {
+            customWidth = record.width
+            customHeight = record.height
+        } else if let restoredOrientation = Orientation(rawValue: record.orientation) {
+            orientation = restoredOrientation
+            if let restoredAspect = AspectRatio(rawValue: record.aspectRawValue),
+               orientation.ratios.contains(restoredAspect) {
+                aspect = restoredAspect
+            }
+        }
+
+        if let rate = FrameRate(rawValue: record.frameRateValue) {
+            fcp.frameRate = rate
+        }
+        fcp.keepMediaInPlace = record.leaveFilesInPlace
+        templateName = ProjectLayout.parse(rootName: record.rootFolder)?.template ?? record.rootFolder
+    }
+
+    mutating func setFootageSource(_ source: FootageSource, enabled: Bool) {
+        if enabled {
+            guard !footageSources.contains(source) else { return }
+            footageSources.append(source)
+            fcp.linkFootageSource(source.folderName)
+        } else {
+            footageSources.removeAll { $0 == source }
+            fcp.unlinkFootageSource(source.folderName)
+        }
+    }
+
+    /// Add a user-named source (Lumix, Blackmagic, …). The name is sanitised to a safe
+    /// path component; a preset's name enables that preset; no-op on blank or
+    /// case-insensitive duplicate.
+    mutating func addCustomFootageSource(_ name: String) {
+        let safe = SafeName.component(name, fallback: "")
+        if let preset = FootageSource.presets.first(where: {
+            $0.folderName.caseInsensitiveCompare(safe) == .orderedSame
+        }) {
+            return setFootageSource(preset, enabled: true)
+        }
+        guard !safe.isEmpty,
+              !footageSources.contains(where: {
+                  $0.folderName.caseInsensitiveCompare(safe) == .orderedSame
+              }) else { return }
+        setFootageSource(.custom(safe), enabled: true)
+    }
+
+    /// Every enabled source gets its linked Smart Collection (skipped when one covers it).
+    private mutating func linkFootageSources() {
+        for source in footageSources { fcp.linkFootageSource(source.folderName) }
     }
 }
