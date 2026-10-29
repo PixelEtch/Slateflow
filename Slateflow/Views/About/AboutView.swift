@@ -24,6 +24,12 @@ enum AppInfo {
     }
 
     static let repositoryURL = URL(string: "https://github.com/PixelEtch/Slateflow")!
+    // Help menu pages, all on GitHub.
+    static let helpURL = URL(string: "https://github.com/PixelEtch/Slateflow#readme")!
+    static let troubleshootingURL = URL(string: "https://github.com/PixelEtch/Slateflow/blob/main/docs/TROUBLESHOOTING.md")!
+    static let privacyURL = URL(string: "https://github.com/PixelEtch/Slateflow/blob/main/docs/PRIVACY.md")!
+    static let releaseNotesURL = URL(string: "https://github.com/PixelEtch/Slateflow/releases")!
+    static let reportIssueURL = URL(string: "https://github.com/PixelEtch/Slateflow/issues/new/choose")!
 }
 
 struct AboutMenuButton: View {

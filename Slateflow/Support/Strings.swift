@@ -135,6 +135,14 @@ enum Strings {
         static func note(_ text: String) -> String { "· \(text)" }
     }
 
+    enum Help {
+        static let guide = "Slateflow Help"
+        static let troubleshooting = "Troubleshooting"
+        static let releaseNotes = "Release Notes"
+        static let privacy = "Privacy"
+        static let reportIssue = "Report an Issue…"
+    }
+
     enum About {
         static let menuItem = "About Slateflow"
         static let openLog = "Open Log File"
