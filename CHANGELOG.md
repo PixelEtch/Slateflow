@@ -10,6 +10,7 @@ All notable changes to Slateflow are listed here.
 - After a build, the success window says to set Backups to the project's `Backup` folder when Final Cut asks for storage locations. Media and render files already stay inside the project; Final Cut has no setting Slateflow can use to choose the backup folder.
 
 ### Changed
+- Each project's top level shows only folders. The build record is now the hidden `.slateflow.json` (was `Slate Project.json`), and `FCP/Import Settings.md` is no longer written: the app says to turn on Leave files in place when it matters.
 - "Template name" is now "Project name".
 - The "Leave files in place" switch says to turn on the same setting in Final Cut Pro, which doesn't take it from the project. The success window repeats it.
 - Custom width and height must be at least 16 px; smaller values are raised on build. Before, a 2 px-wide project was allowed.

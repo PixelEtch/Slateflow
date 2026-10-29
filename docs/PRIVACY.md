@@ -12,7 +12,7 @@ The app is sandboxed, so everything it keeps lives in its own container:
 | Build history | `~/Library/Containers/com.ashifali.Slateflow/Data/Library/Application Support/Slateflow/BuildHistory.json` |
 | Log | `~/Library/Containers/com.ashifali.Slateflow/Data/Library/Application Support/Slateflow/Slate.log` (**Help > Open Log File**) |
 
-The project folders, `.fcpxml` and `Slate Project.json` it creates are written only inside the folder you pick.
+The project folders, `.fcpxml` and `.slateflow.json` it creates are written only inside the folder you pick.
 
 ## Network
 

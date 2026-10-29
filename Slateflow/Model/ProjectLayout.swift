@@ -7,14 +7,14 @@
 
 import Foundation
 
-/// One project is `NNN - <template>/`: the folder tree, `FCP/<root>.fcpxml`, an
-/// import note when media stays in place, and `Slate Project.json`. The Folder
+/// One project is `NNN - <template>/`: the folder tree, `FCP/<root>.fcpxml`, and the
+/// hidden manifest `.slateflow.json`. The Folder
 /// Preview and the build both come from `plan`, so what's shown is what's written.
 nonisolated enum ProjectLayout {
     static let defaultTemplateName = "SlateTemplate"
     static let fcpFolder = "FCP"
-    static let importNoteFile = "Import Settings.md"
-    static let manifestFile = "Slate Project.json"
+    /// Hidden (a dot-file), so the Project shows only folders the editor uses.
+    static let manifestFile = ".slateflow.json"
     static let backupFolder = "Backup"
     static let footageFolder = "Footage"
 
@@ -75,22 +75,21 @@ nonisolated enum ProjectLayout {
     /// `Backup`, `FCP` and `Footage` (one subfolder per source, in order). Top-level
     /// folders are sorted by name; subfolders keep the order they were added in.
     static func plan(root: String, folders: [String] = defaultFolders,
-                     footageSources: [FootageSource], keepMediaInPlace: Bool) -> DirectoryNode {
-        var fcpFiles = [DirectoryNode(name: "\(root).fcpxml", isFile: true)]
-        if keepMediaInPlace { fcpFiles.append(DirectoryNode(name: importNoteFile, isFile: true)) }
+                     footageSources: [FootageSource]) -> DirectoryNode {
 
         var top = [
             // Point the FCP "Set storage locations" prompt's Backups row here - kept
             // outside FCP/ so it survives a rebuild of the library itself.
             DirectoryNode(name: backupFolder, note: "point FCP's library Backups here"),
-            DirectoryNode(name: fcpFolder, children: fcpFiles),
+            DirectoryNode(name: fcpFolder, children: [DirectoryNode(name: "\(root).fcpxml", isFile: true)]),
             DirectoryNode(name: footageFolder, children: footageSources.map { DirectoryNode(name: $0.folderName) }),
         ]
         for path in folders {
             if let parts = folderComponents(path) { insert(parts[...], into: &top) }
         }
         top.sort { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
-        return DirectoryNode(name: root, children: top + [DirectoryNode(name: manifestFile, isFile: true)])
+        let manifest = DirectoryNode(name: manifestFile, note: "hidden in Finder", isFile: true)
+        return DirectoryNode(name: root, children: top + [manifest])
             .withPathIDs()
     }
 
@@ -133,15 +132,14 @@ nonisolated enum ProjectLayout {
         }
 
         do {
-            let tree = plan(root: root, folders: snapshot.folders, footageSources: snapshot.footageSources,
-                            keepMediaInPlace: snapshot.fcp.keepMediaInPlace)
+            let tree = plan(root: root, folders: snapshot.folders, footageSources: snapshot.footageSources)
             for child in tree.children { try child.write(into: rootURL) }
             Log.event("Directory tree written (\(snapshot.footageSources.count) footage sources)")
 
             try snapshot.fcp.write(into: rootURL.appendingPathComponent(fcpFolder),
                                    format: snapshot.format, eventName: root)
             try ProjectManifest(snapshot: snapshot, root: root).write(to: rootURL)
-            Log.event("FCPXML, import notes and manifest written; build complete: “\(root)”")
+            Log.event("FCPXML and manifest written; build complete: “\(root)”")
         } catch {
             // Safe to delete: this build created the folder above and it's inside `destination`.
             try? FileManager.default.removeItem(at: rootURL)

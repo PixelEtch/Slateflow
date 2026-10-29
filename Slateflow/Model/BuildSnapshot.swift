@@ -8,7 +8,7 @@
 import Foundation
 
 /// Everything a build needs, taken from `SavedSettings` on the main actor before writing.
-/// The folders, `Slate Project.json` and the Build Archives entry all derive from this
+/// The folders, `.slateflow.json` and the Build Archives entry all derive from this
 /// one value, so an edit made while a build runs can't make them disagree.
 nonisolated struct BuildSnapshot {
     /// Sanitised: a single safe path component.

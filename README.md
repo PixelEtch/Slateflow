@@ -27,7 +27,7 @@
 - **A folder per camera.** Turn on Cam A/B, Drone, GoPro, Insta360, DJI Osmo, Sony, iPhone, Webcam, Screen Recordings or Stock Footage, or type your own.
 - **A ready Final Cut project.** The `.fcpxml` carries your resolution, aspect ratio, frame rate, roles, and Smart Collections that sort clips on import.
 - **The library, created for you.** **Open in Final Cut Pro** has Final Cut create the library in the project's `FCP` folder and import the project. There's nothing to click in Final Cut, and the library always matches your installed version.
-- **A record of every build.** `Slate Project.json` in each project, and **Build Archives** in the app to reuse past settings.
+- **A record of every build.** A hidden `.slateflow.json` in each project, and **Build Archives** in the app to reuse past settings.
 
 The **Folder Preview** updates as you change settings, so you see exactly what a build will create:
 

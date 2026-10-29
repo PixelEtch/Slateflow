@@ -7,7 +7,7 @@
 
 import Foundation
 
-/// Written to `<root>/Slate Project.json` so the template folder self-documents.
+/// Written to `<root>/.slateflow.json` (hidden in Finder) so the project self-documents.
 /// Built from the same `BuildSnapshot` as the folders and the Build Archives entry.
 nonisolated struct ProjectManifest: Codable {
     var template: String
