@@ -2,7 +2,7 @@
 
 All notable changes to Slateflow are listed here.
 
-## Unreleased
+## 1.0.0-alpha.3 - 2026-10-29
 
 ### Added
 - Folders: add, remove or nest the project's folders (Admin, Audio, Final Exports, Graphics, Images by default; type `Admin/Contracts` for a subfolder). Restore Defaults brings back the standard set. Backup, FCP and Footage are always created.
