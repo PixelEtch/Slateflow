@@ -23,34 +23,27 @@
 ## What it does
 
 - **Numbered project folders.** `001 - Name`, `002 - Name`, …, always the next free number in the folder you pick.
-- **The same structure every time.** Admin, Audio, Backup, FCP, Final Exports, Footage, Graphics and Images by default. Add, remove or nest your own folders in **Folders**.
-- **A folder per camera.** Turn on Cam A/B, Drone, GoPro, Insta360, DJI Osmo, Sony, iPhone, Webcam, Screen Recordings or Stock Footage, or type your own.
+- **The same structure every time.** Admin, Audio, Backup, FCP, Final Exports, Footage, Graphics and Images, or your own folders.
+- **A folder per camera.** Cam A/B, Drone, GoPro, Insta360, DJI Osmo, Sony, iPhone, Webcam, Screen Recordings, Stock Footage, or your own.
 - **A ready Final Cut project.** The `.fcpxml` carries your resolution, aspect ratio, frame rate, roles, and Smart Collections that sort clips on import.
-- **The library, created for you.** **Open in Final Cut Pro** has Final Cut create the library in the project's `FCP` folder and import the project. There's nothing to click in Final Cut, and the library always matches your installed version.
-- **A record of every build.** A hidden `.slateflow.json` in each project, and **Build Archives** in the app to reuse past settings.
-
-The **Folder Preview** updates as you change settings, so you see exactly what a build will create:
-
-<p align="center">
-  <img src="docs/assets/readme/slateflow.gif" width="720" alt="Turning on GoPro and Screen Recordings adds their folders to the Folder Preview; switching to Vertical changes the output size to 2160 × 3840; Open in Final Cut Pro creates FCP/001 - Brand Film.fcpbundle">
-</p>
+- **The library, created for you.** Final Cut creates it in the project's `FCP` folder, in your installed version's format.
+- **Reuse past settings.** **Build Archives** keeps every build's format and naming.
 
 ## Install
 
-Download `Slateflow-<version>.dmg` from [Releases](https://github.com/PixelEtch/Slateflow/releases), open it and drag **Slateflow** onto **Applications**. It's signed and notarized by Apple, so it opens normally.
+Download the DMG from [Releases](https://github.com/PixelEtch/Slateflow/releases) and drag **Slateflow** onto **Applications**. It's signed and notarized by Apple. Updates come through **Slateflow > Check for Updates…**; alpha and beta versions are test builds.
 
-Updates arrive through **Slateflow > Check for Updates…**. Versions marked alpha or beta are test builds.
+## Final Cut settings
 
-## Use it
+Final Cut can't take these from the project file, so set them yourself:
 
-1. Name the project, then pick the format, footage sources, folders, roles and Smart Collections.
-2. Click **Choose Destination & Build…** and choose where projects go. Slateflow remembers the folder, so next time the button is just **Build**. **Change…** picks another.
-3. Click **Open in Final Cut Pro**. In Final Cut Pro ▸ Settings ▸ Import, turn on **Leave files in place**, and when Final Cut asks for storage locations, set Backups to the project's `Backup` folder.
+- **Once, in Final Cut Pro ▸ Settings ▸ Import:** turn on **Leave files in place**, and **Keywords: From folders** so camera folders fill their Smart Collections.
+- **When a new library asks for storage locations:** set Backups to the project's `Backup` folder. Media and render files already stay inside the project.
 
 ## What you need
 
 - macOS 15 Sequoia or later, on Apple silicon or Intel.
-- Final Cut Pro, to open the projects.
+- Final Cut Pro.
 
 ## Private by default
 
