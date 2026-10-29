@@ -36,6 +36,14 @@ struct BuildSuccessSheet: View {
             Text(failed ? Strings.Build.libraryFailed : Strings.Build.libraryNote)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
+            if !failed {
+                // Final Cut keeps backups in ~/Movies unless the user picks a folder; no
+                // import option or supported setting can choose it for them.
+                Text(Strings.Build.backupsHint)
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
 
             HStack {
                 Button(Strings.Build.reveal) { onReveal() }

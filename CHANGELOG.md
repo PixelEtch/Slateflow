@@ -4,6 +4,9 @@ All notable changes to Slateflow are listed here.
 
 ## Unreleased
 
+### Added
+- After a build, the success window says to set Backups to the project's `Backup` folder when Final Cut asks for storage locations. Media and render files already stay inside the project; Final Cut has no setting Slateflow can use to choose the backup folder.
+
 ### Fixed
 - The mounted DMG shows the Slateflow icon instead of a generic disk icon. 1.0.0-alpha.2 was meant to, but Finder removed the icon while arranging the DMG window.
 

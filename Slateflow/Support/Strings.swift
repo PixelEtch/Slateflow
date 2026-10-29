@@ -197,6 +197,7 @@ enum Strings {
         static let openInFCP = "Open in Final Cut Pro"
         static let creatingLibrary = "Creating library…"
         static let libraryNote = "Final Cut opens the project and creates its library in the project's FCP folder."
+        static let backupsHint = "When Final Cut asks for storage locations, set Backups to this project's Backup folder. Media and render files already stay inside the project."
         static let libraryFailed = "Final Cut didn't create the library. Check that Final Cut Pro is installed, then click Open in Final Cut Pro again."
         static let reveal = "Reveal in Finder"
         static let done = "Done"
