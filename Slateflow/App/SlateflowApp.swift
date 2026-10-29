@@ -44,7 +44,15 @@ struct SlateflowApp: App {
                 CheckForUpdatesView(updater: updaterController.updater)
             }
             CommandGroup(after: .newItem) { BuildCommand() }
-            CommandGroup(after: .help) {
+            // Replaces the default "Slateflow Help", which only says help isn't available.
+            CommandGroup(replacing: .help) {
+                Link(Strings.Help.guide, destination: AppInfo.helpURL)
+                    .keyboardShortcut("?", modifiers: .command)
+                Link(Strings.Help.troubleshooting, destination: AppInfo.troubleshootingURL)
+                Link(Strings.Help.releaseNotes, destination: AppInfo.releaseNotesURL)
+                Link(Strings.Help.privacy, destination: AppInfo.privacyURL)
+                Divider()
+                Link(Strings.Help.reportIssue, destination: AppInfo.reportIssueURL)
                 Button(Strings.About.openLog) {
                     NSWorkspace.shared.activateFileViewerSelecting([Log.fileURL])
                 }

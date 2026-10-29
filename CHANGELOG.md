@@ -4,6 +4,10 @@ All notable changes to Slateflow are listed here.
 
 ## Unreleased
 
+### Added
+- Help menu: Slateflow Help (⌘?), Troubleshooting, Release Notes, Privacy and Report an Issue open the matching GitHub pages. Before, Slateflow Help only said help wasn't available.
+- The mounted DMG shows the Slateflow icon instead of a generic disk icon.
+
 ## 1.0.0-alpha.1 - 2026-10-28
 
 First public test build. A beta follows, then 1.0.0.

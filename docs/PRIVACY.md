@@ -16,7 +16,7 @@ The project folders, `.fcpxml` and `Slate Project.json` it creates are written o
 
 ## Network
 
-The only network request is the update check. Sparkle downloads `https://pixeletch.github.io/Slateflow/appcast.xml` from GitHub Pages and, when you accept an update, the DMG from GitHub Releases. The request carries the app name and version in its user agent and nothing about you, your Mac or your files. GitHub's own [privacy statement](https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement) applies to those servers.
+The only network request is the update check. Sparkle downloads `https://pixeletch.github.io/Slateflow/appcast.xml` from GitHub Pages and, when you accept an update, the DMG from GitHub Releases. The request carries the app name and version in its user agent and nothing about you, your Mac or your files. GitHub's own [privacy statement](https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement) applies to those servers. The Help menu's links (Slateflow Help, Troubleshooting, Release Notes, Privacy, Report an Issue) open GitHub pages in your browser; the app itself sends nothing.
 
 On the second launch Sparkle asks whether to check automatically. To turn automatic checks off later:
 
