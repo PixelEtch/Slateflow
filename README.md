@@ -29,12 +29,6 @@
 - **The library, created for you.** Final Cut creates it in the project's `FCP` folder, in your installed version's format.
 - **Reuse past settings.** **Build Archives** keeps every build's format and naming.
 
-The **Folder Preview** shows what a build will create:
-
-<p align="center">
-  <img src="docs/assets/readme/slateflow.gif" width="720" alt="Turning on GoPro and Screen Recordings adds their folders to the Folder Preview; switching to Vertical changes the output size to 2160 × 3840; Open in Final Cut Pro creates FCP/001 - Brand Film.fcpbundle">
-</p>
-
 ## Install
 
 Download the DMG from [Releases](https://github.com/PixelEtch/Slateflow/releases) and drag **Slateflow** onto **Applications**. It's signed and notarized by Apple. Updates come through **Slateflow > Check for Updates…**; alpha and beta versions are test builds.
