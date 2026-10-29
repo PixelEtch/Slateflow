@@ -40,6 +40,7 @@ struct FootageSourcesSection: View {
                     .labelStyle(.iconOnly)
                     .buttonStyle(.borderless)
                     .foregroundStyle(.secondary)
+                    .accessibilityLabel(Strings.FootageSources.remove(source.folderName))
                 }
             }
             .animation(reduceMotion ? nil : .snappy, value: customSources.count)

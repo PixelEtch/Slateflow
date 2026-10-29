@@ -114,6 +114,7 @@ struct BuildBar: View {
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
                     .truncationMode(.middle)
+                    .layoutPriority(1)      // the destination name shortens first
                 if let destination {
                     Text(Strings.Build.destination(destination.lastPathComponent))
                         .font(.callout)

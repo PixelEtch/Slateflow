@@ -24,6 +24,7 @@ struct SmartCollectionsSection: View {
                 .labelStyle(.iconOnly)
                 .buttonStyle(.borderless)
                 .foregroundStyle(.secondary)
+                .accessibilityLabel(Strings.SmartCollections.remove(spec.name))
                 .opacity(spec.isFootageLinked ? 0 : 1)
                 .disabled(spec.isFootageLinked)
                 .accessibilityHidden(spec.isFootageLinked)

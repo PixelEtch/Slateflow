@@ -12,6 +12,11 @@ All notable changes to Slateflow are listed here.
 ### Changed
 - Each project's top level shows only folders. The build record is now the hidden `.slateflow.json` (was `Slate Project.json`), and `FCP/Import Settings.md` is no longer written: the app says to turn on Leave files in place when it matters.
 - "Template name" is now "Project name".
+- The "Project" section is now "Format", so it isn't confused with Project Folder.
+- Folders is collapsed to a one-line summary until you open it. Restore Defaults shows only when the folders differ from the defaults.
+- The project name is no longer selected when the window opens, so a stray key can't replace it.
+- The bottom bar shortens the destination folder before the project name.
+- VoiceOver names the item each remove button removes ("Remove Admin › Scripts").
 - The "Leave files in place" switch says to turn on the same setting in Final Cut Pro, which doesn't take it from the project. The success window repeats it.
 - Custom width and height must be at least 16 px; smaller values are raised on build. Before, a 2 px-wide project was allowed.
 

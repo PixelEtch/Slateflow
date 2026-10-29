@@ -15,7 +15,7 @@ enum Strings {
     }
 
     enum Format {
-        static let section = "Project"
+        static let section = "Format"
         static let resolution = "Resolution"
         static let orientation = "Orientation"
         static let dimensions = "Dimensions"
@@ -44,6 +44,7 @@ enum Strings {
         static let addPrompt = "Other source, e.g. Lumix S5"
         static let add = "Add source"
         static let remove = "Remove source"
+        static func remove(_ name: String) -> String { "Remove \(name)" }
     }
 
     enum Folders {
@@ -52,7 +53,9 @@ enum Strings {
         static let addPrompt = "New folder, e.g. Admin/Contracts"
         static let add = "Add folder"
         static let remove = "Remove folder"
+        static func remove(_ path: String) -> String { "Remove \(path)" }
         static let reset = "Restore Defaults"
+        static let none = "Only Backup, FCP and Footage"
         static let footer = "Use / for a subfolder. Backup, FCP and Footage are always created."
     }
 
@@ -60,9 +63,7 @@ enum Strings {
         static let section = "Final Cut Pro"
         static let leaveFilesInPlace = "Leave files in place"
         static let leaveFilesInPlaceHelp =
-            "Media stays in the project’s folders instead of being copied into the FCP library. "
-            + "Also turn on Leave files in place in Final Cut Pro ▸ Settings ▸ Import: "
-            + "Final Cut doesn't take it from the project."
+            "Media stays in the project’s folders. Turn on the same setting in Final Cut Pro ▸ Settings ▸ Import."
     }
 
     enum SmartCollections {
@@ -76,6 +77,7 @@ enum Strings {
         static let videoRole = "Video Role…"
         static let audioRole = "Audio Role…"
         static let remove = "Remove"
+        static func remove(_ name: String) -> String { "Remove \(name)" }
         static let fromFootageSources = "from Footage Sources"
 
         enum Draft {
