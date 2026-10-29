@@ -30,6 +30,7 @@ For the maintainer. Pushing a tag `vX.Y.Z` runs `.github/workflows/release.yml`,
    ```
 
 4. Approve the **Sign & notarize** job when GitHub asks (Actions → the run → Review deployments).
+   If GitHub cancels a job because no macOS runner was free, the **Re-run jobs GitHub never started** workflow re-runs it after 10 minutes (up to twice); approve signing again when asked.
 5. When the run is green, check that `https://pixeletch.github.io/Slateflow/appcast.xml` lists the new version, then use **Slateflow > Check for Updates…** in an older copy.
 
 The workflow stops before signing if the tag isn't on `main`, doesn't match `MARKETING_VERSION`, has no dated changelog heading, or **Build & self-check** hasn't passed for that commit (push to `main` and let CI finish before tagging). The release notes are that changelog section. Tags with `-alpha.N`, `-beta.N` or `-rc.N` are published as GitHub pre-releases.
