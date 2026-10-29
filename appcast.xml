@@ -3,6 +3,15 @@
     <channel>
         <title>Slateflow</title>
         <item>
+            <title>1.0.0-alpha.3</title>
+            <pubDate>Thu, 29 Oct 2026 07:13:47 +0000</pubDate>
+            <link>https://github.com/PixelEtch/Slateflow/releases</link>
+            <sparkle:version>55</sparkle:version>
+            <sparkle:shortVersionString>1.0.0-alpha.3</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/PixelEtch/Slateflow/releases/download/v1.0.0-alpha.3/Slateflow-1.0.0-alpha.3.dmg" length="3888622" type="application/octet-stream" sparkle:edSignature="wOKT/38nTSJV52h+URtNbR08hUyQpRGjKU4TLGIMowGCaiPZEXBpbtXFHEjZWyDeFk7gGt3Z9J+MyxzljKZTDA=="/>
+        </item>
+        <item>
             <title>1.0.0-alpha.2</title>
             <pubDate>Thu, 29 Oct 2026 02:11:49 +0000</pubDate>
             <link>https://github.com/PixelEtch/Slateflow/releases</link>
