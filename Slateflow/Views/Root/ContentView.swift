@@ -45,6 +45,7 @@ struct ContentView: View {
             .frame(minHeight: Size.Window.minHeight)
             .onReceive(NotificationCenter.default.publisher(for: NSWindow.didBecomeKeyNotification),
                        perform: clearLaunchFocus)
+            .onAppear(perform: EndEditingOnOutsideClick.install)
             .alert(Strings.Build.errorTitle,
                    isPresented: Binding(get: { buildError != nil },
                                         set: { if !$0 { buildError = nil } })) {
@@ -154,6 +155,39 @@ struct BuildBar: View {
             .padding(.vertical, Spacing.sm)
             .background(.bar)
         }
+    }
+}
+
+// MARK: - Click outside to end editing
+
+/// Clicking anywhere that isn't a text field ends text editing, as in System Settings.
+/// AppKit keeps the cursor in a field until another control takes focus.
+enum EndEditingOnOutsideClick {
+    private static var monitor: Any?
+
+    static func install() {
+        guard monitor == nil else { return }
+        monitor = NSEvent.addLocalMonitorForEvents(matching: .leftMouseDown) { event in
+            guard let window = event.window,
+                  window.firstResponder is NSText,          // a field is being edited
+                  !isText(window.contentView?.hitTest(event.locationInWindow))
+            else { return event }
+            // After the click is handled, so a button or switch still gets it.
+            DispatchQueue.main.async {
+                if window.firstResponder is NSText { window.makeFirstResponder(nil) }
+            }
+            return event
+        }
+    }
+
+    /// True for a text field or its field editor, or anything inside one.
+    private static func isText(_ view: NSView?) -> Bool {
+        var view = view
+        while let v = view {
+            if v is NSText || v is NSTextField { return true }
+            view = v.superview
+        }
+        return false
     }
 }
 

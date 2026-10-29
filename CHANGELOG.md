@@ -15,6 +15,7 @@ All notable changes to Slateflow are listed here.
 - The "Project" section is now "Format", so it isn't confused with Project Folder.
 - Folders is collapsed to a one-line summary until you open it. Restore Defaults shows only when the folders differ from the defaults.
 - The project name is no longer selected when the window opens, so a stray key can't replace it.
+- Clicking outside a text field, or pressing Return in Project name, ends editing.
 - The bottom bar shortens the destination folder before the project name.
 - VoiceOver names the item each remove button removes ("Remove Admin › Scripts").
 - The "Leave files in place" switch says to turn on the same setting in Final Cut Pro, which doesn't take it from the project. The success window repeats it.
