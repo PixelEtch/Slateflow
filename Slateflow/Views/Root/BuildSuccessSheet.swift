@@ -10,6 +10,8 @@ import SwiftUI
 
 struct BuildSuccessSheet: View {
     let rootFolder: String
+    /// The build kept media in place, so Final Cut's own import setting must match.
+    let keepMediaInPlace: Bool
     /// Opens the project in Final Cut; true once Final Cut has created the library.
     let onOpen: () async -> Bool
     let onReveal: () -> Void
@@ -36,6 +38,12 @@ struct BuildSuccessSheet: View {
             Text(failed ? Strings.Build.libraryFailed : Strings.Build.libraryNote)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
+            if !failed {
+                // Neither setting can come from the .fcpxml: Final Cut only takes the library
+                // location from it, so the user sets these in Final Cut.
+                if keepMediaInPlace { hint(Strings.Build.importHint) }
+                hint(Strings.Build.backupsHint)
+            }
 
             HStack {
                 Button(Strings.Build.reveal) { onReveal() }
@@ -61,6 +69,13 @@ struct BuildSuccessSheet: View {
         .onDisappear { openTask?.cancel() }
     }
 
+    private func hint(_ text: String) -> some View {
+        Text(text)
+            .font(.callout)
+            .foregroundStyle(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
     private func open() {
         isWorking = true
         failed = false
@@ -74,5 +89,5 @@ struct BuildSuccessSheet: View {
 }
 
 #Preview {
-    BuildSuccessSheet(rootFolder: "002 - Herdsman", onOpen: { false }, onReveal: {})
+    BuildSuccessSheet(rootFolder: "002 - Herdsman", keepMediaInPlace: true, onOpen: { false }, onReveal: {})
 }

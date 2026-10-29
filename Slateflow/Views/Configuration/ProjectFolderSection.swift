@@ -2,7 +2,7 @@
 //  ProjectFolderSection.swift
 //  Slateflow
 //
-//  Template name + the live-computed root folder name.
+//  Project name + the live-computed root folder name.
 //
 
 import SwiftUI
@@ -17,6 +17,8 @@ struct ProjectFolderSection: View {
                     .labelsHidden()
                     .textFieldStyle(.roundedBorder)
                     .frame(maxWidth: Size.Field.md)
+                    // Return ends editing. Async: AppKit is still inside the field's submit.
+                    .onSubmit { DispatchQueue.main.async { NSApp.keyWindow?.makeFirstResponder(nil) } }
             }
 
             LabeledContent(Strings.ProjectFolder.rootFolder) {

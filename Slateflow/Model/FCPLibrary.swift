@@ -210,7 +210,8 @@ struct FCPLibrarySettings {
     var audioRoles = defaultAudioRoles
     var smartCollections = SmartCollectionSpec.defaults(roles: defaultVideoRoles + defaultAudioRoles)
 
-    /// Write `<event>.fcpxml` (and an import note when media is kept in place) into `fcpFolder`.
+    /// Write `<event>.fcpxml` into `fcpFolder`. "Leave files in place" can't go in it - it's
+    /// a Final Cut import setting - so the app tells the user to turn it on instead.
     nonisolated func write(into fcpFolder: URL, format: VideoFormat, eventName: String) throws {
         try FileManager.default.createDirectory(
             at: fcpFolder, withIntermediateDirectories: true)
@@ -220,21 +221,6 @@ struct FCPLibrarySettings {
         let xml = FCPXML.document(settings: self, format: format, eventName: eventName,
                                   libraryLocation: libraryURL)
         try xml.write(to: xmlURL, atomically: true, encoding: .utf8)
-
-        guard keepMediaInPlace else { return }
-        // No FCPXML attribute controls this - it's an import-time preference. Leave a note.
-        let note = """
-        # Import settings
-
-        This template keeps media outside the FCP library. Before importing
-        \(eventName).fcpxml or any media, enable:
-
-        Final Cut Pro ▸ Settings ▸ Import ▸ Files: **Leave files in place**
-
-        Media lives alongside this folder: ../Footage, ../Audio, ../Graphics, ../Images.
-        """
-        let noteURL = fcpFolder.appendingPathComponent(ProjectLayout.importNoteFile)
-        try note.write(to: noteURL, atomically: true, encoding: .utf8)
     }
 }
 

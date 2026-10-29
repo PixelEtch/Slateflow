@@ -8,7 +8,7 @@
 import Foundation
 
 /// Everything a build needs, taken from `SavedSettings` on the main actor before writing.
-/// The folders, `Slate Project.json` and the Build Archives entry all derive from this
+/// The folders, `.slateflow.json` and the Build Archives entry all derive from this
 /// one value, so an edit made while a build runs can't make them disagree.
 nonisolated struct BuildSnapshot {
     /// Sanitised: a single safe path component.
@@ -19,6 +19,7 @@ nonisolated struct BuildSnapshot {
     let format: VideoFormat
     let fcp: FCPLibrarySettings
     let footageSources: [FootageSource]
+    let folders: [String]
 
     /// Custom sizes have no orientation or preset aspect; records show "-" for them.
     var orientationLabel: String { choice == .custom ? "-" : orientation.rawValue }
@@ -29,6 +30,6 @@ extension SavedSettings {
         BuildSnapshot(
             templateName: safeTemplateName,
             choice: choice, orientation: orientation, aspect: aspect, format: format,
-            fcp: fcp, footageSources: orderedFootageSources)
+            fcp: fcp, footageSources: orderedFootageSources, folders: folders)
     }
 }

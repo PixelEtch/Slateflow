@@ -20,11 +20,48 @@ final class SlateStore {
 
     let history: SelectionHistory
 
+    /// The folder new projects go into, remembered across launches. Nil until one is
+    /// chosen, or when the saved one can no longer be resolved (e.g. its drive was erased).
+    private(set) var destination: URL?
+    private static let destinationKey = "destinationBookmark"
+
     init(defaults: UserDefaults = .standard, history: SelectionHistory = SelectionHistory()) {
         self.defaults = defaults
         self.history = history
         // First assignment runs the init accessor, not `didSet`: building a store writes nothing.
         settings = SavedSettings.load(from: defaults)
+        destination = Self.resolveDestination(in: defaults)
+    }
+
+    /// Remember `url` (picked in an open panel) as the destination. The sandbox only grants
+    /// access to a picked folder until quit, so it's saved as an app-scoped bookmark.
+    func setDestination(_ url: URL) {
+        do {
+            let bookmark = try url.bookmarkData(options: .withSecurityScope)
+            defaults.set(bookmark, forKey: Self.destinationKey)
+        } catch {
+            // Still usable this session; it just won't be remembered.
+            Log.error("Couldn't remember destination \(url.path): \(error.localizedDescription)")
+        }
+        destination = url
+    }
+
+    private static func resolveDestination(in defaults: UserDefaults) -> URL? {
+        guard let bookmark = defaults.data(forKey: destinationKey) else { return nil }
+        var isStale = false
+        guard let url = try? URL(resolvingBookmarkData: bookmark, options: .withSecurityScope,
+                                 bookmarkDataIsStale: &isStale) else {
+            Log.error("Saved destination can't be resolved; asking again on the next build")
+            return nil
+        }
+        // Stale: the folder moved or was renamed. The URL is still right; refresh the bookmark.
+        if isStale, url.startAccessingSecurityScopedResource() {
+            defer { url.stopAccessingSecurityScopedResource() }
+            if let fresh = try? url.bookmarkData(options: .withSecurityScope) {
+                defaults.set(fresh, forKey: destinationKey)
+            }
+        }
+        return url
     }
 
     /// Build the next numbered project in `destination` from one snapshot of the
@@ -33,6 +70,10 @@ final class SlateStore {
     @discardableResult
     func buildProject(at destination: URL) async throws -> URL {
         let snapshot = settings.snapshot
+        // A remembered destination needs its bookmark's access turned on; harmless for a
+        // just-picked folder, which the sandbox already lets us write.
+        let scoped = destination.startAccessingSecurityScopedResource()
+        defer { if scoped { destination.stopAccessingSecurityScopedResource() } }
         // Disk writes run off the main actor so the window stays responsive on slow volumes.
         let rootURL = try await Task.detached(priority: .userInitiated) {
             try ProjectLayout.build(snapshot, in: destination)

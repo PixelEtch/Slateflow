@@ -9,12 +9,28 @@ import Foundation
 
 struct DirectoryNode: Identifiable {
     var name: String
-    var children: [DirectoryNode] = []
-    var note: String? = nil            // shown in the Folder Preview only
-    var isFile: Bool = false           // written by its owner (FCPXML, manifest), not by write()
+    var children: [DirectoryNode]
+    var note: String?                  // shown in the Folder Preview only
+    var isFile: Bool                   // written by its owner (FCPXML, manifest), not by write()
+    /// The name until `withPathIDs()` sets the path from the root: user folders can
+    /// repeat a name under different parents (Audio/Music, Graphics/Music).
+    var id: String
 
-    // shortcut: names are unique within this template tree; use a path id if names can repeat.
-    var id: String { name }
+    nonisolated init(name: String, children: [DirectoryNode] = [], note: String? = nil, isFile: Bool = false) {
+        self.name = name
+        self.children = children
+        self.note = note
+        self.isFile = isFile
+        id = name
+    }
+
+    /// This tree with every `id` set to the node's path, so ids are unique.
+    nonisolated func withPathIDs(prefix: String = "") -> DirectoryNode {
+        var node = self
+        node.id = prefix.isEmpty ? name : "\(prefix)/\(name)"
+        node.children = children.map { $0.withPathIDs(prefix: node.id) }
+        return node
+    }
 
     /// `nil` for leaves - the shape `OutlineGroup(_:children:)` expects.
     var childNodes: [DirectoryNode]? { children.isEmpty ? nil : children }

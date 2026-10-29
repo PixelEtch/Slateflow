@@ -18,7 +18,7 @@ struct SmartCollectionsSection: View {
                 SmartCollectionRow(spec: $spec)
                 // Footage-linked collections follow their source toggle, so only manual
                 // ones get a remove button; linked rows keep its space so switches align.
-                Button(Strings.SmartCollections.remove, systemImage: SFSymbol.remove) {
+                Button(Strings.SmartCollections.remove(spec.name), systemImage: SFSymbol.remove) {
                     store.settings.fcp.removeCollection(spec)
                 }
                 .labelStyle(.iconOnly)

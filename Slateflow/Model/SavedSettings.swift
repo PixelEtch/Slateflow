@@ -26,6 +26,9 @@ struct SavedSettings {
     /// Smart Collections in step.
     private(set) var footageSources: [FootageSource] = [.camA, .camB]
     var fcp = FCPLibrarySettings()
+    /// The editable part of the Project Layout, as `/`-separated paths. Changed only
+    /// through `addFolder` / `removeFolder` / `resetFolders`, which sanitise each path.
+    private(set) var folders = ProjectLayout.defaultFolders
 
     init() { linkFootageSources() }
 
@@ -35,7 +38,7 @@ struct SavedSettings {
         static let templateName = "templateName", keepMediaInPlace = "keepMediaInPlace"
         static let frameRate = "frameRate", footageSources = "footageSources"
         static let videoRoles = "videoRoles", audioRoles = "audioRoles"
-        static let smartCollections = "smartCollections"
+        static let smartCollections = "smartCollections", folders = "folders"
     }
 
     /// Saved values where present and valid, defaults otherwise.
@@ -66,6 +69,9 @@ struct SavedSettings {
            let specs = try? JSONDecoder().decode([SmartCollectionSpec].self, from: data) {
             s.fcp.smartCollections = specs
         }
+        if let paths = d.stringArray(forKey: Key.folders) {
+            s.folders = paths.compactMap { ProjectLayout.folderComponents($0)?.joined(separator: "/") }
+        }
         s.linkFootageSources()
         return s
     }
@@ -85,6 +91,7 @@ struct SavedSettings {
         d.set(fcp.videoRoles, forKey: Key.videoRoles)
         d.set(fcp.audioRoles, forKey: Key.audioRoles)
         d.set(try? JSONEncoder().encode(fcp.smartCollections), forKey: Key.smartCollections)
+        d.set(folders, forKey: Key.folders)
     }
 }
 
@@ -118,7 +125,7 @@ extension SavedSettings {
     /// Non-nil when the typed custom dimensions will be corrected on build.
     var customDimensionsIssue: DimensionIssue? {
         guard choice == .custom else { return nil }
-        if customWidth < 2 || customHeight < 2 { return .tooSmall }
+        if min(customWidth, customHeight) < VideoFormat.minimumSide { return .tooSmall }
         if !customWidth.isMultiple(of: 2) || !customHeight.isMultiple(of: 2) { return .odd }
         return nil
     }
@@ -175,6 +182,20 @@ extension SavedSettings {
               }) else { return }
         setFootageSource(.custom(safe), enabled: true)
     }
+
+    /// Add a folder path such as `Admin/Contracts`. Each part is sanitised; no-op when
+    /// blank, under a folder Slateflow owns, or already in the tree (any case).
+    mutating func addFolder(_ path: String) {
+        guard let path = ProjectLayout.folderComponents(path)?.joined(separator: "/") else { return }
+        let existing = folders.map { $0.lowercased() }
+        guard !existing.contains(where: { $0 == path.lowercased() || $0.hasPrefix(path.lowercased() + "/") })
+        else { return }
+        folders.append(path)
+    }
+
+    mutating func removeFolder(_ path: String) { folders.removeAll { $0 == path } }
+
+    mutating func resetFolders() { folders = ProjectLayout.defaultFolders }
 
     /// Every enabled source gets its linked Smart Collection (skipped when one covers it).
     private mutating func linkFootageSources() {
