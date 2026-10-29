@@ -37,7 +37,7 @@ We ship a Developer ID-signed, notarized DMG on GitHub Releases. Sparkle 2 (SPM)
 
 ### Negative
 - One third-party dependency (Sparkle), pinned in `Package.resolved`.
-- Each release must update `docs/appcast.xml`.
+- Each release must update the appcast. (Since [ADR-0007](0007-release-from-github-actions.md) the release workflow publishes it to `gh-pages`.)
 
 ### Risks
 - Losing the EdDSA private key (login keychain, Sparkle account `slateflow`) means installed copies can never update again. Mitigation: keep an encrypted backup (`generate_keys --account slateflow -x <file>`).

@@ -1,12 +1,9 @@
-<p align="center">
-  <img src="docs/assets/readme/icon.png" width="128" alt="Slateflow app icon">
-</p>
-
-<h1 align="center">Slateflow</h1>
-
-<p align="center">
-  Set up a Final Cut Pro project in one click: the folders, the <code>.fcpxml</code> and the library, the same way every time.
-</p>
+<h1 align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/readme/hero-dark.png">
+    <img src="docs/assets/readme/hero-light.png" width="880" alt="Slateflow: Final Cut Pro projects in one click. Folders, FCPXML and the library, the same way every time.">
+  </picture>
+</h1>
 
 <p align="center">
   <a href="#install">Install</a> ·
@@ -21,13 +18,6 @@
   <a href="https://github.com/PixelEtch/Slateflow/actions/workflows/ci.yml"><img src="https://github.com/PixelEtch/Slateflow/actions/workflows/ci.yml/badge.svg?branch=main" alt="Build &amp; self-check"></a>
   <img src="https://img.shields.io/badge/macOS-15%2B-000000?logo=apple" alt="macOS 15 or later">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT License"></a>
-</p>
-
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/readme/main-dark.png">
-    <img src="docs/assets/readme/main-light.png" width="820" alt="Slateflow window: project settings and footage sources on the left, a preview of the folder tree it will build on the right">
-  </picture>
 </p>
 
 ## What it does
@@ -85,7 +75,7 @@ Run the **Slateflow** scheme in Xcode 26 or later. [CONTRIBUTING.md](CONTRIBUTIN
 ## Documentation
 
 - [Troubleshooting](docs/TROUBLESHOOTING.md) · [Getting help](SUPPORT.md) · [Security](SECURITY.md)
-- [Contributing](CONTRIBUTING.md) · [Code of Conduct](CODE_OF_CONDUCT.md)
+- [Contributing](CONTRIBUTING.md) · [Contributing with an AI agent](docs/AI-CONTRIBUTIONS.md) · [Code of Conduct](CODE_OF_CONDUCT.md)
 - [Releasing](docs/RELEASING.md) · [Architecture decisions](docs/adr/README.md) · [Domain terms](CONTEXT.md)
 - [Changelog](CHANGELOG.md)
 

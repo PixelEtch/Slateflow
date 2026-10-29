@@ -10,7 +10,7 @@ The Sparkle feed and DMG downloads must be reachable by anyone. GitHub Pages and
 
 ## Decision
 
-`PixelEtch/Slateflow` is public under the MIT License. GitHub Pages serves `docs/` from `main`.
+`PixelEtch/Slateflow` is public under the MIT License. GitHub Pages serves `docs/` from `main`. (Since [ADR-0007](0007-release-from-github-actions.md), Pages serves the `gh-pages` branch, which holds only the appcast.)
 
 ## Alternatives Considered
 

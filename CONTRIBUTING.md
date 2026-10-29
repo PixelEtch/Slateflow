@@ -2,7 +2,7 @@
 
 Thanks for helping. Slateflow is a small macOS app, so the process is light. Everyone taking part follows the [Code of Conduct](CODE_OF_CONDUCT.md).
 
-Before changing how the app is built or shipped, read [CONTEXT.md](CONTEXT.md) for the terms the code uses and the [architecture decisions](docs/adr/README.md) for what's already settled.
+Before changing how the app is built or shipped, read [CONTEXT.md](CONTEXT.md) for the terms the code uses and the [architecture decisions](docs/adr/README.md) for what's already settled. Using an AI agent? See [Contributing with an AI agent](docs/AI-CONTRIBUTIONS.md).
 
 ## Before you start
 
