@@ -2,6 +2,11 @@
 
 All notable changes to Slateflow are listed here.
 
+## Unreleased
+
+### Changed
+- New default app icon: light stars and gear on a purple tile. It shows in light mode, Finder and on the mounted DMG; dark mode keeps purple stars on a dark tile.
+
 ## 1.0.0-alpha.3 - 2026-10-29
 
 ### Added
