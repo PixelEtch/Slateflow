@@ -1,0 +1,41 @@
+name: Re-run jobs GitHub never started
+
+# When no macOS runner is free, GitHub cancels the job ("The job was not acquired by
+# Runner of type hosted even after multiple attempts") and the run ends as a failure.
+# Nothing ran, so re-running is safe: wait for runners to free up, then re-run.
+# Runs cancelled on purpose (by you, or by a newer push) end as "cancelled" and are left alone.
+
+on:
+  workflow_run:
+    workflows: ["Build & self-check", "Release (sign, notarize, publish)"]
+    types: [completed]
+
+permissions:
+  actions: write   # re-run the failed jobs; no code is checked out
+
+jobs:
+  rerun:
+    name: Re-run unstarted jobs
+    if: github.event.workflow_run.conclusion == 'failure' && github.event.workflow_run.run_attempt < 3
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RUN_ID: ${{ github.event.workflow_run.id }}
+      ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+    steps:
+      - name: Re-run if a job never got a runner
+        run: |
+          # A job GitHub never started is cancelled with no runner and no steps.
+          UNSTARTED="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID/attempts/$ATTEMPT/jobs" \
+            --jq '[.jobs[] | select(.conclusion == "cancelled" and (.runner_name // "") == "" and (.steps | length) == 0) | .name] | join(", ")')"
+          if [[ -z "$UNSTARTED" ]]; then
+            echo "Every job ran; this is a real failure, so nothing is re-run."
+            exit 0
+          fi
+          echo "Never started: $UNSTARTED. Waiting 10 minutes for macOS runners."
+          sleep 600
+          # Re-runs the failed and cancelled jobs and the jobs that depend on them.
+          # A release run still waits for approval before signing.
+          gh run rerun "$RUN_ID" --failed --repo "$GITHUB_REPOSITORY"
+          echo "::notice::Re-ran run $RUN_ID (attempt $((ATTEMPT + 1)))."
