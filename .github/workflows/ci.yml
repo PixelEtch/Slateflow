@@ -43,10 +43,11 @@ jobs:
 
   build:
     # This name is the required check on main. A job skipped by `if` reports success,
-    # so docs-only pull requests can still merge.
+    # so docs-only pull requests can still merge. If the change check itself fails,
+    # build anyway: a skipped build must never stand in for a broken check.
     name: Build & self-check
     needs: changes
-    if: needs.changes.outputs.code == 'true'
+    if: ${{ !cancelled() && (needs.changes.result != 'success' || needs.changes.outputs.code == 'true') }}
     runs-on: macos-26
     timeout-minutes: 30
     env:

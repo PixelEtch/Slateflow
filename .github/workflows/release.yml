@@ -112,9 +112,14 @@ jobs:
       - name: Fetch the current Sparkle feed
         run: |
           mkdir -p out
-          # First release: no gh-pages branch yet, so the feed starts empty.
-          git fetch --depth 1 origin gh-pages 2>/dev/null \
-            && git show FETCH_HEAD:appcast.xml > out/appcast.xml 2>/dev/null || rm -f out/appcast.xml
+          # Start a new feed only when gh-pages doesn't exist yet (exit code 2). Any other
+          # failure stops here: an empty feed would replace the live one and drop old items.
+          set +e; git ls-remote --exit-code --heads origin gh-pages >/dev/null; RC=$?; set -e
+          case "$RC" in
+            0) git fetch --depth 1 origin gh-pages && git show FETCH_HEAD:appcast.xml > out/appcast.xml ;;
+            2) echo "::notice::No gh-pages branch yet; starting a new feed." ;;
+            *) echo "::error::Couldn't read gh-pages (git ls-remote exit $RC)."; exit 1 ;;
+          esac
 
       - name: Build, sign, notarize, update feed
         env:
@@ -171,8 +176,13 @@ jobs:
           [[ "$TAG_SHA" == "$GITHUB_SHA" ]] || { echo "::error::$GITHUB_REF_NAME moved since signing"; exit 1; }
 
       # The release goes up before the feed, so apps never see an update they can't download.
+      # Skipped when the release exists, so a re-run after a failed feed push can finish.
       - name: Create GitHub release
         run: |
+          if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "::notice::Release $GITHUB_REF_NAME already exists; keeping it."
+            exit 0
+          fi
           PRERELEASE=()
           [[ "$VERSION" == *-* ]] && PRERELEASE=(--prerelease)
           gh release create "$GITHUB_REF_NAME" "out/Slateflow-$VERSION.dmg" \
