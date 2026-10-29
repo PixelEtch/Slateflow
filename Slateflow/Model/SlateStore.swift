@@ -70,8 +70,8 @@ final class SlateStore {
     @discardableResult
     func buildProject(at destination: URL) async throws -> URL {
         let snapshot = settings.snapshot
-        // A remembered destination needs its bookmark's access turned on; a just-picked one
-        // already has access, and then this returns false.
+        // A remembered destination needs its bookmark's access turned on; harmless for a
+        // just-picked folder, which the sandbox already lets us write.
         let scoped = destination.startAccessingSecurityScopedResource()
         defer { if scoped { destination.stopAccessingSecurityScopedResource() } }
         // Disk writes run off the main actor so the window stays responsive on slow volumes.

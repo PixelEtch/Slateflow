@@ -223,12 +223,12 @@ func slateSelfCheck() {
     assert(names.count == Set(names).count, "duplicate default Smart Collection: \(names)")
 
     // FCP/ holds only the project file; the manifest is a hidden file at the root.
-    let planFCP = ProjectLayout.plan(root: "R", footageSources: []).children.first { $0.name == "FCP" }!
+    let planFCP = ProjectLayout.plan(root: "R", folders: ProjectLayout.defaultFolders, footageSources: []).children.first { $0.name == "FCP" }!
     assert(planFCP.children.map(\.name) == ["R.fcpxml"], "FCP folder: \(planFCP.children.map(\.name))")
 
     // Directory tree - fixed Admin subfolders + only the selected Footage sources
     let sources: [FootageSource] = [.camA, .drone, .stockFootage]
-    let tree = ProjectLayout.plan(root: "001 - SlateTemplate", footageSources: sources)
+    let tree = ProjectLayout.plan(root: "001 - SlateTemplate", folders: ProjectLayout.defaultFolders, footageSources: sources)
     let expectedTree: Set<String> = [
         "001 - SlateTemplate",
         "001 - SlateTemplate/Admin",
@@ -285,7 +285,7 @@ func slateSelfCheck() {
     func allIDs(_ n: DirectoryNode) -> [String] { [n.id] + n.children.flatMap(allIDs) }
     assert(Set(allIDs(customTree)).count == allIDs(customTree).count, "duplicate row ids in the Folder Preview")
     // Empty selection → Footage is a leaf
-    assert(ProjectLayout.plan(root: "R", footageSources: [])
+    assert(ProjectLayout.plan(root: "R", folders: ProjectLayout.defaultFolders, footageSources: [])
         .children.first { $0.name == "Footage" }!.children.isEmpty)
 
     // End-to-end build into a temp folder: every planned folder and file exists,
@@ -298,7 +298,7 @@ func slateSelfCheck() {
         format: .uhd4k, fcp: FCPLibrarySettings(), footageSources: sources, folders: ProjectLayout.defaultFolders)
     let built = try! ProjectLayout.build(buildSnapshot, in: buildTmp)
     assert(built.lastPathComponent == "001 - SlateTemplate")
-    let planned = ProjectLayout.plan(root: "001 - SlateTemplate", footageSources: sources)
+    let planned = ProjectLayout.plan(root: "001 - SlateTemplate", folders: ProjectLayout.defaultFolders, footageSources: sources)
     func walk(_ node: DirectoryNode, _ prefix: String) -> [(String, Bool)] {
         let here = prefix.isEmpty ? node.name : "\(prefix)/\(node.name)"
         return [(here, node.isFile)] + node.children.flatMap { walk($0, here) }

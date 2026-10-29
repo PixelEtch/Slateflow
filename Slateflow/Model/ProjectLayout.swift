@@ -74,9 +74,7 @@ nonisolated enum ProjectLayout {
     /// Every folder and file a build creates under `root`: the user's `folders`, plus
     /// `Backup`, `FCP` and `Footage` (one subfolder per source, in order). Top-level
     /// folders are sorted by name; subfolders keep the order they were added in.
-    static func plan(root: String, folders: [String] = defaultFolders,
-                     footageSources: [FootageSource]) -> DirectoryNode {
-
+    static func plan(root: String, folders: [String], footageSources: [FootageSource]) -> DirectoryNode {
         var top = [
             // Point the FCP "Set storage locations" prompt's Backups row here - kept
             // outside FCP/ so it survives a rebuild of the library itself.

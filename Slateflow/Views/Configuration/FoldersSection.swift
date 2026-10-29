@@ -31,13 +31,13 @@ struct FoldersSection: View {
                     HStack {
                         Label(name, systemImage: SFSymbol.folder)
                         Spacer()
-                        Button(Strings.Folders.remove, systemImage: SFSymbol.remove) {
+                        // The title names the folder, so VoiceOver says what's removed.
+                        Button(Strings.Folders.remove(name), systemImage: SFSymbol.remove) {
                             store.settings.removeFolder(path)
                         }
                         .labelStyle(.iconOnly)
                         .buttonStyle(.borderless)
                         .foregroundStyle(.secondary)
-                        .accessibilityLabel(Strings.Folders.remove(name))
                     }
                 }
                 .animation(reduceMotion ? nil : .snappy, value: store.settings.folders.count)

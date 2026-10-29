@@ -43,7 +43,6 @@ enum Strings {
         static let addLabel = "Other source"
         static let addPrompt = "Other source, e.g. Lumix S5"
         static let add = "Add source"
-        static let remove = "Remove source"
         static func remove(_ name: String) -> String { "Remove \(name)" }
     }
 
@@ -52,7 +51,6 @@ enum Strings {
         static let addLabel = "New folder"
         static let addPrompt = "New folder, e.g. Admin/Contracts"
         static let add = "Add folder"
-        static let remove = "Remove folder"
         static func remove(_ path: String) -> String { "Remove \(path)" }
         static let reset = "Restore Defaults"
         static let none = "Only Backup, FCP and Footage"
@@ -126,11 +124,8 @@ enum Strings {
         static let emptyMessage =
             "Configure the options on the left, then build a project. "
             + "Each successful build records a locked-in snapshot here."
-        static let resolution = "Resolution"
         static let orientation = "Orientation"
         static let size = "Size"
-        static let aspect = "Aspect"
-        static let frameRate = "Frame rate"
         static let roles = "Roles"
         static let collections = "Collections"
         static let footageSources = "Footage sources"

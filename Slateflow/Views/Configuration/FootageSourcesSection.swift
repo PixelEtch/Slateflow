@@ -34,13 +34,12 @@ struct FootageSourcesSection: View {
                 HStack {
                     Label(source.folderName, systemImage: source.symbol)
                     Spacer()
-                    Button(Strings.FootageSources.remove, systemImage: SFSymbol.remove) {
+                    Button(Strings.FootageSources.remove(source.folderName), systemImage: SFSymbol.remove) {
                         store.settings.setFootageSource(source, enabled: false)
                     }
                     .labelStyle(.iconOnly)
                     .buttonStyle(.borderless)
                     .foregroundStyle(.secondary)
-                    .accessibilityLabel(Strings.FootageSources.remove(source.folderName))
                 }
             }
             .animation(reduceMotion ? nil : .snappy, value: customSources.count)
