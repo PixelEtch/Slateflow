@@ -32,10 +32,7 @@
 The **Folder Preview** updates as you change settings, so you see exactly what a build will create:
 
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/readme/build-flow-dark.gif">
-    <img src="docs/assets/readme/build-flow-light.gif" width="720" alt="Turning on footage sources and switching to Vertical updates the folder preview and output size">
-  </picture>
+  <img src="docs/assets/readme/slateflow.gif" width="720" alt="Turning on GoPro and Screen Recordings adds their folders to the Folder Preview; switching to Vertical changes the output size to 2160 × 3840; Open in Final Cut Pro creates FCP/001 - Brand Film.fcpbundle">
 </p>
 
 ## Install
