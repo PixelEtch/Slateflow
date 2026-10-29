@@ -13,7 +13,7 @@ struct ProjectFolderSection: View {
     var body: some View {
         Section {
             LabeledContent(Strings.ProjectFolder.templateName) {
-                TextField(Strings.ProjectFolder.templateName, text: $store.templateName)
+                TextField(Strings.ProjectFolder.templateName, text: $store.settings.templateName)
                     .labelsHidden()
                     .textFieldStyle(.roundedBorder)
                     .frame(maxWidth: Size.Field.md)
@@ -22,7 +22,7 @@ struct ProjectFolderSection: View {
             LabeledContent(Strings.ProjectFolder.rootFolder) {
                 HStack(spacing: Spacing.xxs) {
                     Image(systemName: SFSymbol.folderFill).foregroundStyle(Palette.folder)
-                    Text(store.rootFolderName).fontDesign(.monospaced)
+                    Text(store.settings.rootFolderName).fontDesign(.monospaced)
                 }
             }
         } header: {

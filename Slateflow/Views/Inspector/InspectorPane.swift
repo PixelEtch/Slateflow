@@ -156,8 +156,8 @@ struct InspectorPane: View {
                 .safeAreaInset(edge: .bottom, spacing: 0) { storageNote }
                 .paneVisible(pane == .history)
             FolderTreePreview(root: ProjectLayout.plan(
-                root: store.rootFolderName, footageSources: store.orderedFootageSources,
-                keepMediaInPlace: store.fcp.keepMediaInPlace))
+                root: store.settings.rootFolderName, footageSources: store.settings.orderedFootageSources,
+                keepMediaInPlace: store.settings.fcp.keepMediaInPlace))
                 .paneVisible(pane == .preview)
         }
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: pane)

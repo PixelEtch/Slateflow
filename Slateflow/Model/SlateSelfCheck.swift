@@ -98,10 +98,10 @@ func slateSelfCheck() {
     assert(AspectRatio.vertical921.apply(to: .uhd4k).pixelDimensions == "2160 × 5040")
     assert(AspectRatio.ultrawide219.apply(to: .uhd4k).pixelDimensions == "5040 × 2160")
 
-    // Orientation groups its ratios; the store snaps a stale ratio back in range.
+    // Orientation groups its ratios; Saved Settings snaps a stale ratio back in range.
     assert(Orientation.landscape.ratios.contains(.wide169))
     assert(Orientation.vertical.ratios.allSatisfy { $0.ratio.w < $0.ratio.h })
-    let osc = SlateStore(defaults: scratch(), history: scratchHistory())
+    var osc = SavedSettings()
     osc.aspect = .cinema239                 // landscape ratio
     osc.orientation = .vertical             // should force aspect back into the vertical set
     assert(Orientation.vertical.ratios.contains(osc.aspect))
@@ -109,11 +109,11 @@ func slateSelfCheck() {
     // A saved non-landscape orientation must not snap the saved aspect on restore.
     let orientDefaults = scratch()
     let orientSaver = SlateStore(defaults: orientDefaults, history: scratchHistory())
-    orientSaver.orientation = .vertical
-    orientSaver.aspect = .vertical921
+    orientSaver.settings.orientation = .vertical
+    orientSaver.settings.aspect = .vertical921
     let orientReopened = SlateStore(defaults: orientDefaults, history: scratchHistory())
-    assert(orientReopened.orientation == .vertical, "orientation not restored")
-    assert(orientReopened.aspect == .vertical921, "aspect snapped to default on restore")
+    assert(orientReopened.settings.orientation == .vertical, "orientation not restored")
+    assert(orientReopened.settings.aspect == .vertical921, "aspect snapped to default on restore")
 
     // Building a store writes nothing - not even the defaults or linked collections.
     let untouchedDefaults = scratch()
@@ -124,66 +124,66 @@ func slateSelfCheck() {
     // Every persisted field round-trips through a fresh store on the same defaults.
     let roundTripDefaults = scratch()
     let saver = SlateStore(defaults: roundTripDefaults, history: scratchHistory())
-    saver.choice = .custom
-    saver.orientation = .portrait
-    saver.aspect = .classic34
-    saver.customWidth = 1234
-    saver.customHeight = 5678
-    saver.templateName = "Round Trip"
-    saver.fcp.frameRate = .fps59_94
-    saver.fcp.keepMediaInPlace = false
-    saver.setFootageSource(.camB, enabled: false)
-    saver.addCustomFootageSource("Lumix")
-    saver.fcp.addRole("Interview", to: \.videoRoles)
-    saver.fcp.addRole("Ambience", to: \.audioRoles)
-    saver.fcp.addCollection(.keyword, value: "Day 01")
-    if let i = saver.fcp.smartCollections.firstIndex(where: { $0.name == "Day 01" }) {
-        saver.fcp.smartCollections[i].enabled = false
+    saver.settings.choice = .custom
+    saver.settings.orientation = .portrait
+    saver.settings.aspect = .classic34
+    saver.settings.customWidth = 1234
+    saver.settings.customHeight = 5678
+    saver.settings.templateName = "Round Trip"
+    saver.settings.fcp.frameRate = .fps59_94
+    saver.settings.fcp.keepMediaInPlace = false
+    saver.settings.setFootageSource(.camB, enabled: false)
+    saver.settings.addCustomFootageSource("Lumix")
+    saver.settings.fcp.addRole("Interview", to: \.videoRoles)
+    saver.settings.fcp.addRole("Ambience", to: \.audioRoles)
+    saver.settings.fcp.addCollection(.keyword, value: "Day 01")
+    if let i = saver.settings.fcp.smartCollections.firstIndex(where: { $0.name == "Day 01" }) {
+        saver.settings.fcp.smartCollections[i].enabled = false
     }
     let loaded = SlateStore(defaults: roundTripDefaults, history: scratchHistory())
-    assert(loaded.choice == .custom, "choice not restored")
-    assert(loaded.orientation == .portrait, "orientation not restored")
-    assert(loaded.aspect == .classic34, "aspect not restored")
-    assert(loaded.customWidth == 1234 && loaded.customHeight == 5678, "custom size not restored")
-    assert(loaded.templateName == "Round Trip", "template name not restored")
-    assert(loaded.fcp.frameRate == .fps59_94, "frame rate not restored")
-    assert(loaded.fcp.keepMediaInPlace == false, "leave-in-place not restored")
-    assert(loaded.footageSources == [.camA, .custom("Lumix")], "footage sources not restored")
-    assert(loaded.fcp.videoRoles == saver.fcp.videoRoles && loaded.fcp.videoRoles.contains("Interview"))
-    assert(loaded.fcp.audioRoles == saver.fcp.audioRoles && loaded.fcp.audioRoles.contains("Ambience"))
-    assert(loaded.fcp.smartCollections == saver.fcp.smartCollections, "collections not restored")
-    assert(loaded.fcp.smartCollections.contains { $0.name == "Day 01" && !$0.enabled }, "enabled not restored")
+    assert(loaded.settings.choice == .custom, "choice not restored")
+    assert(loaded.settings.orientation == .portrait, "orientation not restored")
+    assert(loaded.settings.aspect == .classic34, "aspect not restored")
+    assert(loaded.settings.customWidth == 1234 && loaded.settings.customHeight == 5678, "custom size not restored")
+    assert(loaded.settings.templateName == "Round Trip", "template name not restored")
+    assert(loaded.settings.fcp.frameRate == .fps59_94, "frame rate not restored")
+    assert(loaded.settings.fcp.keepMediaInPlace == false, "leave-in-place not restored")
+    assert(loaded.settings.footageSources == [.camA, .custom("Lumix")], "footage sources not restored")
+    assert(loaded.settings.fcp.videoRoles == saver.settings.fcp.videoRoles && loaded.settings.fcp.videoRoles.contains("Interview"))
+    assert(loaded.settings.fcp.audioRoles == saver.settings.fcp.audioRoles && loaded.settings.fcp.audioRoles.contains("Ambience"))
+    assert(loaded.settings.fcp.smartCollections == saver.settings.fcp.smartCollections, "collections not restored")
+    assert(loaded.settings.fcp.smartCollections.contains { $0.name == "Day 01" && !$0.enabled }, "enabled not restored")
 
     // Build Archives round-trip: a record captures enough to restore format,
     // naming, and leave-in-place - not roles/collections/footage specifics.
-    let sourceStore = SlateStore(defaults: scratch(), history: scratchHistory())
-    sourceStore.choice = .uhd4k
-    sourceStore.orientation = .vertical
-    sourceStore.aspect = .vertical921
-    sourceStore.fcp.frameRate = .fps29_97
-    sourceStore.fcp.keepMediaInPlace = false
-    sourceStore.templateName = "Commercial"
-    assert(sourceStore.rootFolderName == "NNN - Commercial")   // number unknown until build
-    let snapshot = BuildRecord(snapshot: sourceStore.snapshot,
-                               rootFolder: ProjectLayout.rootName(sequence: 1000, template: sourceStore.safeTemplateName))
+    var source = SavedSettings()
+    source.choice = .uhd4k
+    source.orientation = .vertical
+    source.aspect = .vertical921
+    source.fcp.frameRate = .fps29_97
+    source.fcp.keepMediaInPlace = false
+    source.templateName = "Commercial"
+    assert(source.rootFolderName == "NNN - Commercial")   // number unknown until build
+    let snapshot = BuildRecord(snapshot: source.snapshot,
+                               rootFolder: ProjectLayout.rootName(sequence: 1000, template: source.safeTemplateName))
     assert(snapshot.rootFolder == "1000 - Commercial")
 
-    let destStore = SlateStore(defaults: scratch(), history: scratchHistory())
-    destStore.applyConfiguration(from: snapshot)
-    assert(destStore.choice == .uhd4k)
-    assert(destStore.orientation == .vertical)
-    assert(destStore.aspect == .vertical921)
-    assert(destStore.fcp.frameRate == .fps29_97)
-    assert(destStore.fcp.keepMediaInPlace == false)
-    assert(destStore.templateName == "Commercial")
+    var dest = SavedSettings()
+    dest.applyConfiguration(from: snapshot)
+    assert(dest.choice == .uhd4k)
+    assert(dest.orientation == .vertical)
+    assert(dest.aspect == .vertical921)
+    assert(dest.fcp.frameRate == .fps29_97)
+    assert(dest.fcp.keepMediaInPlace == false)
+    assert(dest.templateName == "Commercial")
 
     // Custom resolution restores exact width/height, not orientation/aspect.
-    let customSource = SlateStore(defaults: scratch(), history: scratchHistory())
+    var customSource = SavedSettings()
     customSource.choice = .custom
     customSource.customWidth = 1000
     customSource.customHeight = 500
     let customSnapshot = BuildRecord(snapshot: customSource.snapshot, rootFolder: "001 - X")
-    let customDest = SlateStore(defaults: scratch(), history: scratchHistory())
+    var customDest = SavedSettings()
     customDest.applyConfiguration(from: customSnapshot)
     assert(customDest.choice == .custom)
     assert(customDest.customWidth == 1000 && customDest.customHeight == 500)
@@ -331,25 +331,24 @@ func slateSelfCheck() {
     assert(cx.contains(#"<keyword-name value="Day 01"/>"#))
 
     // Footage Source ↔ Smart Collection linkage.
-    let scratchDefaults = scratch()
-    let store = SlateStore(defaults: scratchDefaults, history: scratchHistory())
-    assert(store.fcp.smartCollections.contains { $0.name == "Cam A" && $0.isFootageLinked },
+    var linked = SavedSettings()
+    assert(linked.fcp.smartCollections.contains { $0.name == "Cam A" && $0.isFootageLinked },
            "default footage source did not seed its linked collection")
-    store.setFootageSource(.drone, enabled: true)
-    assert(store.fcp.smartCollections.contains { $0.name == "Drone" && $0.isFootageLinked })
-    store.setFootageSource(.drone, enabled: false)
-    assert(!store.fcp.smartCollections.contains { $0.name == "Drone" }, "linked collection not removed")
+    linked.setFootageSource(.drone, enabled: true)
+    assert(linked.fcp.smartCollections.contains { $0.name == "Drone" && $0.isFootageLinked })
+    linked.setFootageSource(.drone, enabled: false)
+    assert(!linked.fcp.smartCollections.contains { $0.name == "Drone" }, "linked collection not removed")
     // A manually-added collection of the same name is left alone by a source toggle.
-    store.fcp.addCollection(.keyword, value: "GoPro")      // manual, not linked
-    store.setFootageSource(.goPro, enabled: true)           // linked add skipped - name taken
-    store.setFootageSource(.goPro, enabled: false)          // removes linked only - none
-    assert(store.fcp.smartCollections.contains { $0.name == "GoPro" && !$0.isFootageLinked })
+    linked.fcp.addCollection(.keyword, value: "GoPro")      // manual, not linked
+    linked.setFootageSource(.goPro, enabled: true)           // linked add skipped - name taken
+    linked.setFootageSource(.goPro, enabled: false)          // removes linked only - none
+    assert(linked.fcp.smartCollections.contains { $0.name == "GoPro" && !$0.isFootageLinked })
 
     // Custom role: added to its list once, with a matching role collection.
-    store.fcp.addRole(" B-Roll ", to: \.videoRoles)
-    store.fcp.addRole("B-Roll", to: \.videoRoles)          // duplicate → no-op
-    assert(store.fcp.videoRoles.filter { $0 == "B-Roll" }.count == 1 && !store.fcp.audioRoles.contains("B-Roll"))
-    assert(store.fcp.smartCollections.contains { $0.name == "B-Roll" && $0.rules == [.role("B-Roll")] })
+    linked.fcp.addRole(" B-Roll ", to: \.videoRoles)
+    linked.fcp.addRole("B-Roll", to: \.videoRoles)          // duplicate → no-op
+    assert(linked.fcp.videoRoles.filter { $0 == "B-Roll" }.count == 1 && !linked.fcp.audioRoles.contains("B-Roll"))
+    assert(linked.fcp.smartCollections.contains { $0.name == "B-Roll" && $0.rules == [.role("B-Roll")] })
 
     // Smart Collection rules: no duplicates by name or by rules; blanks ignored;
     // removing a role collection removes its role.
@@ -366,31 +365,33 @@ func slateSelfCheck() {
     rules.removeCollection(rules.smartCollections.first { $0.name == "Interview" }!)
     assert(!rules.audioRoles.contains("Interview") && !rules.smartCollections.contains { $0.name == "Interview" })
 
-    // Sources, roles and collections persist: a fresh store on the same defaults
-    // restores exactly what this one has.
-    store.setFootageSource(.drone, enabled: true)
+    // Sources, roles and collections persist: a fresh linked on the same defaults
+    // restores exactly what was saved.
+    linked.setFootageSource(.drone, enabled: true)
+    let scratchDefaults = scratch()
+    SlateStore(defaults: scratchDefaults, history: scratchHistory()).settings = linked
     let reopened = SlateStore(defaults: scratchDefaults, history: scratchHistory())
-    assert(reopened.footageSources == store.footageSources, "footage sources not restored")
-    assert(reopened.fcp.videoRoles == store.fcp.videoRoles, "roles not restored")
-    assert(reopened.fcp.smartCollections == store.fcp.smartCollections, "collections not restored")
-    store.setFootageSource(.drone, enabled: false)
+    assert(reopened.settings.footageSources == linked.footageSources, "footage sources not restored")
+    assert(reopened.settings.fcp.videoRoles == linked.fcp.videoRoles, "roles not restored")
+    assert(reopened.settings.fcp.smartCollections == linked.fcp.smartCollections, "collections not restored")
+    linked.setFootageSource(.drone, enabled: false)
 
     // Custom footage source (Lumix, Blackmagic, …)
-    store.addCustomFootageSource("Lumix")
-    assert(store.orderedFootageSources.contains { $0.folderName == "Lumix" && $0.isCustom })
-    assert(store.fcp.smartCollections.contains { $0.name == "Lumix" && $0.isFootageLinked })
-    let before = store.orderedFootageSources.count
-    store.addCustomFootageSource("  lumix ")                // case-insensitive duplicate → no-op
-    assert(store.orderedFootageSources.count == before, "duplicate custom source added")
-    let lumix = store.orderedFootageSources.first { $0.folderName == "Lumix" }!
-    store.setFootageSource(lumix, enabled: false)
-    assert(!store.orderedFootageSources.contains { $0.folderName == "Lumix" })
-    assert(!store.fcp.smartCollections.contains { $0.name == "Lumix" })
+    linked.addCustomFootageSource("Lumix")
+    assert(linked.orderedFootageSources.contains { $0.folderName == "Lumix" && $0.isCustom })
+    assert(linked.fcp.smartCollections.contains { $0.name == "Lumix" && $0.isFootageLinked })
+    let before = linked.orderedFootageSources.count
+    linked.addCustomFootageSource("  lumix ")                // case-insensitive duplicate → no-op
+    assert(linked.orderedFootageSources.count == before, "duplicate custom source added")
+    let lumix = linked.orderedFootageSources.first { $0.folderName == "Lumix" }!
+    linked.setFootageSource(lumix, enabled: false)
+    assert(!linked.orderedFootageSources.contains { $0.folderName == "Lumix" })
+    assert(!linked.fcp.smartCollections.contains { $0.name == "Lumix" })
 
     // Typing a preset's name enables the preset, not a custom duplicate.
-    store.addCustomFootageSource("insta360")
-    assert(store.footageSources.contains(.insta360) && !store.footageSources.contains { $0.isCustom })
-    store.setFootageSource(.insta360, enabled: false)
+    linked.addCustomFootageSource("insta360")
+    assert(linked.footageSources.contains(.insta360) && !linked.footageSources.contains { $0.isCustom })
+    linked.setFootageSource(.insta360, enabled: false)
 
     // Path-traversal sanitisation
     let evil = SafeName.component("../../etc/passwd", fallback: "X")
@@ -401,7 +402,7 @@ func slateSelfCheck() {
     assert(SafeName.component("   ", fallback: "SlateTemplate") == "SlateTemplate")
     assert(SafeName.component(String(repeating: "z", count: 500), fallback: "X").count <= 200)
 
-    let escaper = SlateStore(defaults: scratchDefaults, history: scratchHistory())
+    var escaper = SavedSettings()
     escaper.templateName = "../../../tmp/pwn"
     assert(!escaper.rootFolderName.contains("..") && !escaper.rootFolderName.contains("/"))
     escaper.addCustomFootageSource("../evil")

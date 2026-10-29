@@ -13,7 +13,7 @@ struct FootageSourcesSection: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var customSources: [FootageSource] {
-        store.footageSources.filter(\.isCustom)
+        store.settings.footageSources.filter(\.isCustom)
     }
 
     var body: some View {
@@ -35,7 +35,7 @@ struct FootageSourcesSection: View {
                     Label(source.folderName, systemImage: source.symbol)
                     Spacer()
                     Button(Strings.FootageSources.remove, systemImage: SFSymbol.remove) {
-                        store.setFootageSource(source, enabled: false)
+                        store.settings.setFootageSource(source, enabled: false)
                     }
                     .labelStyle(.iconOnly)
                     .buttonStyle(.borderless)
@@ -61,12 +61,12 @@ struct FootageSourcesSection: View {
     }
 
     private func addCustom() {
-        store.addCustomFootageSource(newSource)
+        store.settings.addCustomFootageSource(newSource)
         newSource = ""
     }
 
     private func binding(for source: FootageSource) -> Binding<Bool> {
-        Binding(get: { store.footageSources.contains(source) },
-                set: { store.setFootageSource(source, enabled: $0) })
+        Binding(get: { store.settings.footageSources.contains(source) },
+                set: { store.settings.setFootageSource(source, enabled: $0) })
     }
 }

@@ -19,7 +19,7 @@ struct ContentView: View {
         ConfigurationForm(store: store)
             .frame(minWidth: Size.Window.formMinWidth)
             .safeAreaInset(edge: .bottom, spacing: 0) {
-                BuildBar(rootFolderName: store.rootFolderName,
+                BuildBar(rootFolderName: store.settings.rootFolderName,
                          isBuilding: isBuilding,
                          action: chooseAndBuild)
             }
@@ -64,7 +64,7 @@ struct ContentView: View {
         panel.canChooseDirectories = true
         panel.canChooseFiles = false
         panel.prompt = Strings.Build.panelPrompt
-        panel.message = Strings.Build.panelMessage(rootFolder: store.rootFolderName)
+        panel.message = Strings.Build.panelMessage(rootFolder: store.settings.rootFolderName)
         guard panel.runModal() == .OK, let url = panel.url else { return }
 
         isBuilding = true

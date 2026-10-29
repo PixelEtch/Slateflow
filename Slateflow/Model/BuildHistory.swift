@@ -11,7 +11,7 @@ import Foundation
 /// This is what "Build Archives" actually is: a library of past project
 /// *configurations* to reuse - not a record of where anything was written.
 /// Roles/collections/footage sources are counted for display only; their exact
-/// names were never captured, so `SlateStore.applyConfiguration` can't restore them.
+/// names were never captured, so `SavedSettings.applyConfiguration` can't restore them.
 struct BuildRecord: Identifiable, Codable {
     let id: UUID
     let time: Date
