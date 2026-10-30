@@ -19,17 +19,7 @@ struct SettingsForm: View {
     @AppStorage(SettingsTab.storageKey) private var tab = SettingsTab.folders
 
     var body: some View {
-        // Icon tabs as in Xcode's inspectors: the window keeps its "Slateflow Settings" title.
-        VStack(spacing: 0) {
-            Picker(Strings.Settings.tabs, selection: $tab) {
-                tabIcon(Strings.Folders.section, SFSymbol.folder).tag(SettingsTab.folders)
-                tabIcon(Strings.FCP.section, SFSymbol.finalCut).tag(SettingsTab.finalCut)
-            }
-            .pickerStyle(.segmented)
-            .labelsHidden()
-            .fixedSize()
-            .padding(.top, Spacing.md)
-
+        Group {
             switch tab {
             case .folders:
                 Form { FoldersSection(store: store) }
@@ -39,6 +29,18 @@ struct SettingsForm: View {
             }
         }
         .frame(width: Size.Settings.width, height: Size.Settings.height)
+        // Icon tabs as in Xcode's inspectors. In the toolbar they get Liquid Glass on
+        // macOS 26, like the main window's switch.
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                Picker(Strings.Settings.tabs, selection: $tab) {
+                    tabIcon(Strings.Folders.section, SFSymbol.folder).tag(SettingsTab.folders)
+                    tabIcon(Strings.FCP.section, SFSymbol.finalCut).tag(SettingsTab.finalCut)
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+            }
+        }
     }
 
     private func tabIcon(_ title: String, _ symbol: String) -> some View {
