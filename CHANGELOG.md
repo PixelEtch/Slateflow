@@ -2,6 +2,11 @@
 
 All notable changes to Slateflow are listed here.
 
+## Unreleased
+
+### Fixed
+- Open in Final Cut Pro works again after relaunching Slateflow. With a remembered build folder, macOS said Slateflow didn't have permission to open the project's `.fcpxml`, and the success window said Final Cut hadn't created the library. Broken since 1.0.0-alpha.3.
+
 ## 1.0.0-alpha.4 - 2026-10-29
 
 ### Changed

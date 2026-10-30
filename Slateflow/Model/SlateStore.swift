@@ -54,12 +54,15 @@ final class SlateStore {
             Log.error("Saved destination can't be resolved; asking again on the next build")
             return nil
         }
+        // Keep access for the whole session, like a folder just picked in the panel: the build
+        // writes there, and Open in Final Cut hands its .fcpxml to Final Cut after the build.
+        guard url.startAccessingSecurityScopedResource() else {
+            Log.error("No access to the saved destination; asking again on the next build")
+            return nil
+        }
         // Stale: the folder moved or was renamed. The URL is still right; refresh the bookmark.
-        if isStale, url.startAccessingSecurityScopedResource() {
-            defer { url.stopAccessingSecurityScopedResource() }
-            if let fresh = try? url.bookmarkData(options: .withSecurityScope) {
-                defaults.set(fresh, forKey: destinationKey)
-            }
+        if isStale, let fresh = try? url.bookmarkData(options: .withSecurityScope) {
+            defaults.set(fresh, forKey: destinationKey)
         }
         return url
     }
@@ -70,10 +73,6 @@ final class SlateStore {
     @discardableResult
     func buildProject(at destination: URL) async throws -> URL {
         let snapshot = settings.snapshot
-        // A remembered destination needs its bookmark's access turned on; harmless for a
-        // just-picked folder, which the sandbox already lets us write.
-        let scoped = destination.startAccessingSecurityScopedResource()
-        defer { if scoped { destination.stopAccessingSecurityScopedResource() } }
         // Disk writes run off the main actor so the window stays responsive on slow volumes.
         let rootURL = try await Task.detached(priority: .userInitiated) {
             try ProjectLayout.build(snapshot, in: destination)
