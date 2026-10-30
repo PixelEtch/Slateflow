@@ -60,15 +60,13 @@ struct FormatSection: View {
 
             LabeledContent(Strings.Format.outputSize, value: store.settings.format.pixelDimensions)
 
-            // A second Text is the grouped form's subtitle line.
-            Picker(selection: $store.settings.fcp.colorSpace) {
+            Picker(Strings.Format.colorSpace, selection: $store.settings.fcp.colorSpace) {
                 ForEach(ColorSpace.allCases) { Text($0.label).tag($0) }
-            } label: {
-                Text(Strings.Format.colorSpace)
-                Text(Strings.Format.colorSpaceHelp)
             }
+            .help(Strings.Format.colorSpaceHelp)
 
             if store.settings.canAddReelTimeline {
+                // A second Text is the grouped form's subtitle line.
                 Toggle(isOn: $store.settings.fcp.reelTimeline) {
                     Text(Strings.Format.reelTimeline)
                     Text(Strings.Format.reelTimelineHelp)
