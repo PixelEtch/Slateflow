@@ -149,6 +149,7 @@ enum Strings {
 
     enum Settings {
         static let tabs = "Settings section"
+        static let autosave = "Changes are saved automatically."
     }
 
     nonisolated enum Customize {  // read by CustomizeTip, which TipKit requires to be nonisolated

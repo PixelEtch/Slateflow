@@ -28,6 +28,13 @@ struct SettingsForm: View {
                 finalCut
             }
         }
+        // No Save button, as in macOS Settings: every change is stored as it's made.
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            Text(Strings.Settings.autosave)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .padding(.vertical, Spacing.xs)
+        }
         .frame(width: Size.Settings.width, height: Size.Settings.height)
         // Same switch as the main window's Recent Projects / Folder Preview: in the toolbar
         // it gets Liquid Glass on macOS 26.
