@@ -71,8 +71,14 @@ enum Size {
         static let size = CGSize(width: 900, height: 640)
         static let minHeight: CGFloat = 520
         /// Narrowest the form gets with the inspector open; below this the
-        /// segmented controls and the Build button clip.
+        /// segmented controls and the Create Project button clip.
         static let formMinWidth: CGFloat = 440
+    }
+
+    /// Settings window (⌘,); its form scrolls past this height.
+    enum Settings {
+        static let width: CGFloat = 520
+        static let height: CGFloat = 600
     }
 
     /// Inspector column width.

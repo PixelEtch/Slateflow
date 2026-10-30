@@ -9,7 +9,8 @@ import SwiftUI
 import AppKit
 
 struct ContentView: View {
-    @State private var store = SlateStore()
+    /// Owned by the App, so the Settings window edits the same settings.
+    @Bindable var store: SlateStore
     @State private var buildError: String?
     @State private var builtProject: URL?
     @State private var isBuilding = false
@@ -32,6 +33,16 @@ struct ContentView: View {
                     .inspectorColumnWidth(min: Size.Inspector.min, ideal: Size.Inspector.ideal, max: Size.Inspector.max)
             }
             .focusedSceneValue(\.buildAction, build)
+            // ⌘N is the menu's shortcut; ⌘B, the shortcut before it, still works.
+            .background {
+                Button(Strings.Build.menuItem, action: build)
+                    .keyboardShortcut("b", modifiers: .command)
+                    .disabled(isBuilding)
+                    .opacity(0)
+                    .accessibilityHidden(true)
+                    .focusable(false)           // out of the Tab order
+                    .allowsHitTesting(false)    // the shortcut still fires
+            }
             .toolbar {
                 ToolbarItem {
                     Button {
@@ -59,7 +70,6 @@ struct ContentView: View {
                 if let builtProject {
                     BuildSuccessSheet(
                         rootFolder: builtProject.lastPathComponent,
-                        keepMediaInPlace: store.settings.fcp.keepMediaInPlace,
                         onOpen: { await FinalCutLibrary.open(project: builtProject) },
                         onReveal: { NSWorkspace.shared.activateFileViewerSelecting([builtProject]) })
                 }
@@ -123,24 +133,31 @@ struct BuildBar: View {
         VStack(spacing: 0) {
             Divider()
             HStack(spacing: Spacing.md) {
-                Label(rootFolderName, systemImage: SFSymbol.folderFill)
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                    .truncationMode(.middle)
-                    .layoutPriority(1)      // the destination name shortens first
-                if let destination {
-                    Text(Strings.Build.destination(destination.lastPathComponent))
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                        .help(destination.path)
-                    Button(Strings.Build.change, action: change)
-                        .buttonStyle(.link)
-                        .help(Strings.Build.changeHelp)
-                        .disabled(isBuilding)
+                // One sentence: Creates “NNN - Name” in **Folder** · Change…
+                HStack(spacing: Spacing.xxs) {
+                    if let destination {
+                        Text(Strings.Build.creates(rootFolderName))
+                            .layoutPriority(1)      // the destination folder's name shortens first
+                        Text(destination.lastPathComponent)
+                            .fontWeight(.semibold)
+                            .help(destination.path)
+                        Text(Strings.Build.separator)
+                            .fixedSize()
+                            .accessibilityHidden(true)
+                        Button(Strings.Build.change, action: change)
+                            .buttonStyle(.link)
+                            .foregroundStyle(.tint)     // the sentence is secondary; keep the link blue
+                            .help(Strings.Build.changeHelp)
+                            .disabled(isBuilding)
+                            .fixedSize()
+                    } else {
+                        Label(rootFolderName, systemImage: SFSymbol.folderFill)
+                    }
                 }
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .truncationMode(.middle)
                 Spacer(minLength: Spacing.md)
                 if isBuilding {
                     ProgressView().controlSize(.small)
@@ -193,7 +210,7 @@ enum EndEditingOnOutsideClick {
 
 // MARK: - Menu-bar wiring
 
-/// Lets the `Build Project…` menu command trigger the same flow as the bottom bar.
+/// Lets the `Create Project…` menu command trigger the same flow as the bottom bar.
 // A FocusedValueKey, not `@Entry`: `@Entry` warns that a stored closure can't be
 // compared, so every update would invalidate the menu command.
 struct BuildActionKey: FocusedValueKey {
@@ -212,11 +229,11 @@ struct BuildCommand: View {
 
     var body: some View {
         Button(Strings.Build.menuItem) { buildAction?() }
-            .keyboardShortcut("b", modifiers: .command)
+            .keyboardShortcut("n", modifiers: .command)
             .disabled(buildAction == nil)
     }
 }
 
 #Preview {
-    ContentView()
+    ContentView(store: SlateStore())
 }

@@ -2,6 +2,17 @@
 
 All notable changes to Slateflow are listed here.
 
+## Unreleased
+
+### Changed
+- The main window shows only what changes per project: Project name, Format and Cameras. Folders and the Final Cut options (Leave files in place, Smart Collections) moved to **Slateflow ▸ Settings…** (⌘,).
+- "Build" is now **Create Project**: the button, the File menu item and the folder picker's **Create Here**. The first-time button reads **Choose Folder & Create Project…**.
+- **Create Project…** uses ⌘N and replaces New Window. ⌘B still works.
+- The bottom bar reads as one line: Creates “NNN - Name” in **Folder** · Change….
+- The Root folder row and its note are gone; hover over the project name to see how the number is picked.
+- Build Archives is now **Recent Projects**, and Footage Sources is now **Cameras**.
+- The success window is shorter. The one-time Final Cut settings (Leave files in place, Keywords: From folders, and where to put Backups) are explained under Final Cut Pro in Settings instead.
+
 ## 1.0.0-alpha.5 - 2026-10-30
 
 ### Added
