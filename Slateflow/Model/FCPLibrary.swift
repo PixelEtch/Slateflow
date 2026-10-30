@@ -197,12 +197,46 @@ nonisolated enum FrameRate: Double, CaseIterable, Identifiable {
     }
 }
 
+// MARK: - Color space
+
+/// The timelines' color space; the raw value is FCPXML's `format colorSpace`, as Final Cut
+/// writes it. The library's color processing follows it: a library only holds timelines up
+/// to its own gamut.
+nonisolated enum ColorSpace: String, CaseIterable, Identifiable {
+    case rec709  = "1-1-1 (Rec. 709)"
+    case rec2020 = "9-1-9 (Rec. 2020)"
+    case hlg     = "9-18-9 (Rec. 2020 HLG)"
+    case pq      = "9-16-9 (Rec. 2020 PQ)"
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .rec709:  "Standard (Rec. 709)"
+        case .rec2020: "Wide Gamut (Rec. 2020)"
+        case .hlg:     "HDR (Rec. 2020 HLG)"
+        case .pq:      "HDR (Rec. 2020 PQ)"
+        }
+    }
+
+    /// FCPXML `library colorProcessing`; nil for standard, Final Cut's default.
+    var libraryProcessing: String? {
+        switch self {
+        case .rec709:      nil
+        case .rec2020:     "wide"
+        case .hlg, .pq:    "wide-hdr"
+        }
+    }
+}
+
 // MARK: - Library settings
 
 struct FCPLibrarySettings {
     /// "Leave files in place" - media stays in the project folders, not copied into the library.
     var keepMediaInPlace = true
     var frameRate: FrameRate = .fps25
+    var colorSpace: ColorSpace = .rec709
+    /// Also add a 9:16 timeline for reels, next to the main one. See `SavedSettings.reelFormat`.
+    var reelTimeline = false
     static let defaultVideoRoles = ["Footage", "Graphics", "Titles"]
     static let defaultAudioRoles = ["Dialogue", "Music", "Effects"]
 
@@ -212,14 +246,15 @@ struct FCPLibrarySettings {
 
     /// Write `<event>.fcpxml` into `fcpFolder`. "Leave files in place" can't go in it - it's
     /// a Final Cut import setting - so the app tells the user to turn it on instead.
-    nonisolated func write(into fcpFolder: URL, format: VideoFormat, eventName: String) throws {
+    nonisolated func write(into fcpFolder: URL, format: VideoFormat, reelFormat: VideoFormat?,
+                           eventName: String) throws {
         try FileManager.default.createDirectory(
             at: fcpFolder, withIntermediateDirectories: true)
 
         let xmlURL = fcpFolder.appendingPathComponent("\(eventName).fcpxml")
         let libraryURL = fcpFolder.appendingPathComponent("\(eventName).fcpbundle", isDirectory: false)
-        let xml = FCPXML.document(settings: self, format: format, eventName: eventName,
-                                  libraryLocation: libraryURL)
+        let xml = FCPXML.document(settings: self, format: format, reelFormat: reelFormat,
+                                  eventName: eventName, libraryLocation: libraryURL)
         try xml.write(to: xmlURL, atomically: true, encoding: .utf8)
     }
 }
@@ -237,13 +272,13 @@ nonisolated enum FCPXML {
     /// option. Final Cut creates the library there when it doesn't exist yet (verified on
     /// 12.4), so it is always the installed version's format. Without it, FCP asks which
     /// library to use.
-    static func document(settings: FCPLibrarySettings, format: VideoFormat, eventName: String,
-                         libraryLocation: URL? = nil) -> String {
+    /// `reelFormat`: a second, vertical timeline named `<event> Reel` in the same event.
+    static func document(settings: FCPLibrarySettings, format: VideoFormat, reelFormat: VideoFormat? = nil,
+                         eventName: String, libraryLocation: URL? = nil) -> String {
         let collections = settings.smartCollections
             .filter(\.enabled)
             .map { collection($0) }
             .joined(separator: "\n")
-        let formatName = "Slate \(format.width)×\(format.height)"
         // Must be the first child of <fcpxml>.
         let importOptions = libraryLocation.map { url in
             """
@@ -259,19 +294,31 @@ nonisolated enum FCPXML {
         <!DOCTYPE fcpxml>
         <fcpxml version="1.11">
         \(importOptions)<resources>
-        <format id="r1" name="\(escape(formatName))" width="\(format.width)" height="\(format.height)" frameDuration="\(settings.frameRate.frameDurationFCPX)" colorSpace="1-1-1 (Rec. 709)"/>
+        \(formatElement("r1", format, settings))\(reelFormat.map { "\n" + formatElement("r2", $0, settings) } ?? "")
         </resources>
-        <library>
+        <library\(settings.colorSpace.libraryProcessing.map { #" colorProcessing="\#($0)""# } ?? "")>
         <event name="\(escape(eventName))">
-        <project name="\(escape(eventName))">
-        <sequence format="r1" duration="0s" tcStart="0s" tcFormat="NDF" audioLayout="stereo" audioRate="48k">
-        <spine/>
-        </sequence>
-        </project>
+        \(project(eventName, format: "r1"))\(reelFormat == nil ? "" : "\n" + project("\(eventName) Reel", format: "r2"))
         \(collections)
         </event>
         </library>
         </fcpxml>
+        """
+    }
+
+    private static func formatElement(_ id: String, _ format: VideoFormat, _ settings: FCPLibrarySettings) -> String {
+        let name = "Slate \(format.width)×\(format.height)"
+        return #"<format id="\#(id)" name="\#(escape(name))" width="\#(format.width)" height="\#(format.height)" frameDuration="\#(settings.frameRate.frameDurationFCPX)" colorSpace="\#(settings.colorSpace.rawValue)"/>"#
+    }
+
+    /// An empty timeline on `format`.
+    private static func project(_ name: String, format: String) -> String {
+        """
+        <project name="\(escape(name))">
+        <sequence format="\(format)" duration="0s" tcStart="0s" tcFormat="NDF" audioLayout="stereo" audioRate="48k">
+        <spine/>
+        </sequence>
+        </project>
         """
     }
 

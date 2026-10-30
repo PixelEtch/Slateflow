@@ -59,6 +59,17 @@ struct FormatSection: View {
             }
 
             LabeledContent(Strings.Format.outputSize, value: store.settings.format.pixelDimensions)
+
+            Picker(Strings.Format.colorSpace, selection: $store.settings.fcp.colorSpace) {
+                ForEach(ColorSpace.allCases) { Text($0.label).tag($0) }
+            }
+            .help(Strings.Format.colorSpaceHelp)
+
+            if store.settings.canAddReelTimeline {
+                Toggle(Strings.Format.reelTimeline, isOn: $store.settings.fcp.reelTimeline)
+                    .toggleStyle(.switch)
+                    .help(Strings.Format.reelTimelineHelp)
+            }
         }
     }
 }

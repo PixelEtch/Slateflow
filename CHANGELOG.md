@@ -4,6 +4,10 @@ All notable changes to Slateflow are listed here.
 
 ## Unreleased
 
+### Added
+- Color space: Standard (Rec. 709), Wide Gamut (Rec. 2020), HDR (Rec. 2020 HLG) or HDR (Rec. 2020 PQ). The timelines use it and the library is set up to match: Standard, Wide Gamut or Wide Gamut HDR. Footage from any camera is converted to it.
+- Reel timeline: also adds a 9:16 timeline (for example 2160 × 3840 at 4K) next to the main one, for cutting a reel from the same shoot. Offered for landscape and portrait projects at a preset resolution.
+
 ### Fixed
 - Open in Final Cut Pro works again after relaunching Slateflow. With a remembered build folder, macOS said Slateflow didn't have permission to open the project's `.fcpxml`, and the success window said Final Cut hadn't created the library. Broken since 1.0.0-alpha.3.
 

@@ -17,6 +17,8 @@ nonisolated struct BuildSnapshot {
     let orientation: Orientation
     let aspect: AspectRatio
     let format: VideoFormat
+    /// The extra 9:16 reel timeline, when one is built.
+    let reelFormat: VideoFormat?
     let fcp: FCPLibrarySettings
     let footageSources: [FootageSource]
     let folders: [String]
@@ -29,7 +31,7 @@ extension SavedSettings {
     var snapshot: BuildSnapshot {
         BuildSnapshot(
             templateName: safeTemplateName,
-            choice: choice, orientation: orientation, aspect: aspect, format: format,
+            choice: choice, orientation: orientation, aspect: aspect, format: format, reelFormat: reelFormat,
             fcp: fcp, footageSources: orderedFootageSources, folders: folders)
     }
 }
