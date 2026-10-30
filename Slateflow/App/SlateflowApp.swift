@@ -8,6 +8,7 @@
 import SwiftUI
 import AppKit
 import Sparkle
+import TipKit
 
 @main
 struct SlateflowApp: App {
@@ -29,6 +30,8 @@ struct SlateflowApp: App {
         #endif
         Log.event("Launched - \(AppInfo.versionLine)")
         _store = State(initialValue: SlateStore())
+        // The one-time Customize tip; its shown/dismissed state persists across launches.
+        try? Tips.configure()
         #if !DEBUG
         // Debug builds never check: an update would replace them with the release build.
         // Check for Updates… stays disabled because the updater isn't started.

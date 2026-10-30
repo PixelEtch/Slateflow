@@ -17,6 +17,7 @@ struct ConfigurationForm: View {
             ProjectFolderSection(store: store)
             FormatSection(store: store)
             FootageSourcesSection(store: store)
+            CustomizeSection(store: store)
         }
         .formStyle(.grouped)
     }

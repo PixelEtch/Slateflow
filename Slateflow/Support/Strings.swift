@@ -72,6 +72,7 @@ enum Strings {
     }
 
     enum SmartCollections {
+        static let section = "Smart Collections"
         static let footer =
             "Enabled collections go into the project's .fcpxml and sort clips automatically on import."
         static let add = "Add Collection"
@@ -146,8 +147,20 @@ enum Strings {
         static let storageNote = "Saved locally in Application Support. Never leaves this Mac."
     }
 
+    nonisolated enum Customize {  // read by CustomizeTip, which TipKit requires to be nonisolated
+        static let title = "Folders and Smart Collections"
+        static func summary(folders: Int, collections: Int) -> String {
+            "\(folders) folder\(folders == 1 ? "" : "s") · \(collections) collection\(collections == 1 ? "" : "s")"
+        }
+        static let button = "Customize…"
+        static let tipTitle = "Make projects your own"
+        static let tipMessage = "Change the folders and Smart Collections every new project gets."
+    }
+
     enum Preview {
         static let footer = "Created inside the folder you choose when you create the project."
+        static let editFolders = "Edit Folders…"
+        static let editCollections = "Edit Smart Collections…"
         static func note(_ text: String) -> String { "· \(text)" }
     }
 

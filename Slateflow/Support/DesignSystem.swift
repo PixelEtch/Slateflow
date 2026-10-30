@@ -123,6 +123,7 @@ enum SFSymbol {
     static let leaveInPlace = "externaldrive"
     static let copyIntoLibrary = "tray.and.arrow.down.fill"
     static let addCollection = "plus"
+    static let finalCut = "film"
     static let remove = "minus.circle.fill"
     static let backup = "square.and.arrow.up.on.square"
     static let reuse = "arrow.triangle.2.circlepath"
