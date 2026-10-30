@@ -147,6 +147,10 @@ enum Strings {
         static let storageNote = "Saved locally in Application Support. Never leaves this Mac."
     }
 
+    enum Settings {
+        static let tabs = "Settings section"
+    }
+
     nonisolated enum Customize {  // read by CustomizeTip, which TipKit requires to be nonisolated
         static let title = "Folders and Smart Collections"
         static func summary(folders: Int, collections: Int) -> String {
