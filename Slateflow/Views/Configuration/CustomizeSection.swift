@@ -2,8 +2,8 @@
 //  CustomizeSection.swift
 //  Slateflow
 //
-//  One row that says what Settings holds - the folders and Smart Collections every
-//  project gets - so first-time users find it. Customize… opens Settings there.
+//  One row that says what Customize Projects holds - the folders and Smart Collections every
+//  project gets - so first-time users find it. Customize… opens that window.
 //
 
 import SwiftUI

@@ -147,7 +147,9 @@ enum Strings {
     }
 
     enum Settings {
-        static let tabs = "Settings section"
+        static let title = "Customize Projects"
+        static let menuItem = "Customize Projects…"
+        static let tabs = "Customize section"
         static let autosave = "Changes are saved automatically."
     }
 

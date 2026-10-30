@@ -50,6 +50,7 @@ struct SlateflowApp: App {
                 AboutMenuButton()
                 CheckForUpdatesView(updater: updaterController.updater)
             }
+            CommandGroup(replacing: .appSettings) { CustomizeProjectsCommand() }
             // Replaces New Window: ⌘N creates a project, as in other one-window apps.
             CommandGroup(replacing: .newItem) { BuildCommand() }
             // Replaces the default "Slateflow Help", which only says help isn't available.
@@ -67,9 +68,12 @@ struct SlateflowApp: App {
             }
         }
 
-        Settings {
+        // Folders and Smart Collections every new project gets. Not called Settings: it's the
+        // project template, so it has its own name, still on ⌘, (see CustomizeProjectsCommand).
+        Window(Strings.Settings.title, id: SettingsTab.windowID) {
             SettingsForm(store: store)
         }
+        .windowResizability(.contentSize)
 
         Window(Strings.About.menuItem, id: "about") {
             AboutView()

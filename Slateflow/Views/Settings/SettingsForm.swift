@@ -2,7 +2,7 @@
 //  SettingsForm.swift
 //  Slateflow
 //
-//  The Settings window (⌘,): options set once and rarely changed - the project's
+//  The Customize Projects window (⌘,): options set once and rarely changed - the project’s
 //  folders and the Final Cut setup. Shares the main window's store.
 //
 
@@ -12,6 +12,7 @@ import SwiftUI
 enum SettingsTab: String {
     case folders, smartCollections
     static let storageKey = "settingsTab"
+    static let windowID = "customize"
 }
 
 struct SettingsForm: View {
@@ -19,7 +20,9 @@ struct SettingsForm: View {
     @AppStorage(SettingsTab.storageKey) private var tab = SettingsTab.folders
 
     var body: some View {
-        Group {
+        VStack(spacing: 0) {
+            tabSwitch
+                .padding(.top, Spacing.md)
             switch tab {
             case .folders:
                 Form { FoldersSection(store: store) }
@@ -36,17 +39,25 @@ struct SettingsForm: View {
                 .padding(.vertical, Spacing.xs)
         }
         .frame(width: Size.Settings.width, height: Size.Settings.height)
-        // Same switch as the main window's Recent Projects / Folder Preview: in the toolbar
-        // it gets Liquid Glass on macOS 26.
-        .toolbar {
-            ToolbarItem(placement: .principal) {
-                Picker(Strings.Settings.tabs, selection: $tab) {
-                    Text(Strings.Folders.section).tag(SettingsTab.folders)
-                    Text(Strings.SmartCollections.section).tag(SettingsTab.smartCollections)
-                }
-                .pickerStyle(.segmented)
-                .labelsHidden()
-            }
+    }
+
+    /// Same size and Liquid Glass capsule as the main window's Recent Projects / Folder
+    /// Preview switch.
+    @ViewBuilder private var tabSwitch: some View {
+        let picker = Picker(Strings.Settings.tabs, selection: $tab) {
+            Text(Strings.Folders.section).tag(SettingsTab.folders)
+            Text(Strings.SmartCollections.section).tag(SettingsTab.smartCollections)
+        }
+        .pickerStyle(.segmented)
+        .labelsHidden()
+        .controlSize(.large)
+        .fixedSize()
+        if #available(macOS 26, *) {
+            picker
+                .padding(Spacing.xxxs)
+                .glassEffect(.regular, in: .capsule)
+        } else {
+            picker
         }
     }
 
@@ -88,13 +99,23 @@ struct SettingsButton: View {
     let title: String
     let tab: SettingsTab
     @AppStorage(SettingsTab.storageKey) private var settingsTab = SettingsTab.folders
-    @Environment(\.openSettings) private var openSettings
+    @Environment(\.openWindow) private var openWindow
 
     var body: some View {
         Button(title) {
             settingsTab = tab
-            openSettings()
+            openWindow(id: SettingsTab.windowID)
         }
+    }
+}
+
+/// Slateflow ▸ Customize Projects… (⌘,), in place of the standard Settings… item.
+struct CustomizeProjectsCommand: View {
+    @Environment(\.openWindow) private var openWindow
+
+    var body: some View {
+        Button(Strings.Settings.menuItem) { openWindow(id: SettingsTab.windowID) }
+            .keyboardShortcut(",", modifiers: .command)
     }
 }
 
