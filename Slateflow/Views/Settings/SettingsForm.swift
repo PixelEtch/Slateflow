@@ -33,10 +33,16 @@ struct SettingsForm: View {
         }
         // No Save button, as in macOS Settings: every change is stored as it's made.
         .safeAreaInset(edge: .bottom, spacing: 0) {
-            Text(Strings.Settings.autosave)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .padding(.vertical, Spacing.xs)
+            // A bar, like the main window's bottom bar, so the list scrolls under it.
+            VStack(spacing: 0) {
+                Divider()
+                Text(Strings.Settings.autosave)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, Spacing.xs)
+                    .background(.bar)
+            }
         }
         .frame(width: Size.Settings.width, height: Size.Settings.height)
     }
@@ -52,6 +58,8 @@ struct SettingsForm: View {
         .labelsHidden()
         .controlSize(.large)
         .fixedSize()
+        // Grey selection like the toolbar switch, not the accent blue a content picker gets.
+        .tint(Color(nsColor: .tertiaryLabelColor))
         if #available(macOS 26, *) {
             picker
                 .padding(Spacing.xxxs)
