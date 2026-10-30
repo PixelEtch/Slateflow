@@ -61,7 +61,6 @@ enum Strings {
     }
 
     enum FCP {
-        static let section = "Final Cut Pro"
         static let leaveFilesInPlace = "Leave files in place"
         static let leaveFilesInPlaceHelp =
             "Media stays in the project’s folders."

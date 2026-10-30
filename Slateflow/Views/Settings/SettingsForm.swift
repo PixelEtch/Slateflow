@@ -10,7 +10,7 @@ import SwiftUI
 
 /// The Settings tab, remembered so Customize… and the Edit links open the right one.
 enum SettingsTab: String {
-    case folders, finalCut
+    case folders, smartCollections
     static let storageKey = "settingsTab"
 }
 
@@ -24,8 +24,8 @@ struct SettingsForm: View {
             case .folders:
                 Form { FoldersSection(store: store) }
                     .formStyle(.grouped)
-            case .finalCut:
-                finalCut
+            case .smartCollections:
+                smartCollections
             }
         }
         // No Save button, as in macOS Settings: every change is stored as it's made.
@@ -42,7 +42,7 @@ struct SettingsForm: View {
             ToolbarItem(placement: .principal) {
                 Picker(Strings.Settings.tabs, selection: $tab) {
                     Text(Strings.Folders.section).tag(SettingsTab.folders)
-                    Text(Strings.FCP.section).tag(SettingsTab.finalCut)
+                    Text(Strings.SmartCollections.section).tag(SettingsTab.smartCollections)
                 }
                 .pickerStyle(.segmented)
                 .labelsHidden()
@@ -50,7 +50,7 @@ struct SettingsForm: View {
         }
     }
 
-    private var finalCut: some View {
+    private var smartCollections: some View {
         Form {
             Section {
                 // Same shape as a collection row: text, then a centred switch.

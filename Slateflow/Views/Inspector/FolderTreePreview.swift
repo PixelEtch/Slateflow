@@ -21,7 +21,7 @@ struct FolderTreePreview: View {
                     // Change what you see, right where you see it.
                     HStack(spacing: Spacing.md) {
                         SettingsButton(title: Strings.Preview.editFolders, tab: .folders)
-                        SettingsButton(title: Strings.Preview.editCollections, tab: .finalCut)
+                        SettingsButton(title: Strings.Preview.editCollections, tab: .smartCollections)
                     }
                     .buttonStyle(.link)
                 }
