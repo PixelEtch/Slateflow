@@ -2,7 +2,7 @@
 
 All notable changes to Slateflow are listed here.
 
-## Unreleased
+## 1.0.0-alpha.5 - 2026-10-30
 
 ### Added
 - Color space: Standard (Rec. 709), Wide Gamut (Rec. 2020), HDR (Rec. 2020 HLG) or HDR (Rec. 2020 PQ). The timelines use it and the library is set up to match: Standard, Wide Gamut or Wide Gamut HDR. Footage from any camera is converted to it.
