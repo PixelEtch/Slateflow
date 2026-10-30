@@ -29,24 +29,18 @@ struct SettingsForm: View {
             }
         }
         .frame(width: Size.Settings.width, height: Size.Settings.height)
-        // Icon tabs as in Xcode's inspectors. In the toolbar they get Liquid Glass on
-        // macOS 26, like the main window's switch.
+        // Same switch as the main window's Recent Projects / Folder Preview: in the toolbar
+        // it gets Liquid Glass on macOS 26.
         .toolbar {
             ToolbarItem(placement: .principal) {
                 Picker(Strings.Settings.tabs, selection: $tab) {
-                    tabIcon(Strings.Folders.section, SFSymbol.folder).tag(SettingsTab.folders)
-                    tabIcon(Strings.FCP.section, SFSymbol.finalCut).tag(SettingsTab.finalCut)
+                    Text(Strings.Folders.section).tag(SettingsTab.folders)
+                    Text(Strings.FCP.section).tag(SettingsTab.finalCut)
                 }
                 .pickerStyle(.segmented)
                 .labelsHidden()
             }
         }
-    }
-
-    private func tabIcon(_ title: String, _ symbol: String) -> some View {
-        Label(title, systemImage: symbol)
-            .labelStyle(.iconOnly)
-            .help(title)
     }
 
     private var finalCut: some View {
