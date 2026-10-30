@@ -61,11 +61,12 @@ struct FormatSection: View {
             LabeledContent(Strings.Format.outputSize, value: store.settings.format.pixelDimensions)
 
             // A second Text is the grouped form's subtitle line.
-            Toggle(isOn: $store.settings.fcp.hdr) {
-                Text(Strings.Format.hdr)
-                Text(Strings.Format.hdrHelp)
+            Picker(selection: $store.settings.fcp.colorSpace) {
+                ForEach(ColorSpace.allCases) { Text($0.label).tag($0) }
+            } label: {
+                Text(Strings.Format.colorSpace)
+                Text(Strings.Format.colorSpaceHelp)
             }
-            .toggleStyle(.switch)
 
             if store.settings.canAddReelTimeline {
                 Toggle(isOn: $store.settings.fcp.reelTimeline) {

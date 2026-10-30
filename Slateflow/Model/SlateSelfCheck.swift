@@ -147,7 +147,7 @@ func slateSelfCheck() {
     saver.settings.templateName = "Round Trip"
     saver.settings.fcp.frameRate = .fps59_94
     saver.settings.fcp.keepMediaInPlace = false
-    saver.settings.fcp.hdr = true
+    saver.settings.fcp.colorSpace = .pq
     saver.settings.fcp.reelTimeline = true
     saver.settings.setFootageSource(.camB, enabled: false)
     saver.settings.addCustomFootageSource("Lumix")
@@ -167,7 +167,7 @@ func slateSelfCheck() {
     assert(loaded.settings.templateName == "Round Trip", "template name not restored")
     assert(loaded.settings.fcp.frameRate == .fps59_94, "frame rate not restored")
     assert(loaded.settings.fcp.keepMediaInPlace == false, "leave-in-place not restored")
-    assert(loaded.settings.fcp.hdr && loaded.settings.fcp.reelTimeline, "HDR / reel timeline not restored")
+    assert(loaded.settings.fcp.colorSpace == .pq && loaded.settings.fcp.reelTimeline, "color space / reel timeline not restored")
     assert(loaded.settings.footageSources == [.camA, .custom("Lumix")], "footage sources not restored")
     assert(loaded.settings.fcp.videoRoles == saver.settings.fcp.videoRoles && loaded.settings.fcp.videoRoles.contains("Interview"))
     assert(loaded.settings.fcp.audioRoles == saver.settings.fcp.audioRoles && loaded.settings.fcp.audioRoles.contains("Ambience"))
@@ -479,14 +479,22 @@ func slateSelfCheck() {
     reel.choice = .custom
     assert(reel.reelFormat == nil, "reel timeline on a custom size")
 
-    // HDR + reel: a wide-gamut HDR library, HLG formats, and a second project on r2.
+    // HLG + reel: a wide-gamut HDR library, HLG formats, and a second project on r2.
     var hdrSettings = FCPLibrarySettings()
-    hdrSettings.hdr = true
+    hdrSettings.colorSpace = .hlg
     let hdrDoc = FCPXML.document(settings: hdrSettings, format: .uhd4k,
                                  reelFormat: VideoFormat(width: 2160, height: 3840), eventName: "E")
     assert(hdrDoc.contains(#"<library colorProcessing="wide-hdr">"#), "HDR library missing")
     assert(hdrDoc.contains(#"<format id="r2" name="Slate 2160×3840" width="2160" height="3840""#))
     assert(!hdrDoc.contains("Rec. 709") && hdrDoc.contains(#"colorSpace="9-18-9 (Rec. 2020 HLG)""#))
     assert(hdrDoc.contains("<project name=\"E Reel\">\n<sequence format=\"r2\""), "reel project missing")
+    // Each color space sets its library processing to match.
+    for (space, library) in [(ColorSpace.rec709, "<library>"), (.rec2020, #"<library colorProcessing="wide">"#),
+                             (.pq, #"<library colorProcessing="wide-hdr">"#)] {
+        var settings = FCPLibrarySettings()
+        settings.colorSpace = space
+        let doc = FCPXML.document(settings: settings, format: .hd1080, eventName: "E")
+        assert(doc.contains(library) && doc.contains(#"colorSpace="\#(space.fcpxmlValue)""#), "color space \(space)")
+    }
 }
 #endif

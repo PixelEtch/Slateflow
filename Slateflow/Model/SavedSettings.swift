@@ -39,7 +39,7 @@ struct SavedSettings {
         static let frameRate = "frameRate", footageSources = "footageSources"
         static let videoRoles = "videoRoles", audioRoles = "audioRoles"
         static let smartCollections = "smartCollections", folders = "folders"
-        static let hdr = "hdr", reelTimeline = "reelTimeline"
+        static let colorSpace = "colorSpace", reelTimeline = "reelTimeline"
     }
 
     /// Saved values where present and valid, defaults otherwise.
@@ -64,7 +64,7 @@ struct SavedSettings {
         if d.object(forKey: Key.keepMediaInPlace) != nil {
             s.fcp.keepMediaInPlace = d.bool(forKey: Key.keepMediaInPlace)
         }
-        s.fcp.hdr = d.bool(forKey: Key.hdr)
+        if let raw = d.string(forKey: Key.colorSpace), let c = ColorSpace(rawValue: raw) { s.fcp.colorSpace = c }
         s.fcp.reelTimeline = d.bool(forKey: Key.reelTimeline)
         if let roles = d.stringArray(forKey: Key.videoRoles) { s.fcp.videoRoles = roles }
         if let roles = d.stringArray(forKey: Key.audioRoles) { s.fcp.audioRoles = roles }
@@ -91,7 +91,7 @@ struct SavedSettings {
         d.set(footageSources.map(\.folderName), forKey: Key.footageSources)
         d.set(fcp.keepMediaInPlace, forKey: Key.keepMediaInPlace)
         d.set(fcp.frameRate.rawValue, forKey: Key.frameRate)
-        d.set(fcp.hdr, forKey: Key.hdr)
+        d.set(fcp.colorSpace.rawValue, forKey: Key.colorSpace)
         d.set(fcp.reelTimeline, forKey: Key.reelTimeline)
         d.set(fcp.videoRoles, forKey: Key.videoRoles)
         d.set(fcp.audioRoles, forKey: Key.audioRoles)

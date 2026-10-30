@@ -20,7 +20,7 @@ nonisolated struct ProjectManifest: Codable {
     var aspectRatio: String
     var frameRate: String
     var leaveFilesInPlace: Bool
-    var hdr: Bool
+    var colorSpace: String
     /// The extra 9:16 timeline's size, e.g. "2160 × 3840"; nil when none was built.
     var reelTimeline: String?
     var videoRoles: [String]
@@ -39,7 +39,7 @@ nonisolated struct ProjectManifest: Codable {
         aspectRatio = s.format.aspectRatio
         frameRate = s.fcp.frameRate.label
         leaveFilesInPlace = s.fcp.keepMediaInPlace
-        hdr = s.fcp.hdr
+        colorSpace = s.fcp.colorSpace.label
         reelTimeline = s.reelFormat?.pixelDimensions
         videoRoles = s.fcp.videoRoles
         audioRoles = s.fcp.audioRoles

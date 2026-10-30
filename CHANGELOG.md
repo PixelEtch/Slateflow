@@ -5,7 +5,7 @@ All notable changes to Slateflow are listed here.
 ## Unreleased
 
 ### Added
-- HDR: builds a wide-gamut HDR library with Rec. 2020 HLG timelines, the format iPhones and most cameras record HDR in.
+- Color space: Standard (Rec. 709), Wide Gamut (Rec. 2020), HDR (Rec. 2020 HLG) or HDR (Rec. 2020 PQ). The timelines use it and the library is set up to match: Standard, Wide Gamut or Wide Gamut HDR. HLG is what iPhones and most cameras record HDR in.
 - Reel timeline: also adds a 9:16 timeline (for example 2160 × 3840 at 4K) next to the main one, for cutting a reel from the same shoot. Offered for landscape and portrait projects at a preset resolution.
 
 ### Fixed

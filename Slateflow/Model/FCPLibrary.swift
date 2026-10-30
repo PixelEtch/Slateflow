@@ -197,15 +197,50 @@ nonisolated enum FrameRate: Double, CaseIterable, Identifiable {
     }
 }
 
+// MARK: - Color space
+
+/// The timelines' color space. The library's color processing follows it: a library can
+/// only hold timelines up to its own gamut.
+nonisolated enum ColorSpace: String, CaseIterable, Identifiable {
+    case rec709, rec2020, hlg, pq
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .rec709:  "Standard (Rec. 709)"
+        case .rec2020: "Wide Gamut (Rec. 2020)"
+        case .hlg:     "HDR (Rec. 2020 HLG)"
+        case .pq:      "HDR (Rec. 2020 PQ)"
+        }
+    }
+
+    /// FCPXML `format colorSpace`, as Final Cut writes it.
+    var fcpxmlValue: String {
+        switch self {
+        case .rec709:  "1-1-1 (Rec. 709)"
+        case .rec2020: "9-1-9 (Rec. 2020)"
+        case .hlg:     "9-18-9 (Rec. 2020 HLG)"
+        case .pq:      "9-16-9 (Rec. 2020 PQ)"
+        }
+    }
+
+    /// FCPXML `library colorProcessing`; nil for standard, Final Cut's default.
+    var libraryProcessing: String? {
+        switch self {
+        case .rec709:      nil
+        case .rec2020:     "wide"
+        case .hlg, .pq:    "wide-hdr"
+        }
+    }
+}
+
 // MARK: - Library settings
 
 struct FCPLibrarySettings {
     /// "Leave files in place" - media stays in the project folders, not copied into the library.
     var keepMediaInPlace = true
     var frameRate: FrameRate = .fps25
-    /// Wide-gamut HDR library with Rec. 2020 HLG timelines - the format iPhones and most
-    /// cameras record HDR in. Off: a standard Rec. 709 library.
-    var hdr = false
+    var colorSpace: ColorSpace = .rec709
     /// Also add a 9:16 timeline for reels, next to the main one. See `SavedSettings.reelFormat`.
     var reelTimeline = false
     static let defaultVideoRoles = ["Footage", "Graphics", "Titles"]
@@ -267,7 +302,7 @@ nonisolated enum FCPXML {
         \(importOptions)<resources>
         \(formatElement("r1", format, settings))\(reelFormat.map { "\n" + formatElement("r2", $0, settings) } ?? "")
         </resources>
-        <library\(settings.hdr ? #" colorProcessing="wide-hdr""# : "")>
+        <library\(settings.colorSpace.libraryProcessing.map { #" colorProcessing="\#($0)""# } ?? "")>
         <event name="\(escape(eventName))">
         \(project(eventName, format: "r1"))\(reelFormat == nil ? "" : "\n" + project("\(eventName) Reel", format: "r2"))
         \(collections)
@@ -278,9 +313,8 @@ nonisolated enum FCPXML {
     }
 
     private static func formatElement(_ id: String, _ format: VideoFormat, _ settings: FCPLibrarySettings) -> String {
-        let colorSpace = settings.hdr ? "9-18-9 (Rec. 2020 HLG)" : "1-1-1 (Rec. 709)"
         let name = "Slate \(format.width)×\(format.height)"
-        return #"<format id="\#(id)" name="\#(escape(name))" width="\#(format.width)" height="\#(format.height)" frameDuration="\#(settings.frameRate.frameDurationFCPX)" colorSpace="\#(colorSpace)"/>"#
+        return #"<format id="\#(id)" name="\#(escape(name))" width="\#(format.width)" height="\#(format.height)" frameDuration="\#(settings.frameRate.frameDurationFCPX)" colorSpace="\#(settings.colorSpace.fcpxmlValue)"/>"#
     }
 
     /// An empty timeline on `format`.
