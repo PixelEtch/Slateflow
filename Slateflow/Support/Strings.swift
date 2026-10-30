@@ -27,7 +27,7 @@ enum Strings {
         static let dimensionSeparator = "×"
         static let dimensionsOdd = "Final Cut needs even dimensions - odd values round down on build."
         static let colorSpace = "Color space"
-        static let colorSpaceHelp = "HLG matches iPhone and most camera HDR. The library is set up to match."
+        static let colorSpaceHelp = "The color space you edit and export in. Footage from any camera is converted to it, and the library is set up to match."
         static let reelTimeline = "Reel timeline"
         static let reelTimelineHelp = "Also adds a 9:16 timeline for reels, next to the main one."
         static let dimensionsTooSmall = "Width and height must be at least \(VideoFormat.minimumSide) px."

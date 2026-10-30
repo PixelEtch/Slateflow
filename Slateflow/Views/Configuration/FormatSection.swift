@@ -66,12 +66,9 @@ struct FormatSection: View {
             .help(Strings.Format.colorSpaceHelp)
 
             if store.settings.canAddReelTimeline {
-                // A second Text is the grouped form's subtitle line.
-                Toggle(isOn: $store.settings.fcp.reelTimeline) {
-                    Text(Strings.Format.reelTimeline)
-                    Text(Strings.Format.reelTimelineHelp)
-                }
-                .toggleStyle(.switch)
+                Toggle(Strings.Format.reelTimeline, isOn: $store.settings.fcp.reelTimeline)
+                    .toggleStyle(.switch)
+                    .help(Strings.Format.reelTimelineHelp)
             }
         }
     }
