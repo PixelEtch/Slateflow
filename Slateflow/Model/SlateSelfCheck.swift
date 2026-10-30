@@ -494,7 +494,7 @@ func slateSelfCheck() {
         var settings = FCPLibrarySettings()
         settings.colorSpace = space
         let doc = FCPXML.document(settings: settings, format: .hd1080, eventName: "E")
-        assert(doc.contains(library) && doc.contains(#"colorSpace="\#(space.fcpxmlValue)""#), "color space \(space)")
+        assert(doc.contains(library) && doc.contains(#"colorSpace="\#(space.rawValue)""#), "color space \(space)")
     }
 }
 #endif

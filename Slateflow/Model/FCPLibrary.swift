@@ -199,10 +199,14 @@ nonisolated enum FrameRate: Double, CaseIterable, Identifiable {
 
 // MARK: - Color space
 
-/// The timelines' color space. The library's color processing follows it: a library can
-/// only hold timelines up to its own gamut.
+/// The timelines' color space; the raw value is FCPXML's `format colorSpace`, as Final Cut
+/// writes it. The library's color processing follows it: a library only holds timelines up
+/// to its own gamut.
 nonisolated enum ColorSpace: String, CaseIterable, Identifiable {
-    case rec709, rec2020, hlg, pq
+    case rec709  = "1-1-1 (Rec. 709)"
+    case rec2020 = "9-1-9 (Rec. 2020)"
+    case hlg     = "9-18-9 (Rec. 2020 HLG)"
+    case pq      = "9-16-9 (Rec. 2020 PQ)"
     var id: String { rawValue }
 
     var label: String {
@@ -211,16 +215,6 @@ nonisolated enum ColorSpace: String, CaseIterable, Identifiable {
         case .rec2020: "Wide Gamut (Rec. 2020)"
         case .hlg:     "HDR (Rec. 2020 HLG)"
         case .pq:      "HDR (Rec. 2020 PQ)"
-        }
-    }
-
-    /// FCPXML `format colorSpace`, as Final Cut writes it.
-    var fcpxmlValue: String {
-        switch self {
-        case .rec709:  "1-1-1 (Rec. 709)"
-        case .rec2020: "9-1-9 (Rec. 2020)"
-        case .hlg:     "9-18-9 (Rec. 2020 HLG)"
-        case .pq:      "9-16-9 (Rec. 2020 PQ)"
         }
     }
 
@@ -314,7 +308,7 @@ nonisolated enum FCPXML {
 
     private static func formatElement(_ id: String, _ format: VideoFormat, _ settings: FCPLibrarySettings) -> String {
         let name = "Slate \(format.width)×\(format.height)"
-        return #"<format id="\#(id)" name="\#(escape(name))" width="\#(format.width)" height="\#(format.height)" frameDuration="\#(settings.frameRate.frameDurationFCPX)" colorSpace="\#(settings.colorSpace.fcpxmlValue)"/>"#
+        return #"<format id="\#(id)" name="\#(escape(name))" width="\#(format.width)" height="\#(format.height)" frameDuration="\#(settings.frameRate.frameDurationFCPX)" colorSpace="\#(settings.colorSpace.rawValue)"/>"#
     }
 
     /// An empty timeline on `format`.

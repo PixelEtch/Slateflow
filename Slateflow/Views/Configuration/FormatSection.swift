@@ -71,8 +71,7 @@ struct FormatSection: View {
             if store.settings.canAddReelTimeline {
                 Toggle(isOn: $store.settings.fcp.reelTimeline) {
                     Text(Strings.Format.reelTimeline)
-                    Text(Strings.Format.reelTimelineHelp(
-                        size: AspectRatio.vertical916.apply(to: store.settings.choice.preset ?? .hd1080).pixelDimensions))
+                    Text(Strings.Format.reelTimelineHelp)
                 }
                 .toggleStyle(.switch)
             }
