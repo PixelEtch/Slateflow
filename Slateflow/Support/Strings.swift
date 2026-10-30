@@ -26,6 +26,12 @@ enum Strings {
         static let aspectRatio = "Aspect ratio"
         static let dimensionSeparator = "×"
         static let dimensionsOdd = "Final Cut needs even dimensions - odd values round down on build."
+        static let hdr = "HDR"
+        static let hdrHelp = "Wide-gamut HDR library and Rec. 2020 HLG timelines, as iPhones and most cameras record."
+        static let reelTimeline = "Reel timeline"
+        static func reelTimelineHelp(size: String) -> String {
+            "Also adds a 9:16 timeline (\(size)) for reels, next to the main one."
+        }
         static let dimensionsTooSmall = "Width and height must be at least \(VideoFormat.minimumSide) px."
     }
 

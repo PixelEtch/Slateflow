@@ -135,7 +135,7 @@ nonisolated enum ProjectLayout {
             Log.event("Directory tree written (\(snapshot.footageSources.count) footage sources)")
 
             try snapshot.fcp.write(into: rootURL.appendingPathComponent(fcpFolder),
-                                   format: snapshot.format, eventName: root)
+                                   format: snapshot.format, reelFormat: snapshot.reelFormat, eventName: root)
             try ProjectManifest(snapshot: snapshot, root: root).write(to: rootURL)
             Log.event("FCPXML and manifest written; build complete: “\(root)”")
         } catch {

@@ -59,6 +59,22 @@ struct FormatSection: View {
             }
 
             LabeledContent(Strings.Format.outputSize, value: store.settings.format.pixelDimensions)
+
+            // A second Text is the grouped form's subtitle line.
+            Toggle(isOn: $store.settings.fcp.hdr) {
+                Text(Strings.Format.hdr)
+                Text(Strings.Format.hdrHelp)
+            }
+            .toggleStyle(.switch)
+
+            if store.settings.canAddReelTimeline {
+                Toggle(isOn: $store.settings.fcp.reelTimeline) {
+                    Text(Strings.Format.reelTimeline)
+                    Text(Strings.Format.reelTimelineHelp(
+                        size: AspectRatio.vertical916.apply(to: store.settings.choice.preset ?? .hd1080).pixelDimensions))
+                }
+                .toggleStyle(.switch)
+            }
         }
     }
 }

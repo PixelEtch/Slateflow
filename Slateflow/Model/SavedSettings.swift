@@ -39,6 +39,7 @@ struct SavedSettings {
         static let frameRate = "frameRate", footageSources = "footageSources"
         static let videoRoles = "videoRoles", audioRoles = "audioRoles"
         static let smartCollections = "smartCollections", folders = "folders"
+        static let hdr = "hdr", reelTimeline = "reelTimeline"
     }
 
     /// Saved values where present and valid, defaults otherwise.
@@ -63,6 +64,8 @@ struct SavedSettings {
         if d.object(forKey: Key.keepMediaInPlace) != nil {
             s.fcp.keepMediaInPlace = d.bool(forKey: Key.keepMediaInPlace)
         }
+        s.fcp.hdr = d.bool(forKey: Key.hdr)
+        s.fcp.reelTimeline = d.bool(forKey: Key.reelTimeline)
         if let roles = d.stringArray(forKey: Key.videoRoles) { s.fcp.videoRoles = roles }
         if let roles = d.stringArray(forKey: Key.audioRoles) { s.fcp.audioRoles = roles }
         if let data = d.data(forKey: Key.smartCollections),
@@ -88,6 +91,8 @@ struct SavedSettings {
         d.set(footageSources.map(\.folderName), forKey: Key.footageSources)
         d.set(fcp.keepMediaInPlace, forKey: Key.keepMediaInPlace)
         d.set(fcp.frameRate.rawValue, forKey: Key.frameRate)
+        d.set(fcp.hdr, forKey: Key.hdr)
+        d.set(fcp.reelTimeline, forKey: Key.reelTimeline)
         d.set(fcp.videoRoles, forKey: Key.videoRoles)
         d.set(fcp.audioRoles, forKey: Key.audioRoles)
         d.set(try? JSONEncoder().encode(fcp.smartCollections), forKey: Key.smartCollections)
@@ -120,6 +125,16 @@ extension SavedSettings {
     var format: VideoFormat {
         if let preset = choice.preset { return aspect.apply(to: preset) }
         return .custom(width: customWidth, height: customHeight)
+    }
+
+    /// Whether the 9:16 reel timeline can be offered: it's sized from a resolution preset,
+    /// and a vertical project already is one.
+    var canAddReelTimeline: Bool { choice.preset != nil && orientation != .vertical }
+
+    /// The extra 9:16 timeline's size (e.g. 4K → 2160 × 3840); nil when it's off or can't apply.
+    var reelFormat: VideoFormat? {
+        guard fcp.reelTimeline, canAddReelTimeline, let preset = choice.preset else { return nil }
+        return AspectRatio.vertical916.apply(to: preset)
     }
 
     /// Non-nil when the typed custom dimensions will be corrected on build.

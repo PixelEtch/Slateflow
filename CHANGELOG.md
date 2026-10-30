@@ -4,6 +4,10 @@ All notable changes to Slateflow are listed here.
 
 ## Unreleased
 
+### Added
+- HDR: builds a wide-gamut HDR library with Rec. 2020 HLG timelines, the format iPhones and most cameras record HDR in.
+- Reel timeline: also adds a 9:16 timeline (for example 2160 × 3840 at 4K) next to the main one, for cutting a reel from the same shoot. Offered for landscape and portrait projects at a preset resolution.
+
 ### Fixed
 - Open in Final Cut Pro works again after relaunching Slateflow. With a remembered build folder, macOS said Slateflow didn't have permission to open the project's `.fcpxml`, and the success window said Final Cut hadn't created the library. Broken since 1.0.0-alpha.3.
 

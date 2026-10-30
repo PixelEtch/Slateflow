@@ -31,7 +31,7 @@ func slateSelfCheck() {
     // Build Archives: records persist, export/import round-trips, importing twice adds nothing.
     let archiveSnapshot = BuildSnapshot(
         templateName: "A", choice: .hd1080, orientation: .landscape, aspect: .wide169,
-        format: .hd1080, fcp: FCPLibrarySettings(), footageSources: [.camA], folders: ProjectLayout.defaultFolders)
+        format: .hd1080, reelFormat: nil, fcp: FCPLibrarySettings(), footageSources: [.camA], folders: ProjectLayout.defaultFolders)
     let archive = scratchHistory()
     archive.record(BuildRecord(snapshot: archiveSnapshot, rootFolder: "001 - A"))
     archive.record(BuildRecord(snapshot: archiveSnapshot, rootFolder: "002 - A"))
@@ -147,6 +147,8 @@ func slateSelfCheck() {
     saver.settings.templateName = "Round Trip"
     saver.settings.fcp.frameRate = .fps59_94
     saver.settings.fcp.keepMediaInPlace = false
+    saver.settings.fcp.hdr = true
+    saver.settings.fcp.reelTimeline = true
     saver.settings.setFootageSource(.camB, enabled: false)
     saver.settings.addCustomFootageSource("Lumix")
     saver.settings.fcp.addRole("Interview", to: \.videoRoles)
@@ -165,6 +167,7 @@ func slateSelfCheck() {
     assert(loaded.settings.templateName == "Round Trip", "template name not restored")
     assert(loaded.settings.fcp.frameRate == .fps59_94, "frame rate not restored")
     assert(loaded.settings.fcp.keepMediaInPlace == false, "leave-in-place not restored")
+    assert(loaded.settings.fcp.hdr && loaded.settings.fcp.reelTimeline, "HDR / reel timeline not restored")
     assert(loaded.settings.footageSources == [.camA, .custom("Lumix")], "footage sources not restored")
     assert(loaded.settings.fcp.videoRoles == saver.settings.fcp.videoRoles && loaded.settings.fcp.videoRoles.contains("Interview"))
     assert(loaded.settings.fcp.audioRoles == saver.settings.fcp.audioRoles && loaded.settings.fcp.audioRoles.contains("Ambience"))
@@ -295,7 +298,7 @@ func slateSelfCheck() {
     defer { try? FileManager.default.removeItem(at: buildTmp) }
     let buildSnapshot = BuildSnapshot(
         templateName: "SlateTemplate", choice: .uhd4k, orientation: .landscape, aspect: .wide169,
-        format: .uhd4k, fcp: FCPLibrarySettings(), footageSources: sources, folders: ProjectLayout.defaultFolders)
+        format: .uhd4k, reelFormat: nil, fcp: FCPLibrarySettings(), footageSources: sources, folders: ProjectLayout.defaultFolders)
     let built = try! ProjectLayout.build(buildSnapshot, in: buildTmp)
     assert(built.lastPathComponent == "001 - SlateTemplate")
     let planned = ProjectLayout.plan(root: "001 - SlateTemplate", folders: ProjectLayout.defaultFolders, footageSources: sources)
@@ -333,7 +336,7 @@ func slateSelfCheck() {
     defer { try? FileManager.default.removeItem(at: failTmp) }
     let tooLong = BuildSnapshot(
         templateName: String(repeating: "x", count: 245), choice: .uhd4k, orientation: .landscape,
-        aspect: .wide169, format: .uhd4k, fcp: FCPLibrarySettings(), footageSources: [], folders: ProjectLayout.defaultFolders)
+        aspect: .wide169, format: .uhd4k, reelFormat: nil, fcp: FCPLibrarySettings(), footageSources: [], folders: ProjectLayout.defaultFolders)
     assert((try? ProjectLayout.build(tooLong, in: failTmp)) == nil, "oversized build should fail")
     assert((try? FileManager.default.contentsOfDirectory(atPath: failTmp.path))?.isEmpty == true,
            "failed build left a partial folder")
@@ -460,5 +463,30 @@ func slateSelfCheck() {
     assert(located.contains("<library>\n<event"))
     let unlocated = FCPXML.document(settings: FCPLibrarySettings(), format: .hd1080, eventName: "E")
     assert(!unlocated.contains("import-options") && unlocated.contains("<library>"))
+    assert(unlocated.contains(#"colorSpace="1-1-1 (Rec. 709)""#) && !unlocated.contains("<project name=\"E Reel\">"))
+
+    // Reel timeline: a 9:16 sibling of a preset landscape or portrait project, never of a
+    // vertical or custom one.
+    var reel = SavedSettings()
+    reel.choice = .uhd4k
+    reel.orientation = .landscape
+    assert(reel.reelFormat == nil, "reel timeline built while off")
+    reel.fcp.reelTimeline = true
+    assert(reel.reelFormat == VideoFormat(width: 2160, height: 3840), "reel size: \(String(describing: reel.reelFormat))")
+    reel.orientation = .vertical
+    assert(reel.reelFormat == nil && !reel.canAddReelTimeline, "reel timeline on a vertical project")
+    reel.orientation = .landscape
+    reel.choice = .custom
+    assert(reel.reelFormat == nil, "reel timeline on a custom size")
+
+    // HDR + reel: a wide-gamut HDR library, HLG formats, and a second project on r2.
+    var hdrSettings = FCPLibrarySettings()
+    hdrSettings.hdr = true
+    let hdrDoc = FCPXML.document(settings: hdrSettings, format: .uhd4k,
+                                 reelFormat: VideoFormat(width: 2160, height: 3840), eventName: "E")
+    assert(hdrDoc.contains(#"<library colorProcessing="wide-hdr">"#), "HDR library missing")
+    assert(hdrDoc.contains(#"<format id="r2" name="Slate 2160×3840" width="2160" height="3840""#))
+    assert(!hdrDoc.contains("Rec. 709") && hdrDoc.contains(#"colorSpace="9-18-9 (Rec. 2020 HLG)""#))
+    assert(hdrDoc.contains("<project name=\"E Reel\">\n<sequence format=\"r2\""), "reel project missing")
 }
 #endif
