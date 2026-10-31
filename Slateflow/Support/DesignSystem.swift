@@ -79,8 +79,6 @@ enum Size {
     enum Settings {
         static let width: CGFloat = 520
         static let height: CGFloat = 600
-        /// One segment of the Folders / Smart Collections switch.
-        static let tabWidth: CGFloat = 160
     }
 
     /// Inspector column width.

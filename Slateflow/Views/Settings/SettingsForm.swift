@@ -35,8 +35,6 @@ struct SettingsForm: View {
     @Bindable var store: SlateStore
     @AppStorage(SettingsTab.storageKey) private var tab = SettingsTab.folders
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    /// How far the pill is being dragged, in points, from its tab.
-    @State private var dragOffset: CGFloat = 0
 
     var body: some View {
         VStack(spacing: 0) {
@@ -84,54 +82,20 @@ struct SettingsForm: View {
         withAnimation(reduceMotion ? nil : .smooth(duration: 0.25)) { tab = item }
     }
 
-    /// macOS 26: a glass track with a pill you can click or drag to a tab; it follows the
-    /// pointer and snaps to the nearest tab on release. The glass sits behind the labels
-    /// (glass over text blurs it). Before 26: the system segmented control. Either way
-    /// VoiceOver sees a two-option switch.
+    /// The system segmented switch, the size of the main window's Recent Projects / Folder
+    /// Preview switch: grey selection, and a glass capsule on macOS 26.
     @ViewBuilder private var tabSwitch: some View {
+        let picker = segmentedPicker
+            .controlSize(.large)
+            .fixedSize()
+            // Grey selection like the toolbar switch, not the accent blue a content picker gets.
+            .tint(Color(nsColor: .tertiaryLabelColor))
         if #available(macOS 26, *) {
-            let width = Size.Settings.tabWidth
-            let tabs = SettingsTab.allCases
-            let index = CGFloat(tabs.firstIndex(of: tab) ?? 0)
-            let maxOffset = CGFloat(tabs.count - 1) * width
-            HStack(spacing: 0) {
-                ForEach(tabs, id: \.self) { item in
-                    Button { select(item) } label: {
-                        Text(item.title)
-                            .foregroundStyle(tab == item ? .primary : .secondary)
-                            .frame(width: width)
-                            .padding(.vertical, Spacing.xs)
-                            .contentShape(Capsule())
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .background(alignment: .leading) {
-                Capsule()
-                    .fill(.quaternary)
-                    .frame(width: width)
-                    .offset(x: min(max(index * width + dragOffset, 0), maxOffset))
-            }
-            .padding(Spacing.xxxs)
-            .glassEffect(.regular, in: .capsule)
-            .gesture(
-                DragGesture(minimumDistance: 3)
-                    .onChanged { dragOffset = $0.translation.width }
-                    .onEnded { drag in
-                        let landed = ((index * width + drag.translation.width) / width).rounded()
-                        let target = tabs[Int(min(max(landed, 0), CGFloat(tabs.count - 1)))]
-                        withAnimation(reduceMotion ? nil : .smooth(duration: 0.25)) {
-                            tab = target
-                            dragOffset = 0
-                        }
-                    }
-            )
-            .accessibilityRepresentation { segmentedPicker }
+            picker
+                .padding(Spacing.xxxs)
+                .glassEffect(.regular, in: .capsule)
         } else {
-            segmentedPicker
-                .controlSize(.large)
-                .fixedSize()
-                .tint(Color(nsColor: .tertiaryLabelColor))   // grey, not the accent blue
+            picker
         }
     }
 
