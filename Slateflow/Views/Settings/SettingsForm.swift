@@ -108,12 +108,7 @@ struct SettingsForm: View {
             Section {
                 // Same shape as a collection row: text, then a centred switch.
                 HStack {
-                    VStack(alignment: .leading, spacing: Spacing.xxxs) {
-                        Text(Strings.FCP.leaveFilesInPlace)
-                        Text(Strings.FCP.leaveFilesInPlaceHelp)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
+                    RowLabel(title: Strings.FCP.leaveFilesInPlace, hint: Strings.FCP.leaveFilesInPlaceHelp)
                     Spacer()
                     Toggle(Strings.FCP.leaveFilesInPlace, isOn: $store.settings.fcp.keepMediaInPlace)
                         .toggleStyle(.switch)

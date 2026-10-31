@@ -24,6 +24,7 @@ struct FolderTreePreview: View {
                         SettingsButton(title: Strings.Preview.editCollections, tab: .smartCollections)
                     }
                     .buttonStyle(.link)
+                    .font(.callout)   // same size as every other link in the app
                 }
                 .font(.caption)
             }

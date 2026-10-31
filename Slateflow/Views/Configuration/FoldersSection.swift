@@ -25,27 +25,13 @@ struct FoldersSection: View {
 
     var body: some View {
         Section {
-            // Same expand as a Recent Projects row: the list is always there and animates
-            // its height and opacity, so it glides open instead of snapping in.
-            VStack(alignment: .leading, spacing: 0) {
-                HStack(spacing: Spacing.xs) {
-                    Image(systemName: SFSymbol.disclosure)
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.secondary)
-                        .rotationEffect(.degrees(isExpanded ? 90 : 0))
-                        .frame(width: Size.Icon.sm)
-                    Text(summary.isEmpty ? Strings.Folders.none : summary)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                        .truncationMode(.tail)
-                    Spacer(minLength: 0)
-                }
-                .contentShape(Rectangle())
-                .onTapGesture(perform: toggleExpanded)
-                .accessibilityElement(children: .combine)
-                .accessibilityAddTraits(.isButton)
-                .accessibilityAction { toggleExpanded() }
-
+            ExpandableRow(isExpanded: $isExpanded) {
+                Text(summary.isEmpty ? Strings.Folders.none : summary)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                Spacer(minLength: 0)
+            } content: {
                 VStack(alignment: .leading, spacing: Spacing.xs) {
                     ForEach(store.settings.folders, id: \.self) { path in
                         let name = path.replacingOccurrences(of: "/", with: " › ")
@@ -63,11 +49,6 @@ struct FoldersSection: View {
                              addTitle: Strings.Folders.add, text: $newFolder, onAdd: add)
                 }
                 .padding(.top, Spacing.sm)
-                .padding(.leading, Size.Icon.sm + Spacing.xs)   // under the text, not the chevron
-                .frame(maxHeight: isExpanded ? nil : 0, alignment: .top)
-                .opacity(isExpanded ? 1 : 0)
-                .clipped()
-                .allowsHitTesting(isExpanded)
             }
         } header: {
             // No title: the Folders tab above already names it.
@@ -83,10 +64,6 @@ struct FoldersSection: View {
         } footer: {
             Text(Strings.Folders.footer)
         }
-    }
-
-    private func toggleExpanded() {
-        withAnimation(reduceMotion ? nil : .snappy) { isExpanded.toggle() }
     }
 
     private func add() {

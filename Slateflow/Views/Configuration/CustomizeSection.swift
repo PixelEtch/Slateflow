@@ -17,9 +17,7 @@ struct CustomizeSection: View {
             LabeledContent {
                 SettingsButton(title: Strings.Customize.button, tab: .folders)
             } label: {
-                // A second Text is the grouped form's subtitle line.
-                Text(Strings.Customize.title)
-                Text(Strings.Customize.summary(
+                RowLabel(title: Strings.Customize.title, hint: Strings.Customize.summary(
                     folders: store.settings.folders.count,
                     collections: store.settings.fcp.smartCollections.filter(\.enabled).count))
             }
