@@ -122,10 +122,12 @@ extension FCPLibrarySettings {
     }
 
     /// Add a custom role to `roles` (`\.videoRoles` or `\.audioRoles`) with a matching
-    /// role collection. Blank names and roles already in the list are ignored.
+    /// role collection. Blank names, roles already in the list and names a collection
+    /// already uses are ignored - the role would have no collection to show or remove it.
     mutating func addRole(_ name: String, to roles: WritableKeyPath<FCPLibrarySettings, [String]>) {
         let trimmed = name.trimmingCharacters(in: .whitespaces)
-        guard !trimmed.isEmpty, !self[keyPath: roles].contains(trimmed) else { return }
+        guard !trimmed.isEmpty, !self[keyPath: roles].contains(trimmed),
+              !smartCollections.contains(where: { $0.name == trimmed }) else { return }
         self[keyPath: roles].append(trimmed)
         addCollection(SmartCollectionSpec(name: trimmed, rules: [.role(trimmed)]))
     }
@@ -356,8 +358,11 @@ nonisolated enum FCPXML {
         }
     }
 
+    /// Also drops control characters other than tab and newline: XML forbids them even
+    /// escaped, and one pasted into a name makes Final Cut reject the whole file.
     private static func escape(_ s: String) -> String {
-        s.replacingOccurrences(of: "&", with: "&amp;")
+        String(String.UnicodeScalarView(s.unicodeScalars.filter { $0.value >= 0x20 || "\t\n\r".unicodeScalars.contains($0) }))
+         .replacingOccurrences(of: "&", with: "&amp;")
          .replacingOccurrences(of: "<", with: "&lt;")
          .replacingOccurrences(of: ">", with: "&gt;")
          .replacingOccurrences(of: "\"", with: "&quot;")
