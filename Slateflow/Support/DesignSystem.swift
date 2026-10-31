@@ -11,6 +11,7 @@
 import SwiftUI
 
 /// Gaps and padding: 2 · 4 · 8 · 12 · 16 · 20 · 24.
+/// Spacing: a 4-pt scale (2 is the half-step for hairline gaps).
 enum Spacing {
     /// 2 - hairline nudges, chip and caption line gaps
     static let xxxs: CGFloat = 2
@@ -29,23 +30,26 @@ enum Spacing {
 }
 
 /// Fixed sizes, one small scale per kind.
+/// Sizes follow one rule per group, so no value is a one-off:
+/// small elements are multiples of 4, controls multiples of 8, and panels, sheets and
+/// windows step by 40. Column and formMinWidth are set by their content instead.
 enum Size {
-    /// Glyph frames: 10 · 20 · 72.
+    /// Glyph frames, multiples of 4: 12 · 20 · 64.
     enum Icon {
-        /// 10 - disclosure chevron column
-        static let sm: CGFloat = 10
+        /// 12 - disclosure chevron column
+        static let sm: CGFloat = 12
         /// 20 - toolbar tray divider
         static let md: CGFloat = 20
-        /// 72 - app icon in About
-        static let lg: CGFloat = 72
+        /// 64 - app icon in About, the standard macOS About size
+        static let lg: CGFloat = 64
     }
 
-    /// Control widths: 80 · 220.
+    /// Control widths, multiples of 8: 80 · 240.
     enum Field {
         /// 80 - one number (width or height)
         static let sm: CGFloat = 80
-        /// 220 - max width of a single-line text field in a form row
-        static let md: CGFloat = 220
+        /// 240 - max width of a single-line text field in a form row
+        static let md: CGFloat = 240
     }
 
     /// Narrowest grid column before a grid drops to one column: 140 · 160.
@@ -56,19 +60,19 @@ enum Size {
         static let md: CGFloat = 160
     }
 
-    /// Sheet and small-window sides: 340 · 420 · 460.
+    /// Sheet and small-window sides, in 40-pt steps: 320 · 400 · 480.
     enum Sheet {
-        /// 340 - single-field input sheet
-        static let sm: CGFloat = 340
-        /// 420 - standard sheet, About window
-        static let md: CGFloat = 420
-        /// 460 - sheet with a multi-button footer
-        static let lg: CGFloat = 460
+        /// 320 - single-field input sheet
+        static let sm: CGFloat = 320
+        /// 400 - standard sheet, About window
+        static let md: CGFloat = 400
+        /// 480 - sheet with a multi-button footer
+        static let lg: CGFloat = 480
     }
 
     /// Main window.
     enum Window {
-        static let size = CGSize(width: 900, height: 640)
+        static let size = CGSize(width: 920, height: 640)
         static let minHeight: CGFloat = 520
         /// Narrowest the form gets with the inspector open; below this the
         /// segmented controls and the Create Project button clip.
@@ -81,11 +85,11 @@ enum Size {
         static let height: CGFloat = 600
     }
 
-    /// Inspector column width.
+    /// Inspector column width, in 40-pt steps.
     enum Inspector {
-        static let min: CGFloat = 300
-        static let ideal: CGFloat = 350
-        static let max: CGFloat = 460
+        static let min: CGFloat = 320
+        static let ideal: CGFloat = 360
+        static let max: CGFloat = 480
     }
 }
 
