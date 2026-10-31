@@ -89,8 +89,6 @@ struct SettingsForm: View {
                     Image(systemName: SFSymbol.remove).hidden()
                 }
                 SmartCollectionsSection(store: store)
-            } header: {
-                Text(Strings.SmartCollections.section)
             } footer: {
                 VStack(alignment: .leading, spacing: Spacing.xs) {
                     Text(Strings.SmartCollections.footer)

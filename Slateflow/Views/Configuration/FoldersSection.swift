@@ -62,8 +62,8 @@ struct FoldersSection: View {
                     .truncationMode(.tail)
             }
         } header: {
+            // No title: the Folders tab above already names it.
             HStack {
-                Text(Strings.Folders.section)
                 Spacer()
                 // Only offered when there's something to restore.
                 if store.settings.folders != ProjectLayout.defaultFolders {
