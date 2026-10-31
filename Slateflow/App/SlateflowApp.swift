@@ -15,7 +15,7 @@ struct SlateflowApp: App {
     // Started after the self-check so CI's --selftest run never touches the network.
     private let updaterController = SPUStandardUpdaterController(
         startingUpdater: false, updaterDelegate: nil, userDriverDelegate: nil)
-    /// Shared by the main window and Settings. Created in `init`, after the self-check.
+    /// Shared by the main window and Customize Projects. Created in `init`, after the self-check.
     @State private var store: SlateStore
 
     init() {

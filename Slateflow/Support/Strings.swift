@@ -43,6 +43,7 @@ enum Strings {
 
     enum FootageSources {
         static let section = "Cameras"
+        static let footer = "Each camera gets a folder in Footage and a Smart Collection in Final Cut."
         static let addLabel = "Other camera"
         static let addPrompt = "Other camera, e.g. Lumix S5"
         static let add = "Add camera"

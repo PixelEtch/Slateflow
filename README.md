@@ -22,12 +22,14 @@
 
 ## What it does
 
-- **Numbered project folders.** `001 - Name`, `002 - Name`, …, always the next free number in the folder you pick.
+- **One click.** Set the name, format and cameras, then **Create Project** (⌘N). Slateflow remembers the folder you create projects in.
+- **Numbered project folders.** `001 - Name`, `002 - Name`, …, always the next free number in that folder.
 - **The same structure every time.** Admin, Audio, Backup, FCP, Final Exports, Footage, Graphics and Images, or your own folders.
-- **A folder per camera.** Cam A/B, Drone, GoPro, Insta360, DJI Osmo, Sony, iPhone, Webcam, Screen Recordings, Stock Footage, or your own.
-- **A ready Final Cut project.** The `.fcpxml` carries your resolution, aspect ratio, frame rate, roles, and Smart Collections that sort clips on import.
+- **A folder per camera.** Cam A/B, Drone, GoPro, Insta360, DJI Osmo, Sony, iPhone, Webcam, Screen Recordings, Stock Footage, or your own. Each camera also gets a Smart Collection.
+- **A ready Final Cut project.** The `.fcpxml` carries your resolution, aspect ratio, frame rate, color space, roles, and Smart Collections that sort clips on import. Optionally a second 9:16 timeline for reels.
 - **The library, created for you.** Final Cut creates it in the project's `FCP` folder, in your installed version's format.
-- **Reuse past settings.** **Recent Projects** keeps every project's format and naming.
+- **Set it once.** **Slateflow ▸ Customize Projects…** (⌘,) holds the folders and Smart Collections every project gets.
+- **See it first, reuse it later.** **Folder Preview** shows what will be created; **Recent Projects** keeps every project's format and naming.
 
 ## Install
 
@@ -35,7 +37,7 @@ Download the DMG from [Releases](https://github.com/PixelEtch/Slateflow/releases
 
 ## Final Cut settings
 
-Final Cut can't take these from the project file, so set them yourself:
+Final Cut can't take these from the project file, so set them yourself. **Customize Projects ▸ Smart Collections** repeats them.
 
 - **Once, in Final Cut Pro ▸ Settings ▸ Import:** turn on **Leave files in place**, and **Keywords: From folders** so camera folders fill their Smart Collections.
 - **When a new library asks for storage locations:** set Backups to the project's `Backup` folder. Media and render files already stay inside the project.

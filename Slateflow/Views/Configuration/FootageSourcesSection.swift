@@ -17,14 +17,12 @@ struct FootageSourcesSection: View {
     }
 
     var body: some View {
-        Section(Strings.FootageSources.section) {
+        Section {
             // Two columns when the form is wide enough, one when it isn't.
             LazyVGrid(columns: [GridItem(.adaptive(minimum: Size.Column.md), alignment: .leading)],
                       alignment: .leading, spacing: Spacing.xs) {
                 ForEach(FootageSource.presets) { source in
-                    Toggle(isOn: binding(for: source)) {
-                        Label(source.folderName, systemImage: source.symbol)
-                    }
+                    Toggle(isOn: binding(for: source)) { label(source) }
                     .toggleStyle(.checkbox)
                 }
             }
@@ -32,7 +30,7 @@ struct FootageSourcesSection: View {
 
             ForEach(customSources) { source in
                 HStack {
-                    Label(source.folderName, systemImage: source.symbol)
+                    label(source)
                     Spacer()
                     RemoveButton(title: Strings.FootageSources.remove(source.folderName)) {
                         store.settings.setFootageSource(source, enabled: false)
@@ -43,6 +41,20 @@ struct FootageSourcesSection: View {
 
             AddField(label: Strings.FootageSources.addLabel, prompt: Strings.FootageSources.addPrompt,
                      addTitle: Strings.FootageSources.add, text: $newSource, onAdd: addCustom)
+        } header: {
+            Text(Strings.FootageSources.section)
+        } footer: {
+            // Says up front why ticking a camera changes the collection count below.
+            Text(Strings.FootageSources.footer)
+        }
+    }
+
+    /// Icons are drawn at different widths; a fixed column keeps every name on one edge.
+    private func label(_ source: FootageSource) -> some View {
+        Label {
+            Text(source.folderName)
+        } icon: {
+            Image(systemName: source.symbol).frame(width: Size.Icon.md)
         }
     }
 

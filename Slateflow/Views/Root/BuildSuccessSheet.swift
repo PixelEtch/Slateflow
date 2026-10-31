@@ -30,7 +30,7 @@ struct BuildSuccessSheet: View {
                 Image(systemName: SFSymbol.success).font(.title2).foregroundStyle(Palette.success)
             }
 
-            // The one-time Final Cut settings are explained in Settings, not here.
+            // The one-time Final Cut settings are explained in Customize Projects, not here.
             Text(failed ? Strings.Build.libraryFailed : Strings.Build.libraryNote)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
