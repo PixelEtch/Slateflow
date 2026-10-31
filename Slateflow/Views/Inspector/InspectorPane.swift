@@ -191,8 +191,9 @@ struct InspectorPane: View {
     }
 }
 
-private extension View {
+extension View {
     /// Shown, or hidden but still mounted: invisible, not clickable, skipped by VoiceOver.
+    /// Used for panes and tabs that switch by fading, so they keep their state.
     func paneVisible(_ visible: Bool) -> some View {
         opacity(visible ? 1 : 0)
             .allowsHitTesting(visible)

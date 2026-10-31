@@ -33,16 +33,6 @@ struct ContentView: View {
                     .inspectorColumnWidth(min: Size.Inspector.min, ideal: Size.Inspector.ideal, max: Size.Inspector.max)
             }
             .focusedSceneValue(\.buildAction, build)
-            // ⌘N is the menu's shortcut; ⌘B, the shortcut before it, still works.
-            .background {
-                Button(Strings.Build.menuItem, action: build)
-                    .keyboardShortcut("b", modifiers: .command)
-                    .disabled(isBuilding)
-                    .opacity(0)
-                    .accessibilityHidden(true)
-                    .focusable(false)           // out of the Tab order
-                    .allowsHitTesting(false)    // the shortcut still fires
-            }
             .toolbar {
                 ToolbarItem {
                     Button {

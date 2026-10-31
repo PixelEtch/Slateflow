@@ -45,16 +45,16 @@ struct SettingsForm: View {
             ZStack {
                 Form { FoldersSection(store: store) }
                     .formStyle(.grouped)
-                    .tabVisible(tab == .folders)
+                    .paneVisible(tab == .folders)
                 smartCollections
-                    .tabVisible(tab == .smartCollections)
+                    .paneVisible(tab == .smartCollections)
             }
             .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: tab)
         }
         // ⌘1 / ⌘2 switch tabs; invisible and out of the Tab order and VoiceOver.
         .background {
             ForEach(SettingsTab.allCases, id: \.self) { item in
-                Button(item.title) { select(item) }
+                Button(item.title) { tab = item }
                     .keyboardShortcut(item.shortcut, modifiers: .command)
                     .opacity(0)
                     .accessibilityHidden(true)
@@ -76,10 +76,6 @@ struct SettingsForm: View {
             }
         }
         .frame(width: Size.Settings.width, height: Size.Settings.height)
-    }
-
-    private func select(_ item: SettingsTab) {
-        withAnimation(reduceMotion ? nil : .smooth(duration: 0.25)) { tab = item }
     }
 
     /// The system segmented switch, the size of the main window's Recent Projects / Folder
@@ -135,15 +131,6 @@ struct SettingsForm: View {
             }
         }
         .formStyle(.grouped)
-    }
-}
-
-private extension View {
-    /// Shown, or hidden but still loaded: invisible, not clickable, skipped by VoiceOver.
-    func tabVisible(_ visible: Bool) -> some View {
-        opacity(visible ? 1 : 0)
-            .allowsHitTesting(visible)
-            .accessibilityHidden(!visible)
     }
 }
 
