@@ -12,6 +12,8 @@ All notable changes to Slateflow are listed here.
 - The bottom bar reads as one line: Creates “NNN - Name” in **Folder** · Change….
 - The Root folder row and its note are gone; hover over the project name to see how the number is picked.
 - Build Archives is now **Recent Projects**, and Footage Sources is now **Cameras**.
+- A line under Cameras says each camera gets a folder in Footage and a Smart Collection in Final Cut.
+- Sections in the main window have even gaps, and camera names line up.
 - The success window is shorter. The one-time Final Cut settings (Leave files in place, Keywords: From folders, and where to put Backups) are explained under Smart Collections in Customize Projects instead.
 
 ## 1.0.0-alpha.5 - 2026-10-30
