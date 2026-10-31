@@ -13,11 +13,12 @@ struct CustomizeSection: View {
     let store: SlateStore
 
     var body: some View {
-        Section {
+        // A titled section like the others, so the gap above it matches theirs.
+        Section(Strings.Customize.title) {
             LabeledContent {
                 SettingsButton(title: Strings.Customize.button, tab: .folders)
             } label: {
-                RowLabel(title: Strings.Customize.title, hint: Strings.Customize.summary(
+                Text(Strings.Customize.summary(
                     folders: store.settings.folders.count,
                     collections: store.settings.fcp.smartCollections.filter(\.enabled).count))
             }
