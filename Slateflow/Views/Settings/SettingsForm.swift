@@ -85,34 +85,33 @@ struct SettingsForm: View {
         withAnimation(reduceMotion ? nil : .smooth(duration: 0.25)) { tab = item }
     }
 
-    /// macOS 26: a Liquid Glass pill that morphs to the chosen tab. Before: the system
-    /// segmented control. Either way VoiceOver and the keyboard see a two-option switch.
+    /// macOS 26: a glass track with a pill that slides to the chosen tab. The glass sits
+    /// behind both labels (glass composited over text blurs it); the pill is a plain fill
+    /// moved with matchedGeometryEffect, so it slides instead of being redrawn. Before 26:
+    /// the system segmented control. Either way VoiceOver sees a two-option switch.
     @ViewBuilder private var tabSwitch: some View {
         if #available(macOS 26, *) {
-            GlassEffectContainer {
-                HStack(spacing: 0) {
-                    ForEach(SettingsTab.allCases, id: \.self) { item in
-                        Button { select(item) } label: {
-                            Text(item.title)
-                                .foregroundStyle(tab == item ? .primary : .secondary)
-                                .padding(.horizontal, Spacing.md)
-                                .padding(.vertical, Spacing.xs)
-                                .contentShape(Capsule())
-                        }
-                        .buttonStyle(.plain)
-                        .background {
-                            if tab == item {
-                                Capsule()
-                                    .fill(.clear)
-                                    .glassEffect(.regular.interactive(), in: .capsule)
-                                    .glassEffectID("selection", in: glass)
+            HStack(spacing: 0) {
+                ForEach(SettingsTab.allCases, id: \.self) { item in
+                    Button { select(item) } label: {
+                        Text(item.title)
+                            .foregroundStyle(tab == item ? .primary : .secondary)
+                            .padding(.horizontal, Spacing.md)
+                            .padding(.vertical, Spacing.xs)
+                            .background {
+                                if tab == item {
+                                    Capsule()
+                                        .fill(.quaternary)
+                                        .matchedGeometryEffect(id: "selection", in: glass)
+                                }
                             }
-                        }
+                            .contentShape(Capsule())
                     }
+                    .buttonStyle(.plain)
                 }
-                .padding(Spacing.xxxs)
-                .background(.quaternary, in: .capsule)
             }
+            .padding(Spacing.xxxs)
+            .glassEffect(.regular, in: .capsule)
             .accessibilityRepresentation { segmentedPicker }
         } else {
             segmentedPicker
