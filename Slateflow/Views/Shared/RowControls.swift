@@ -2,7 +2,7 @@
 //  RowControls.swift
 //  Slateflow
 //
-//  Small controls shared across the app's lists and forms, so they match everywhere.
+//  Small controls and modifiers shared across the app, so they match everywhere.
 //
 
 import SwiftUI
@@ -118,5 +118,15 @@ struct ExpandableRow<Header: View, Content: View>: View {
 
     private func toggle() {
         withAnimation(reduceMotion ? nil : .snappy) { isExpanded.toggle() }
+    }
+}
+
+extension View {
+    /// Shown, or hidden but still mounted: invisible, not clickable, skipped by VoiceOver.
+    /// Used for panes and tabs that switch by fading, so they keep their state.
+    func paneVisible(_ visible: Bool) -> some View {
+        opacity(visible ? 1 : 0)
+            .allowsHitTesting(visible)
+            .accessibilityHidden(!visible)
     }
 }
