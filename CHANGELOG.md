@@ -2,7 +2,7 @@
 
 All notable changes to Slateflow are listed here.
 
-## Unreleased
+## 1.0.0-beta.1 - 2026-10-31
 
 ### Changed
 - The main window shows only what changes per project: Project name, Format and Cameras. Folders and the Final Cut options (Leave files in place, Smart Collections) moved to **Slateflow ▸ Customize Projects…** (⌘,), in two tabs: **Folders** and **Smart Collections**.
