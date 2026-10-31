@@ -162,15 +162,24 @@ struct BuildBar: View {
                 if isBuilding {
                     ProgressView().controlSize(.small)
                 }
-                Button(destination == nil ? Strings.Build.button : Strings.Build.buildHere,
-                       systemImage: SFSymbol.build, action: build)
-                    .buttonStyle(.borderedProminent)
+                createButton
                     .controlSize(.large)
                     .disabled(isBuilding)
             }
             .padding(.horizontal, Spacing.md)
             .padding(.vertical, Spacing.sm)
             .background(.bar)
+        }
+    }
+
+    /// Liquid Glass on macOS 26, as the window's main action; the classic prominent style before.
+    @ViewBuilder private var createButton: some View {
+        let button = Button(destination == nil ? Strings.Build.button : Strings.Build.buildHere,
+                            systemImage: SFSymbol.build, action: build)
+        if #available(macOS 26, *) {
+            button.buttonStyle(.glassProminent)
+        } else {
+            button.buttonStyle(.borderedProminent)
         }
     }
 }

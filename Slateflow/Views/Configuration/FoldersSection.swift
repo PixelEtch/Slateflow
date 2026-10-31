@@ -60,6 +60,12 @@ struct FoldersSection: View {
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
                     .truncationMode(.tail)
+                    // The whole line opens and closes the list, not only the arrow.
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        withAnimation(reduceMotion ? nil : .snappy) { isExpanded.toggle() }
+                    }
             }
         } header: {
             // No title: the Folders tab above already names it.
