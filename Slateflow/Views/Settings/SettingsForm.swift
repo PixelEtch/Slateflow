@@ -35,24 +35,23 @@ struct SettingsForm: View {
     @Bindable var store: SlateStore
     @AppStorage(SettingsTab.storageKey) private var tab = SettingsTab.folders
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @Namespace private var glass
+    /// How far the pill is being dragged, in points, from its tab.
+    @State private var dragOffset: CGFloat = 0
 
     var body: some View {
         VStack(spacing: 0) {
             tabSwitch
                 .padding(.top, Spacing.md)
-            // Cross-fades between tabs, like the main window's two inspector panes.
+            // Both tabs stay loaded and switching only fades them, as the main window's
+            // inspector panes do: rebuilding a list mid-switch made the pill stutter.
             ZStack {
-                switch tab {
-                case .folders:
-                    Form { FoldersSection(store: store) }
-                        .formStyle(.grouped)
-                        .transition(.opacity)
-                case .smartCollections:
-                    smartCollections
-                        .transition(.opacity)
-                }
+                Form { FoldersSection(store: store) }
+                    .formStyle(.grouped)
+                    .tabVisible(tab == .folders)
+                smartCollections
+                    .tabVisible(tab == .smartCollections)
             }
+            .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: tab)
         }
         // ⌘1 / ⌘2 switch tabs; invisible and out of the Tab order and VoiceOver.
         .background {
@@ -85,33 +84,48 @@ struct SettingsForm: View {
         withAnimation(reduceMotion ? nil : .smooth(duration: 0.25)) { tab = item }
     }
 
-    /// macOS 26: a glass track with a pill that slides to the chosen tab. The glass sits
-    /// behind both labels (glass composited over text blurs it); the pill is a plain fill
-    /// moved with matchedGeometryEffect, so it slides instead of being redrawn. Before 26:
-    /// the system segmented control. Either way VoiceOver sees a two-option switch.
+    /// macOS 26: a glass track with a pill you can click or drag to a tab; it follows the
+    /// pointer and snaps to the nearest tab on release. The glass sits behind the labels
+    /// (glass over text blurs it). Before 26: the system segmented control. Either way
+    /// VoiceOver sees a two-option switch.
     @ViewBuilder private var tabSwitch: some View {
         if #available(macOS 26, *) {
+            let width = Size.Settings.tabWidth
+            let tabs = SettingsTab.allCases
+            let index = CGFloat(tabs.firstIndex(of: tab) ?? 0)
+            let maxOffset = CGFloat(tabs.count - 1) * width
             HStack(spacing: 0) {
-                ForEach(SettingsTab.allCases, id: \.self) { item in
+                ForEach(tabs, id: \.self) { item in
                     Button { select(item) } label: {
                         Text(item.title)
                             .foregroundStyle(tab == item ? .primary : .secondary)
-                            .padding(.horizontal, Spacing.md)
+                            .frame(width: width)
                             .padding(.vertical, Spacing.xs)
-                            .background {
-                                if tab == item {
-                                    Capsule()
-                                        .fill(.quaternary)
-                                        .matchedGeometryEffect(id: "selection", in: glass)
-                                }
-                            }
                             .contentShape(Capsule())
                     }
                     .buttonStyle(.plain)
                 }
             }
+            .background(alignment: .leading) {
+                Capsule()
+                    .fill(.quaternary)
+                    .frame(width: width)
+                    .offset(x: min(max(index * width + dragOffset, 0), maxOffset))
+            }
             .padding(Spacing.xxxs)
             .glassEffect(.regular, in: .capsule)
+            .gesture(
+                DragGesture(minimumDistance: 3)
+                    .onChanged { dragOffset = $0.translation.width }
+                    .onEnded { drag in
+                        let landed = ((index * width + drag.translation.width) / width).rounded()
+                        let target = tabs[Int(min(max(landed, 0), CGFloat(tabs.count - 1)))]
+                        withAnimation(reduceMotion ? nil : .smooth(duration: 0.25)) {
+                            tab = target
+                            dragOffset = 0
+                        }
+                    }
+            )
             .accessibilityRepresentation { segmentedPicker }
         } else {
             segmentedPicker
@@ -157,6 +171,15 @@ struct SettingsForm: View {
             }
         }
         .formStyle(.grouped)
+    }
+}
+
+private extension View {
+    /// Shown, or hidden but still loaded: invisible, not clickable, skipped by VoiceOver.
+    func tabVisible(_ visible: Bool) -> some View {
+        opacity(visible ? 1 : 0)
+            .allowsHitTesting(visible)
+            .accessibilityHidden(!visible)
     }
 }
 
