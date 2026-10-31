@@ -27,7 +27,7 @@ struct CustomizeSection: View {
     }
 }
 
-/// Shown once, the first time the window opens; dismissing it or opening Settings ends it.
+/// Shown once, the first time the window opens; dismissing it or opening Customize Projects ends it.
 struct CustomizeTip: Tip {
     var title: Text { Text(Strings.Customize.tipTitle) }
     var message: Text? { Text(Strings.Customize.tipMessage) }

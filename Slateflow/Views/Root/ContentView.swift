@@ -9,7 +9,7 @@ import SwiftUI
 import AppKit
 
 struct ContentView: View {
-    /// Owned by the App, so the Settings window edits the same settings.
+    /// Owned by the App, so the Customize Projects window edits the same settings.
     @Bindable var store: SlateStore
     @State private var buildError: String?
     @State private var builtProject: URL?

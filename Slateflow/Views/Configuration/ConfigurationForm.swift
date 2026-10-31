@@ -2,7 +2,7 @@
 //  ConfigurationForm.swift
 //  Slateflow
 //
-//  The sidebar form: what changes per project. Set-once options live in Settings.
+//  The sidebar form: what changes per project. Set-once options live in Customize Projects.
 //  Each Section is its own component; the grouped Form owns section spacing, so
 //  no manual padding here.
 //
