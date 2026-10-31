@@ -15,9 +15,18 @@ struct FolderTreePreview: View {
             Section {
                 FolderNodeRow(node: root)
             } footer: {
-                Text(Strings.Preview.footer)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: Spacing.xs) {
+                    Text(Strings.Preview.footer)
+                        .foregroundStyle(.secondary)
+                    // Change what you see, right where you see it.
+                    HStack(spacing: Spacing.md) {
+                        SettingsButton(title: Strings.Preview.editFolders, tab: .folders)
+                        SettingsButton(title: Strings.Preview.editCollections, tab: .smartCollections)
+                    }
+                    .buttonStyle(.link)
+                    .font(.callout)   // same size as every other link in the app
+                }
+                .font(.caption)
             }
         }
         .listStyle(.sidebar)

@@ -2,7 +2,7 @@
 //  ProjectFolderSection.swift
 //  Slateflow
 //
-//  Project name + the live-computed root folder name.
+//  Project name; its tooltip explains the number added in front.
 //
 
 import SwiftUI
@@ -17,20 +17,12 @@ struct ProjectFolderSection: View {
                     .labelsHidden()
                     .textFieldStyle(.roundedBorder)
                     .frame(maxWidth: Size.Field.md)
+                    .help(Strings.ProjectFolder.sequenceNote)
                     // Return ends editing. Async: AppKit is still inside the field's submit.
                     .onSubmit { DispatchQueue.main.async { NSApp.keyWindow?.makeFirstResponder(nil) } }
             }
-
-            LabeledContent(Strings.ProjectFolder.rootFolder) {
-                HStack(spacing: Spacing.xxs) {
-                    Image(systemName: SFSymbol.folderFill).foregroundStyle(Palette.folder)
-                    Text(store.settings.rootFolderName).fontDesign(.monospaced)
-                }
-            }
         } header: {
             Text(Strings.ProjectFolder.section)
-        } footer: {
-            Text(Strings.ProjectFolder.sequenceNote)
         }
     }
 }

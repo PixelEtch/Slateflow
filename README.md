@@ -27,7 +27,7 @@
 - **A folder per camera.** Cam A/B, Drone, GoPro, Insta360, DJI Osmo, Sony, iPhone, Webcam, Screen Recordings, Stock Footage, or your own.
 - **A ready Final Cut project.** The `.fcpxml` carries your resolution, aspect ratio, frame rate, roles, and Smart Collections that sort clips on import.
 - **The library, created for you.** Final Cut creates it in the project's `FCP` folder, in your installed version's format.
-- **Reuse past settings.** **Build Archives** keeps every build's format and naming.
+- **Reuse past settings.** **Recent Projects** keeps every project's format and naming.
 
 ## Install
 
@@ -51,7 +51,7 @@ Everything stays on your Mac: no accounts, telemetry or cloud. The only network 
 
 ## Uninstall
 
-Move Slateflow from Applications to the Trash. To also remove its settings, Build Archives and log, delete `~/Library/Containers/com.ashifali.Slateflow`. Projects you built are not touched.
+Move Slateflow from Applications to the Trash. To also remove its settings, Recent Projects and log, delete `~/Library/Containers/com.ashifali.Slateflow`. Projects you built are not touched.
 
 ## Build it yourself
 

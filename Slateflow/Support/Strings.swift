@@ -25,7 +25,7 @@ enum Strings {
         static let outputSize = "Output size"
         static let aspectRatio = "Aspect ratio"
         static let dimensionSeparator = "×"
-        static let dimensionsOdd = "Final Cut needs even dimensions - odd values round down on build."
+        static let dimensionsOdd = "Final Cut needs even dimensions - odd values round down when the project is created."
         static let colorSpace = "Color space"
         static let colorSpaceHelp = "The color space you edit and export in. Footage from any camera is converted to it, and the library is set up to match."
         static let reelTimeline = "Reel timeline"
@@ -36,17 +36,16 @@ enum Strings {
     enum ProjectFolder {
         static let section = "Project Folder"
         static let templateName = "Project name"
-        static let rootFolder = "Root folder"
         static let sequenceNote =
-            "The 3-digit prefix is assigned on build, from the numbered folders already "
-            + "in the location you pick."
+            "The 3-digit prefix is assigned when the project is created, from the numbered "
+            + "folders already in the location you pick."
     }
 
     enum FootageSources {
-        static let section = "Footage Sources"
-        static let addLabel = "Other source"
-        static let addPrompt = "Other source, e.g. Lumix S5"
-        static let add = "Add source"
+        static let section = "Cameras"
+        static let addLabel = "Other camera"
+        static let addPrompt = "Other camera, e.g. Lumix S5"
+        static let add = "Add camera"
         static func remove(_ name: String) -> String { "Remove \(name)" }
     }
 
@@ -62,13 +61,17 @@ enum Strings {
     }
 
     enum FCP {
-        static let section = "Final Cut Pro"
         static let leaveFilesInPlace = "Leave files in place"
         static let leaveFilesInPlaceHelp =
-            "Media stays in the project’s folders. Turn on the same setting in Final Cut Pro ▸ Settings ▸ Import."
+            "Media stays in the project’s folders."
+        /// Final Cut can't take these from the .fcpxml, so the user sets them once in Final Cut.
+        static let finalCutHints =
+            "In Final Cut Pro ▸ Settings ▸ Import, turn on Leave files in place and Keywords: From folders. "
+            + "When a new library asks for storage locations, set Backups to the project's Backup folder."
     }
 
     enum SmartCollections {
+        static let section = "Smart Collections"
         static let footer =
             "Enabled collections go into the project's .fcpxml and sort clips automatically on import."
         static let add = "Add Collection"
@@ -80,7 +83,7 @@ enum Strings {
         static let audioRole = "Audio Role…"
         static let remove = "Remove"
         static func remove(_ name: String) -> String { "Remove \(name)" }
-        static let fromFootageSources = "from Footage Sources"
+        static let fromFootageSources = "from Cameras"
 
         enum Draft {
             static let cancel = "Cancel"
@@ -109,14 +112,14 @@ enum Strings {
 
     enum Inspector {
         static let viewPicker = "View"
-        static let archives = "Build Archives"
+        static let archives = "Recent Projects"
         static let preview = "Folder Preview"
-        static let clearHistory = "Clear Archive"
+        static let clearHistory = "Clear Recent Projects"
         static func clearConfirmTitle(count: Int) -> String {
-            "Delete all \(count) build record\(count == 1 ? "" : "s")?"
+            "Clear all \(count) recent project\(count == 1 ? "" : "s")?"
         }
-        static let clearConfirmAction = "Delete All"
-        static let clearConfirmMessage = "This can't be undone. The projects on disk aren't affected - only this history list."
+        static let clearConfirmAction = "Clear All"
+        static let clearConfirmMessage = "This can't be undone. The projects on disk aren't affected - only this list."
         static let backupMenu = "Backup"
         static let exportBackup = "Export Backup…"
         static let importBackup = "Import Backup…"
@@ -124,27 +127,46 @@ enum Strings {
     }
 
     enum History {
-        static let emptyTitle = "No Builds Yet"
+        static let emptyTitle = "No Projects Yet"
         static let emptyMessage =
-            "Configure the options on the left, then build a project. "
-            + "Each successful build records a locked-in snapshot here."
+            "Configure the options on the left, then create a project. "
+            + "Each project you create is listed here with its settings."
         static let orientation = "Orientation"
         static let size = "Size"
         static let roles = "Roles"
         static let collections = "Collections"
-        static let footageSources = "Footage sources"
+        static let footageSources = "Cameras"
         static let leaveFilesInPlace = "Leave files in place"
         static let copyIntoLibrary = "Copy into library"
         static let reuse = "Use These Settings"
         static let reuseHelp =
-            "Restores resolution, aspect, frame rate, and leave-in-place from this build. "
-            + "Roles, Smart Collections, and footage sources aren't restored - only their counts were saved."
+            "Restores resolution, aspect, frame rate, and leave-in-place from this project. "
+            + "Roles, Smart Collections, and cameras aren't restored - only their counts were saved."
         static let delete = "Delete"
         static let storageNote = "Saved locally in Application Support. Never leaves this Mac."
     }
 
+    enum Settings {
+        static let title = "Customize Projects"
+        static let menuItem = "Customize Projects…"
+        static let tabs = "Customize section"
+        static let autosave = "Changes are saved automatically."
+    }
+
+    nonisolated enum Customize {  // read by CustomizeTip, which TipKit requires to be nonisolated
+        static let title = "Folders and Smart Collections"
+        static func summary(folders: Int, collections: Int) -> String {
+            "\(folders) folder\(folders == 1 ? "" : "s") · \(collections) collection\(collections == 1 ? "" : "s")"
+        }
+        static let button = "Customize…"
+        static let tipTitle = "Make projects your own"
+        static let tipMessage = "Change the folders and Smart Collections every new project gets."
+    }
+
     enum Preview {
-        static let footer = "Created inside the folder you choose when you build."
+        static let footer = "Created inside the folder you choose when you create the project."
+        static let editFolders = "Edit Folders…"
+        static let editCollections = "Edit Smart Collections…"
         static func note(_ text: String) -> String { "· \(text)" }
     }
 
@@ -196,26 +218,25 @@ enum Strings {
     }
 
     enum Build {
-        static let menuItem = "Build Project…"
-        static let button = "Choose Destination & Build…"
-        static let buildHere = "Build"
-        static func destination(_ folder: String) -> String { "in \(folder)" }
+        static let menuItem = "Create Project…"
+        static let button = "Choose Folder & Create Project…"
+        static let buildHere = "Create Project"
+        /// Leads the bottom bar's sentence; the destination folder's name follows it.
+        static func creates(_ rootFolder: String) -> String { "Creates “\(rootFolder)” in" }
+        static let separator = "·"
         static let change = "Change…"
         static let changeHelp = "Choose another folder for new projects"
-        static let panelPrompt = "Build Here"
+        static let panelPrompt = "Create Here"
         static func panelMessage(rootFolder: String) -> String {
             "Choose where to create “\(rootFolder)”."
         }
-        static let errorTitle = "Couldn’t build the project"
+        static let errorTitle = "Couldn’t create the project"
         static let ok = "OK"
         static let chooseAnother = "Choose Another Folder…"
         static let successTitle = "Project created"
-        static let nextStepsTitle = "In Final Cut Pro"
         static let openInFCP = "Open in Final Cut Pro"
         static let creatingLibrary = "Creating library…"
-        static let libraryNote = "Final Cut opens the project and creates its library in the project's FCP folder."
-        static let importHint = "Before importing media, turn on Leave files in place in Final Cut Pro ▸ Settings ▸ Import."
-        static let backupsHint = "When Final Cut asks for storage locations, set Backups to this project's Backup folder. Media and render files already stay inside the project."
+        static let libraryNote = "Final Cut creates the project's library in its FCP folder."
         static let libraryFailed = "Final Cut didn't create the library. Check that Final Cut Pro is installed, then click Open in Final Cut Pro again."
         static let reveal = "Reveal in Finder"
         static let done = "Done"

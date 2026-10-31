@@ -27,7 +27,9 @@ nonisolated enum SlateError: LocalizedError {
 
 /// Reduces an arbitrary user string to a single, filesystem-safe path component.
 nonisolated enum SafeName {
-    private static let maxLength = 200   // well under the 255-byte APFS limit
+    /// In UTF-8 bytes, not characters: APFS allows 255 bytes, and the name also gets
+    /// "NNN - " in front and ".fcpbundle" after it. A Japanese character is 3 bytes.
+    private static let maxLength = 200
 
     /// No path separators, no leading dots (so `.`, `..`, dotfiles can't be produced),
     /// no control or invisible/zero-width characters (homograph / RTL-override defense).
@@ -53,8 +55,9 @@ nonisolated enum SafeName {
         while s.hasPrefix(".") { s.removeFirst() }
         s = s.trimmingCharacters(in: CharacterSet(charactersIn: "-. "))
 
-        if s.count > maxLength {
-            s = String(s.prefix(maxLength)).trimmingCharacters(in: CharacterSet(charactersIn: "-. "))
+        if s.utf8.count > maxLength {
+            while s.utf8.count > maxLength { s.removeLast() }
+            s = s.trimmingCharacters(in: CharacterSet(charactersIn: "-. "))
         }
 
         return s.isEmpty ? fallback : s

@@ -9,7 +9,8 @@ import SwiftUI
 import AppKit
 
 struct ContentView: View {
-    @State private var store = SlateStore()
+    /// Owned by the App, so the Settings window edits the same settings.
+    @Bindable var store: SlateStore
     @State private var buildError: String?
     @State private var builtProject: URL?
     @State private var isBuilding = false
@@ -59,7 +60,6 @@ struct ContentView: View {
                 if let builtProject {
                     BuildSuccessSheet(
                         rootFolder: builtProject.lastPathComponent,
-                        keepMediaInPlace: store.settings.fcp.keepMediaInPlace,
                         onOpen: { await FinalCutLibrary.open(project: builtProject) },
                         onReveal: { NSWorkspace.shared.activateFileViewerSelecting([builtProject]) })
                 }
@@ -123,31 +123,36 @@ struct BuildBar: View {
         VStack(spacing: 0) {
             Divider()
             HStack(spacing: Spacing.md) {
-                Label(rootFolderName, systemImage: SFSymbol.folderFill)
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                    .truncationMode(.middle)
-                    .layoutPriority(1)      // the destination name shortens first
-                if let destination {
-                    Text(Strings.Build.destination(destination.lastPathComponent))
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                        .help(destination.path)
-                    Button(Strings.Build.change, action: change)
-                        .buttonStyle(.link)
-                        .help(Strings.Build.changeHelp)
-                        .disabled(isBuilding)
+                // One sentence: Creates “NNN - Name” in **Folder** · Change…
+                HStack(spacing: Spacing.xxs) {
+                    if let destination {
+                        Text(Strings.Build.creates(rootFolderName))
+                            .layoutPriority(1)      // the destination folder's name shortens first
+                        Text(destination.lastPathComponent)
+                            .fontWeight(.semibold)
+                            .help(destination.path)
+                        Text(Strings.Build.separator)
+                            .fixedSize()
+                            .accessibilityHidden(true)
+                        Button(Strings.Build.change, action: change)
+                            .buttonStyle(.link)
+                            .foregroundStyle(.tint)     // the sentence is secondary; keep the link blue
+                            .help(Strings.Build.changeHelp)
+                            .disabled(isBuilding)
+                            .fixedSize()
+                    } else {
+                        Label(rootFolderName, systemImage: SFSymbol.folderFill)
+                    }
                 }
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .truncationMode(.middle)
                 Spacer(minLength: Spacing.md)
                 if isBuilding {
                     ProgressView().controlSize(.small)
                 }
-                Button(destination == nil ? Strings.Build.button : Strings.Build.buildHere,
-                       systemImage: SFSymbol.build, action: build)
-                    .buttonStyle(.borderedProminent)
+                createButton
                     .controlSize(.large)
                     .disabled(isBuilding)
             }
@@ -156,67 +161,19 @@ struct BuildBar: View {
             .background(.bar)
         }
     }
-}
 
-// MARK: - Click outside to end editing
-
-/// Clicking anywhere that isn't a text field ends text editing, as in System Settings.
-/// AppKit keeps the cursor in a field until another control takes focus.
-enum EndEditingOnOutsideClick {
-    private static var monitor: Any?
-
-    static func install() {
-        guard monitor == nil else { return }
-        monitor = NSEvent.addLocalMonitorForEvents(matching: .leftMouseDown) { event in
-            guard let window = event.window,
-                  window.firstResponder is NSText,          // a field is being edited
-                  !isText(window.contentView?.hitTest(event.locationInWindow))
-            else { return event }
-            // After the click is handled, so a button or switch still gets it.
-            DispatchQueue.main.async {
-                if window.firstResponder is NSText { window.makeFirstResponder(nil) }
-            }
-            return event
+    /// Liquid Glass on macOS 26, as the window's main action; the classic prominent style before.
+    @ViewBuilder private var createButton: some View {
+        let button = Button(destination == nil ? Strings.Build.button : Strings.Build.buildHere,
+                            systemImage: SFSymbol.build, action: build)
+        if #available(macOS 26, *) {
+            button.buttonStyle(.glassProminent)
+        } else {
+            button.buttonStyle(.borderedProminent)
         }
-    }
-
-    /// True for a text field or its field editor, or anything inside one.
-    private static func isText(_ view: NSView?) -> Bool {
-        var view = view
-        while let v = view {
-            if v is NSText || v is NSTextField { return true }
-            view = v.superview
-        }
-        return false
-    }
-}
-
-// MARK: - Menu-bar wiring
-
-/// Lets the `Build Project…` menu command trigger the same flow as the bottom bar.
-// A FocusedValueKey, not `@Entry`: `@Entry` warns that a stored closure can't be
-// compared, so every update would invalidate the menu command.
-struct BuildActionKey: FocusedValueKey {
-    typealias Value = () -> Void
-}
-
-extension FocusedValues {
-    var buildAction: (() -> Void)? {
-        get { self[BuildActionKey.self] }
-        set { self[BuildActionKey.self] = newValue }
-    }
-}
-
-struct BuildCommand: View {
-    @FocusedValue(\.buildAction) private var buildAction
-
-    var body: some View {
-        Button(Strings.Build.menuItem) { buildAction?() }
-            .keyboardShortcut("b", modifiers: .command)
-            .disabled(buildAction == nil)
     }
 }
 
 #Preview {
-    ContentView()
+    ContentView(store: SlateStore())
 }

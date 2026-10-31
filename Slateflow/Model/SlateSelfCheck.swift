@@ -365,6 +365,8 @@ func slateSelfCheck() {
         SmartCollectionSpec(name: "Day 01", rules: [.keywords(["Day 01"])]),
     ]
     let cx = FCPXML.document(settings: custom, format: .hd1080, eventName: "E")
+    assert(!FCPXML.document(settings: FCPLibrarySettings(), format: .hd1080, eventName: "A\u{0C}B").contains("\u{0C}"),
+           "control characters are invalid XML")
     assert(cx.contains(#"<smart-collection name="Screen Recordings" match="all">"#))
     assert(cx.contains(#"<match-text rule="includes" value="Screen Recording"/>"#))
     assert(cx.contains(#"<match-property key="cameraAngle" type="string" value="Cam A" rule="is" enabled="1"/>"#))
@@ -405,6 +407,8 @@ func slateSelfCheck() {
     rules.addRole("Interview", to: \.audioRoles)
     rules.removeCollection(rules.smartCollections.first { $0.name == "Interview" }!)
     assert(!rules.audioRoles.contains("Interview") && !rules.smartCollections.contains { $0.name == "Interview" })
+    rules.addRole("Cam C", to: \.videoRoles)        // a collection already has this name
+    assert(!rules.videoRoles.contains("Cam C"), "role added with no collection to show or remove it")
 
     // Sources, roles and collections persist: a fresh linked on the same defaults
     // restores exactly what was saved.
@@ -442,6 +446,8 @@ func slateSelfCheck() {
     assert(SafeName.component("A/B:C\\D", fallback: "X") == "A-B-C-D")
     assert(SafeName.component("   ", fallback: "SlateTemplate") == "SlateTemplate")
     assert(SafeName.component(String(repeating: "z", count: 500), fallback: "X").count <= 200)
+    assert(SafeName.component(String(repeating: "日本", count: 200), fallback: "X").utf8.count <= 200,
+           "multi-byte names must fit the 255-byte file-name limit")
 
     var escaper = SavedSettings()
     escaper.templateName = "../../../tmp/pwn"

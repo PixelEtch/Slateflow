@@ -97,19 +97,6 @@ struct InspectorPane: View {
             }
     }
 
-    /// Pinned under the archive list, so it stays visible however long it gets.
-    private var storageNote: some View {
-        Text(Strings.History.storageNote)
-            .font(.caption)
-            .foregroundStyle(.secondary)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, Spacing.sm)
-            .padding(.vertical, Spacing.xs)
-            // Opaque bar so rows scroll behind the note instead of showing through it.
-            .background(.bar)
-            .overlay(alignment: .top) { Divider() }
-    }
-
     /// Clear | Backup with a firm 1 pt rule between (Divider is too faint). The rule
     /// hides while either button is hovered, as in Xcode's tray.
     private var archiveTray: some View {
@@ -153,7 +140,10 @@ struct InspectorPane: View {
             HistoryList(store: store)
                 // Fill the pane even when empty, so the note sits at the bottom, not under the message.
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .safeAreaInset(edge: .bottom, spacing: 0) { storageNote }
+                .safeAreaInset(edge: .bottom, spacing: 0) {
+                    // Pinned under the list, so it stays visible however long it gets.
+                    BarNote(text: Strings.History.storageNote, alignment: .leading)
+                }
                 .paneVisible(pane == .history)
             FolderTreePreview(root: ProjectLayout.plan(
                 root: store.settings.rootFolderName, folders: store.settings.folders, footageSources: store.settings.orderedFootageSources))
@@ -188,14 +178,5 @@ struct InspectorPane: View {
         } catch {
             backupError = error.localizedDescription
         }
-    }
-}
-
-private extension View {
-    /// Shown, or hidden but still mounted: invisible, not clickable, skipped by VoiceOver.
-    func paneVisible(_ visible: Bool) -> some View {
-        opacity(visible ? 1 : 0)
-            .allowsHitTesting(visible)
-            .accessibilityHidden(!visible)
     }
 }

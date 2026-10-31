@@ -25,45 +25,34 @@ struct FoldersSection: View {
 
     var body: some View {
         Section {
-            DisclosureGroup(isExpanded: $isExpanded) {
-                ForEach(store.settings.folders, id: \.self) { path in
-                    let name = path.replacingOccurrences(of: "/", with: " › ")
-                    HStack {
-                        Label(name, systemImage: SFSymbol.folder)
-                        Spacer()
-                        // The title names the folder, so VoiceOver says what's removed.
-                        Button(Strings.Folders.remove(name), systemImage: SFSymbol.remove) {
-                            store.settings.removeFolder(path)
-                        }
-                        .labelStyle(.iconOnly)
-                        .buttonStyle(.borderless)
-                        .foregroundStyle(.secondary)
-                    }
-                }
-                .animation(reduceMotion ? nil : .snappy, value: store.settings.folders.count)
-
-                // Same field + button as Footage Sources.
-                HStack(spacing: Spacing.xs) {
-                    TextField(Strings.Folders.addLabel, text: $newFolder,
-                              prompt: Text(Strings.Folders.addPrompt))
-                        .labelsHidden()
-                        .textFieldStyle(.roundedBorder)
-                        .onSubmit(add)
-                    Button(Strings.Folders.add, systemImage: SFSymbol.addCollection, action: add)
-                        .labelStyle(.iconOnly)
-                        .buttonStyle(.bordered)
-                        .help(Strings.Folders.add)
-                        .disabled(newFolder.trimmingCharacters(in: .whitespaces).isEmpty)
-                }
-            } label: {
+            ExpandableRow(isExpanded: $isExpanded) {
                 Text(summary.isEmpty ? Strings.Folders.none : summary)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
                     .truncationMode(.tail)
+                Spacer(minLength: 0)
+            } content: {
+                VStack(alignment: .leading, spacing: Spacing.xs) {
+                    ForEach(store.settings.folders, id: \.self) { path in
+                        let name = path.replacingOccurrences(of: "/", with: " › ")
+                        HStack {
+                            Label(name, systemImage: SFSymbol.folder)
+                            Spacer()
+                            RemoveButton(title: Strings.Folders.remove(name)) {
+                                store.settings.removeFolder(path)
+                            }
+                        }
+                    }
+                    .animation(reduceMotion ? nil : .snappy, value: store.settings.folders.count)
+
+                    AddField(label: Strings.Folders.addLabel, prompt: Strings.Folders.addPrompt,
+                             addTitle: Strings.Folders.add, text: $newFolder, onAdd: add)
+                }
+                .padding(.top, Spacing.sm)
             }
         } header: {
+            // No title: the Folders tab above already names it.
             HStack {
-                Text(Strings.Folders.section)
                 Spacer()
                 // Only offered when there's something to restore.
                 if store.settings.folders != ProjectLayout.defaultFolders {
