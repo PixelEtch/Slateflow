@@ -34,29 +34,15 @@ struct FootageSourcesSection: View {
                 HStack {
                     Label(source.folderName, systemImage: source.symbol)
                     Spacer()
-                    Button(Strings.FootageSources.remove(source.folderName), systemImage: SFSymbol.remove) {
+                    RemoveButton(title: Strings.FootageSources.remove(source.folderName)) {
                         store.settings.setFootageSource(source, enabled: false)
                     }
-                    .labelStyle(.iconOnly)
-                    .buttonStyle(.borderless)
-                    .foregroundStyle(.secondary)
                 }
             }
             .animation(reduceMotion ? nil : .snappy, value: customSources.count)
 
-            // Full-width field + compact bordered button: fits a narrow form.
-            HStack(spacing: Spacing.xs) {
-                TextField(Strings.FootageSources.addLabel, text: $newSource,
-                          prompt: Text(Strings.FootageSources.addPrompt))
-                    .labelsHidden()
-                    .textFieldStyle(.roundedBorder)
-                    .onSubmit(addCustom)
-                Button(Strings.FootageSources.add, systemImage: SFSymbol.addCollection, action: addCustom)
-                    .labelStyle(.iconOnly)
-                    .buttonStyle(.bordered)
-                    .help(Strings.FootageSources.add)
-                    .disabled(newSource.trimmingCharacters(in: .whitespaces).isEmpty)
-            }
+            AddField(label: Strings.FootageSources.addLabel, prompt: Strings.FootageSources.addPrompt,
+                     addTitle: Strings.FootageSources.add, text: $newSource, onAdd: addCustom)
         }
     }
 

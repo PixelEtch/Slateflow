@@ -52,30 +52,15 @@ struct FoldersSection: View {
                         HStack {
                             Label(name, systemImage: SFSymbol.folder)
                             Spacer()
-                            // The title names the folder, so VoiceOver says what's removed.
-                            Button(Strings.Folders.remove(name), systemImage: SFSymbol.remove) {
+                            RemoveButton(title: Strings.Folders.remove(name)) {
                                 store.settings.removeFolder(path)
                             }
-                            .labelStyle(.iconOnly)
-                            .buttonStyle(.borderless)
-                            .foregroundStyle(.secondary)
                         }
                     }
                     .animation(reduceMotion ? nil : .snappy, value: store.settings.folders.count)
 
-                    // Same field + button as Cameras.
-                    HStack(spacing: Spacing.xs) {
-                        TextField(Strings.Folders.addLabel, text: $newFolder,
-                                  prompt: Text(Strings.Folders.addPrompt))
-                            .labelsHidden()
-                            .textFieldStyle(.roundedBorder)
-                            .onSubmit(add)
-                        Button(Strings.Folders.add, systemImage: SFSymbol.addCollection, action: add)
-                            .labelStyle(.iconOnly)
-                            .buttonStyle(.bordered)
-                            .help(Strings.Folders.add)
-                            .disabled(newFolder.trimmingCharacters(in: .whitespaces).isEmpty)
-                    }
+                    AddField(label: Strings.Folders.addLabel, prompt: Strings.Folders.addPrompt,
+                             addTitle: Strings.Folders.add, text: $newFolder, onAdd: add)
                 }
                 .padding(.top, Spacing.sm)
                 .padding(.leading, Size.Icon.sm + Spacing.xs)   // under the text, not the chevron
