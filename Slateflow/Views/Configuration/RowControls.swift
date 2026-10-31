@@ -61,6 +61,24 @@ struct RowLabel: View {
     }
 }
 
+/// A one-line grey note on an opaque bar at the bottom of a pane, so content scrolls
+/// behind it instead of showing through (the storage note, the autosave note).
+struct BarNote: View {
+    let text: String
+    let alignment: Alignment
+
+    var body: some View {
+        Text(text)
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity, alignment: alignment)
+            .padding(.horizontal, Spacing.sm)
+            .padding(.vertical, Spacing.xs)
+            .background(.bar)
+            .overlay(alignment: .top) { Divider() }
+    }
+}
+
 /// A row that opens to show more: chevron, the whole header toggles, and the content is
 /// always present and animates height and opacity, so it glides open instead of snapping.
 /// Used by Recent Projects rows and the Folders list.
