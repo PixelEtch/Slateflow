@@ -25,47 +25,64 @@ struct FoldersSection: View {
 
     var body: some View {
         Section {
-            DisclosureGroup(isExpanded: $isExpanded) {
-                ForEach(store.settings.folders, id: \.self) { path in
-                    let name = path.replacingOccurrences(of: "/", with: " › ")
-                    HStack {
-                        Label(name, systemImage: SFSymbol.folder)
-                        Spacer()
-                        // The title names the folder, so VoiceOver says what's removed.
-                        Button(Strings.Folders.remove(name), systemImage: SFSymbol.remove) {
-                            store.settings.removeFolder(path)
-                        }
-                        .labelStyle(.iconOnly)
-                        .buttonStyle(.borderless)
-                        .foregroundStyle(.secondary)
-                    }
-                }
-                .animation(reduceMotion ? nil : .snappy, value: store.settings.folders.count)
-
-                // Same field + button as Footage Sources.
+            // Same expand as a Recent Projects row: the list is always there and animates
+            // its height and opacity, so it glides open instead of snapping in.
+            VStack(alignment: .leading, spacing: 0) {
                 HStack(spacing: Spacing.xs) {
-                    TextField(Strings.Folders.addLabel, text: $newFolder,
-                              prompt: Text(Strings.Folders.addPrompt))
-                        .labelsHidden()
-                        .textFieldStyle(.roundedBorder)
-                        .onSubmit(add)
-                    Button(Strings.Folders.add, systemImage: SFSymbol.addCollection, action: add)
-                        .labelStyle(.iconOnly)
-                        .buttonStyle(.bordered)
-                        .help(Strings.Folders.add)
-                        .disabled(newFolder.trimmingCharacters(in: .whitespaces).isEmpty)
+                    Image(systemName: SFSymbol.disclosure)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                        .rotationEffect(.degrees(isExpanded ? 90 : 0))
+                        .frame(width: Size.Icon.sm)
+                    Text(summary.isEmpty ? Strings.Folders.none : summary)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                    Spacer(minLength: 0)
                 }
-            } label: {
-                Text(summary.isEmpty ? Strings.Folders.none : summary)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                    .truncationMode(.tail)
-                    // The whole line opens and closes the list, not only the arrow.
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        withAnimation(reduceMotion ? nil : .snappy) { isExpanded.toggle() }
+                .contentShape(Rectangle())
+                .onTapGesture(perform: toggleExpanded)
+                .accessibilityElement(children: .combine)
+                .accessibilityAddTraits(.isButton)
+                .accessibilityAction { toggleExpanded() }
+
+                VStack(alignment: .leading, spacing: Spacing.xs) {
+                    ForEach(store.settings.folders, id: \.self) { path in
+                        let name = path.replacingOccurrences(of: "/", with: " › ")
+                        HStack {
+                            Label(name, systemImage: SFSymbol.folder)
+                            Spacer()
+                            // The title names the folder, so VoiceOver says what's removed.
+                            Button(Strings.Folders.remove(name), systemImage: SFSymbol.remove) {
+                                store.settings.removeFolder(path)
+                            }
+                            .labelStyle(.iconOnly)
+                            .buttonStyle(.borderless)
+                            .foregroundStyle(.secondary)
+                        }
                     }
+                    .animation(reduceMotion ? nil : .snappy, value: store.settings.folders.count)
+
+                    // Same field + button as Cameras.
+                    HStack(spacing: Spacing.xs) {
+                        TextField(Strings.Folders.addLabel, text: $newFolder,
+                                  prompt: Text(Strings.Folders.addPrompt))
+                            .labelsHidden()
+                            .textFieldStyle(.roundedBorder)
+                            .onSubmit(add)
+                        Button(Strings.Folders.add, systemImage: SFSymbol.addCollection, action: add)
+                            .labelStyle(.iconOnly)
+                            .buttonStyle(.bordered)
+                            .help(Strings.Folders.add)
+                            .disabled(newFolder.trimmingCharacters(in: .whitespaces).isEmpty)
+                    }
+                }
+                .padding(.top, Spacing.sm)
+                .padding(.leading, Size.Icon.sm + Spacing.xs)   // under the text, not the chevron
+                .frame(maxHeight: isExpanded ? nil : 0, alignment: .top)
+                .opacity(isExpanded ? 1 : 0)
+                .clipped()
+                .allowsHitTesting(isExpanded)
             }
         } header: {
             // No title: the Folders tab above already names it.
@@ -81,6 +98,10 @@ struct FoldersSection: View {
         } footer: {
             Text(Strings.Folders.footer)
         }
+    }
+
+    private func toggleExpanded() {
+        withAnimation(reduceMotion ? nil : .snappy) { isExpanded.toggle() }
     }
 
     private func add() {
