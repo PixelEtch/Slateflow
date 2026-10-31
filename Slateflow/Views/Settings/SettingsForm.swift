@@ -9,8 +9,24 @@
 import SwiftUI
 
 /// The Settings tab, remembered so Customize… and the Edit links open the right one.
-enum SettingsTab: String {
+enum SettingsTab: String, CaseIterable {
     case folders, smartCollections
+
+    var title: String {
+        switch self {
+        case .folders: Strings.Folders.section
+        case .smartCollections: Strings.SmartCollections.section
+        }
+    }
+
+    /// ⌘1, ⌘2 - as in Apple's own Settings windows.
+    var shortcut: KeyEquivalent {
+        switch self {
+        case .folders: "1"
+        case .smartCollections: "2"
+        }
+    }
+
     static let storageKey = "settingsTab"
     static let windowID = "customize"
 }
@@ -18,17 +34,35 @@ enum SettingsTab: String {
 struct SettingsForm: View {
     @Bindable var store: SlateStore
     @AppStorage(SettingsTab.storageKey) private var tab = SettingsTab.folders
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Namespace private var glass
 
     var body: some View {
         VStack(spacing: 0) {
             tabSwitch
                 .padding(.top, Spacing.md)
-            switch tab {
-            case .folders:
-                Form { FoldersSection(store: store) }
-                    .formStyle(.grouped)
-            case .smartCollections:
-                smartCollections
+            // Cross-fades between tabs, like the main window's two inspector panes.
+            ZStack {
+                switch tab {
+                case .folders:
+                    Form { FoldersSection(store: store) }
+                        .formStyle(.grouped)
+                        .transition(.opacity)
+                case .smartCollections:
+                    smartCollections
+                        .transition(.opacity)
+                }
+            }
+        }
+        // ⌘1 / ⌘2 switch tabs; invisible and out of the Tab order and VoiceOver.
+        .background {
+            ForEach(SettingsTab.allCases, id: \.self) { item in
+                Button(item.title) { select(item) }
+                    .keyboardShortcut(item.shortcut, modifiers: .command)
+                    .opacity(0)
+                    .accessibilityHidden(true)
+                    .focusable(false)
+                    .allowsHitTesting(false)
             }
         }
         // No Save button, as in macOS Settings: every change is stored as it's made.
@@ -47,26 +81,53 @@ struct SettingsForm: View {
         .frame(width: Size.Settings.width, height: Size.Settings.height)
     }
 
-    /// Same size and Liquid Glass capsule as the main window's Recent Projects / Folder
-    /// Preview switch.
+    private func select(_ item: SettingsTab) {
+        withAnimation(reduceMotion ? nil : .smooth(duration: 0.25)) { tab = item }
+    }
+
+    /// macOS 26: a Liquid Glass pill that morphs to the chosen tab. Before: the system
+    /// segmented control. Either way VoiceOver and the keyboard see a two-option switch.
     @ViewBuilder private var tabSwitch: some View {
-        let picker = Picker(Strings.Settings.tabs, selection: $tab) {
-            Text(Strings.Folders.section).tag(SettingsTab.folders)
-            Text(Strings.SmartCollections.section).tag(SettingsTab.smartCollections)
+        if #available(macOS 26, *) {
+            GlassEffectContainer {
+                HStack(spacing: 0) {
+                    ForEach(SettingsTab.allCases, id: \.self) { item in
+                        Button { select(item) } label: {
+                            Text(item.title)
+                                .foregroundStyle(tab == item ? .primary : .secondary)
+                                .padding(.horizontal, Spacing.md)
+                                .padding(.vertical, Spacing.xs)
+                                .contentShape(Capsule())
+                        }
+                        .buttonStyle(.plain)
+                        .background {
+                            if tab == item {
+                                Capsule()
+                                    .fill(.clear)
+                                    .glassEffect(.regular.interactive(), in: .capsule)
+                                    .glassEffectID("selection", in: glass)
+                            }
+                        }
+                    }
+                }
+                .padding(Spacing.xxxs)
+                .background(.quaternary, in: .capsule)
+            }
+            .accessibilityRepresentation { segmentedPicker }
+        } else {
+            segmentedPicker
+                .controlSize(.large)
+                .fixedSize()
+                .tint(Color(nsColor: .tertiaryLabelColor))   // grey, not the accent blue
+        }
+    }
+
+    private var segmentedPicker: some View {
+        Picker(Strings.Settings.tabs, selection: $tab) {
+            ForEach(SettingsTab.allCases, id: \.self) { Text($0.title).tag($0) }
         }
         .pickerStyle(.segmented)
         .labelsHidden()
-        .controlSize(.large)
-        .fixedSize()
-        // Grey selection like the toolbar switch, not the accent blue a content picker gets.
-        .tint(Color(nsColor: .tertiaryLabelColor))
-        if #available(macOS 26, *) {
-            picker
-                .padding(Spacing.xxxs)
-                .glassEffect(.regular, in: .capsule)
-        } else {
-            picker
-        }
     }
 
     private var smartCollections: some View {
