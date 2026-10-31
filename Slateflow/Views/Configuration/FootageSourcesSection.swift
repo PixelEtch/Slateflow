@@ -17,7 +17,7 @@ struct FootageSourcesSection: View {
     }
 
     var body: some View {
-        Section(Strings.FootageSources.section) {
+        Section {
             // Two columns when the form is wide enough, one when it isn't.
             LazyVGrid(columns: [GridItem(.adaptive(minimum: Size.Column.md), alignment: .leading)],
                       alignment: .leading, spacing: Spacing.xs) {
@@ -41,6 +41,11 @@ struct FootageSourcesSection: View {
 
             AddField(label: Strings.FootageSources.addLabel, prompt: Strings.FootageSources.addPrompt,
                      addTitle: Strings.FootageSources.add, text: $newSource, onAdd: addCustom)
+        } header: {
+            Text(Strings.FootageSources.section)
+        } footer: {
+            // Says up front why ticking a camera changes the collection count below.
+            Text(Strings.FootageSources.footer)
         }
     }
 
