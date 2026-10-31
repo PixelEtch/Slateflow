@@ -73,11 +73,9 @@ final class SelectionHistory {
 
     init(fileURL: URL = SelectionHistory.defaultFileURL) {
         self.fileURL = fileURL
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
         guard let data = try? Data(contentsOf: fileURL) else { return }
         do {
-            builds = try decoder.decode([BuildRecord].self, from: data)
+            builds = try Self.decoded(data)
         } catch {
             // Move it aside: starting empty and saving the next build would overwrite it.
             let stamp = Date.now.formatted(.iso8601).replacingOccurrences(of: ":", with: "-")
@@ -96,9 +94,7 @@ final class SelectionHistory {
     /// Mac install. Records already present (matched by id) are skipped, so
     /// importing twice is harmless; nothing existing is ever removed.
     func importBackup(from url: URL) throws {
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
-        let imported = try decoder.decode([BuildRecord].self, from: Data(contentsOf: url))
+        let imported = try Self.decoded(Data(contentsOf: url))
         let existingIDs = Set(builds.map(\.id))
         builds.append(contentsOf: imported.filter { !existingIDs.contains($0.id) })
         builds.sort { $0.time < $1.time }
@@ -116,6 +112,12 @@ final class SelectionHistory {
         } catch {
             Log.error("Build Archives save failed: \(error.localizedDescription)")
         }
+    }
+
+    private static func decoded(_ data: Data) throws -> [BuildRecord] {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return try decoder.decode([BuildRecord].self, from: data)
     }
 
     private static func encoded(_ builds: [BuildRecord]) throws -> Data {

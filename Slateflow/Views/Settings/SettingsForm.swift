@@ -73,11 +73,15 @@ struct SettingsForm: View {
     /// The system segmented switch, the size of the main window's Recent Projects / Folder
     /// Preview switch: grey selection, and a glass capsule on macOS 26.
     @ViewBuilder private var tabSwitch: some View {
-        let picker = segmentedPicker
-            .controlSize(.large)
-            .fixedSize()
-            // Grey selection like the toolbar switch, not the accent blue a content picker gets.
-            .tint(Color(nsColor: .tertiaryLabelColor))
+        let picker = Picker(Strings.Settings.tabs, selection: $tab) {
+            ForEach(SettingsTab.allCases, id: \.self) { Text($0.title).tag($0) }
+        }
+        .pickerStyle(.segmented)
+        .labelsHidden()
+        .controlSize(.large)
+        .fixedSize()
+        // Grey selection like the toolbar switch, not the accent blue a content picker gets.
+        .tint(Color(nsColor: .tertiaryLabelColor))
         if #available(macOS 26, *) {
             picker
                 .padding(Spacing.xxxs)
@@ -85,14 +89,6 @@ struct SettingsForm: View {
         } else {
             picker
         }
-    }
-
-    private var segmentedPicker: some View {
-        Picker(Strings.Settings.tabs, selection: $tab) {
-            ForEach(SettingsTab.allCases, id: \.self) { Text($0.title).tag($0) }
-        }
-        .pickerStyle(.segmented)
-        .labelsHidden()
     }
 
     private var smartCollections: some View {
